@@ -6,7 +6,7 @@ import random
 from .config import GenConfig
 from .decorate import decorate
 from .graph import build_graph
-from .layout import LayoutError, build_layout
+from .layout import LayoutError, build_layout, cleanup_diagonals
 from .level import Level
 from .validate import validate
 
@@ -27,6 +27,7 @@ def generate(cfg: GenConfig = None, **overrides) -> Level:
             graph = build_graph(cfg, rng)
             level = build_layout(graph, cfg, rng, cfg.seed)
             decorate(level, rng)
+            cleanup_diagonals(level)
         except LayoutError as e:
             last = str(e)
             continue

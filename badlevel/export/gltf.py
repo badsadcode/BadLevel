@@ -28,6 +28,8 @@ MATERIALS = {
     "door_blue": ("bl_door_blue", [0.20, 0.35, 0.85, 1.0]),
     "secret": ("bl_secret", [0.60, 0.45, 0.80, 1.0]),
     "trigger": ("bl_trigger", [0.20, 0.90, 0.40, 0.45]),
+    "lift": ("bl_lift", [0.95, 0.75, 0.15, 1.0]),
+    "ladder": ("bl_ladder", [0.55, 0.35, 0.20, 1.0]),
 }
 
 
@@ -116,7 +118,7 @@ def to_glb(level: Level) -> bytes:
                 "extras": {"kind": e.kind, **{k: v for k, v in e.props.items()}}}
         if e.bounds:
             mat = {"door": "door_blue" if e.props.get("key") == "blue" else "door",
-                   "secret_door": "secret", "exit": "trigger"}.get(e.kind, "door")
+                   "secret_door": "secret", "exit": "trigger", "lift": "lift", "ladder": "ladder"}.get(e.kind, "door")
             mb = MeshBuilder()
             lo, hi = e.bounds
             c = e.pos

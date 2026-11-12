@@ -52,7 +52,7 @@ def _samples(level: Level, cfg: AnalysisConfig):
         xs.append((x + 0.5) * s)
         ys.append((y + 0.5) * s)
         zs.append(level.spans[(x, y)][i][0])
-        owners.append(level.owner.get((x, y), "?"))
+        owners.append(level.owner_of((x, y), level.spans[(x, y)][i]) or "?")
     return np.array(xs), np.array(ys), np.array(zs, dtype=float), owners, nodes
 
 
@@ -203,7 +203,7 @@ def analyze(level: Level, cfg: AnalysisConfig = None) -> dict:
     ent_by_room = defaultdict(list)
     for e in level.entities:
         c = (int(e.pos[0] // s), int(e.pos[1] // s))
-        o = level.owner.get(c, "")
+        o = level.owner_at(c, e.pos[2] - 24) or level.owner_at(c, e.pos[2]) or ""
         if o.startswith("room:"):
             ent_by_room[int(o[5:])].append(e.kind)
 
@@ -264,6 +264,7 @@ def analyze(level: Level, cfg: AnalysisConfig = None) -> dict:
             "on_main_path": r.node in main,
         })
 
+    main = [nid for nid in main if not level.room_by_node(nid).is_connector]
     pacing = [{"room": level.room_by_node(nid).id, "kind": level.graph.nodes[nid].kind,
                "exposure_mean": rooms[level.room_by_node(nid).id]["exposure_mean"],
                "mutual_visibility": rooms[level.room_by_node(nid).id]["mutual_visibility"],

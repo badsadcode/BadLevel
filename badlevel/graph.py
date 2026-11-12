@@ -29,6 +29,7 @@ class Node:
     zone: int = 0       # number of locks passed to get here
     depth: int = 0      # distance along the critical path (difficulty ramp)
     key: Optional[str] = None
+    storey: int = 0     # for connectors: the lower storey they start from
 
 
 @dataclass
@@ -39,6 +40,7 @@ class Edge:
     kind: str = "open"   # open | locked | secret
     key: Optional[str] = None
     tree: bool = True    # False for loop edges
+    connector: Optional[str] = None  # stairs / drop for edges that change storey
 
 
 @dataclass
@@ -177,4 +179,65 @@ def build_graph(cfg: GenConfig, rng: random.Random) -> MissionGraph:
         s = g.add_node("secret", "small", zone=parent.zone, depth=parent.depth)
         g.add_edge(parent.id, s.id, kind="secret")
 
+    if cfg.storeys > 1:
+        assign_storeys(g, cfg, rng, [n.id for n in main])
     return g
+
+
+CONNECTOR_KINDS = ("stairwell", "lift", "ladder")
+
+
+def assign_storeys(g: MissionGraph, cfg: GenConfig, rng: random.Random, main: List[int]):
+    """Give every room a storey, then turn tree edges that change storey into vertical
+    connections: a stair corridor, or a connector room (stairwell / lift / ladder)."""
+    S = cfg.storeys
+    best = None
+    for _ in range(24):
+        st = {main[0]: rng.randrange(S)}
+        for a, b in zip(main, main[1:]):
+            s = st[a]
+            if rng.random() < cfg.storey_change:
+                s += rng.choice([-1, 1]) if 0 < s < S - 1 else (1 if s == 0 else -1)
+            st[b] = s
+        # branches: mostly the parent's storey, sometimes one up or down (keys in the basement...)
+        order = [e for e in g.edges if e.tree]
+        changed = True
+        while changed:
+            changed = False
+            for e in order:
+                for p, c in ((e.a, e.b), (e.b, e.a)):
+                    if p in st and c not in st:
+                        s = st[p]
+                        node = g.nodes[c]
+                        if node.kind != "secret" and rng.random() < 0.35:
+                            s = max(0, min(S - 1, s + rng.choice([-1, 1])))
+                        st[c] = s
+                        changed = True
+        used = len(set(st.values()))
+        if best is None or used > best[0]:
+            best = (used, st)
+        if used == S:
+            break
+    st = best[1]
+    for n in g.nodes:
+        n.storey = st[n.id]
+
+    weights = cfg.connector_weights
+    kinds = list(weights)
+    for e in list(g.edges):
+        sa, sb = g.nodes[e.a].storey, g.nodes[e.b].storey
+        if sa == sb:
+            continue
+        if not e.tree:
+            e.connector = "drop"          # decided for real in the layout (drop if it fits)
+            continue
+        kind = rng.choices(kinds, [weights[k] for k in kinds])[0]
+        if kind == "stairs" or e.kind == "secret":
+            e.connector = "stairs"
+            continue
+        lo_node = g.nodes[e.a] if sa < sb else g.nodes[e.b]
+        c = g.add_node(kind, "connector", zone=lo_node.zone, depth=min(g.nodes[e.a].depth, g.nodes[e.b].depth),
+                       storey=min(sa, sb))
+        old_b = e.b
+        e.b = c.id                        # a -> connector keeps the lock, if any
+        g.add_edge(c.id, old_b)

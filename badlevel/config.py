@@ -20,6 +20,17 @@ class GenConfig:
     keys: int = 1                # 0..2 key/locked-door pairs
     secret: bool = True          # add a secret room
 
+    # --- storeys -----------------------------------------------------------
+    storeys: int = 1             # 1 = classic single-storey level; 2-5 = stacked floors
+    storey_height: int = 256     # planning grid between storeys (rooms may span more)
+    storey_change: float = 0.5   # chance the critical path changes storey at each room
+    # how a change of storey is made: stair corridor, switchback stairwell, lift, ladder
+    connector_weights: dict = field(default_factory=lambda: {
+        "stairs": 0.3, "stairwell": 0.35, "lift": 0.2, "ladder": 0.15})
+    drop_chance: float = 0.6     # loops between storeys become one-way drops when they fit
+    max_drop: int = 288          # highest intentional drop (units)
+    tall_room_chance: float = 0.4  # arenas / hubs reaching up into the next storey
+
     # --- geometry --------------------------------------------------------
     cell: int = 32               # grid cell size in units
     step_height: int = 16        # stair step rise (Quake max step is 18)

@@ -47,9 +47,16 @@ def test_level_has_quake_like_ingredients(levels):
     assert sum(len(lv.diag) for lv in levels.values()) > 100, "45-degree walls expected"
 
 
-def test_brushes_exactly_fill_the_solid_space(levels):
+@pytest.fixture(scope="module")
+def tall_levels():
+    return {s: generate(GenConfig(seed=s, storeys=3)) for s in range(12)}
+
+
+@pytest.mark.parametrize("which", ["single", "stacked"])
+def test_brushes_exactly_fill_the_solid_space(levels, tall_levels, which):
     """Brush columns + empty spans tile [zmin, zmax] with no gaps or overlaps -> sealed."""
-    level = max(levels.values(), key=lambda lv: len(lv.diag))
+    pool = levels if which == "single" else tall_levels
+    level = max(pool.values(), key=lambda lv: len(lv.diag) + lv.stats()["multi_span_cells"])
     assert level.diag
     zmin, zmax = level.z_range()
     s = level.cell
@@ -169,15 +176,15 @@ def test_corridor_widths_and_diagonals(levels):
                 assert c.radius == 1, "secret passages stay tight"
         # every corridor half cell has its two open sides on flat cells of the same corridor
         for cell, corner in lv.diag.items():
-            owner = lv.owner[cell]
-            if owner.startswith("corridor:"):
+            owner = lv.owner_of(cell, lv.spans[cell][0])
+            if owner and owner.startswith("corridor:"):
                 from badlevel.shapes import SOLID_SIDES
                 for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
                     n = (cell[0] + dx, cell[1] + dy)
                     if (dx, dy) in SOLID_SIDES[corner]:
                         assert n not in lv.spans or n in lv.diag
                     else:
-                        assert lv.owner.get(n) == owner
+                        assert lv.owner_of(n, lv.spans[n][0]) == owner
                         assert abs(lv.spans[n][0][0] - lv.spans[cell][0][0]) <= lv.config.step_height
 
 
@@ -192,3 +199,85 @@ def test_cli(tmp_path):
     for ext in ("map", "glb", "json", "html"):
         assert (tmp_path / f"badlevel_1.{ext}").exists()
     assert (tmp_path / "index.html").exists()
+
+
+# ---------------------------------------------------------------- storeys
+def test_single_storey_stays_classic(levels):
+    for lv in levels.values():
+        st = lv.stats()
+        assert st["storeys"] == 1 and not lv.links and not any(st["connectors"].values())
+
+
+def test_multi_storey_levels(tall_levels):
+    kinds, drops, stacked_rooms = set(), 0, 0
+    for seed, lv in tall_levels.items():
+        assert validate(lv)["ok"], (seed, validate(lv)["errors"])
+        st = lv.stats()
+        assert st["storeys"] >= 2
+        kinds |= {k for k, v in st["connectors"].items() if v}
+        drops += st["drops"]
+        rooms = [r for r in lv.rooms if not r.is_connector]
+        for a in rooms:
+            for b in rooms:
+                if a.id < b.id and a.storey != b.storey and set(a.cells()) & set(b.cells()):
+                    stacked_rooms += 1
+    assert kinds == {"stairwell", "lift", "ladder"}
+    assert drops > 0, "some loops become one-way drops"
+    assert stacked_rooms > 0, "rooms on different storeys stack over each other"
+
+
+def test_link_semantics(tall_levels):
+    links = [l for lv in tall_levels.values() for l in lv.links]
+    lifts = [l for l in links if l["kind"] == "lift"]
+    ladders = [l for l in links if l["kind"] == "ladder"]
+    assert lifts and ladders
+    assert all(l["two_way"] and l["interaction"] == "ride" and l["accessible"] for l in lifts)
+    assert all(l["two_way"] and l["interaction"] == "climb" and not l["accessible"] for l in ladders)
+    text = to_map(next(lv for lv in tall_levels.values() if any(l["kind"] == "lift" for l in lv.links)))
+    assert '"classname" "func_plat"' in text
+
+
+def test_drops_are_one_way(tall_levels):
+    from badlevel.validate import _link_edges
+    checked = 0
+    for lv in tall_levels.values():
+        for c in lv.corridors:
+            if c.connector != "drop":
+                continue
+            own = f"corridor:{c.id}"
+            # walk only inside this corridor: top end reaches the bottom end, never the reverse
+            outside = {cell for cell in lv.spans
+                       if not any(lv.owner_of(cell, sp) == own for sp in lv.spans[cell])}
+            top = (c.path[0][0], c.path[0][1], 0)
+            bottom = (c.path[-1][0], c.path[-1][1], 0)
+            top = next((x, y, i) for (x, y) in [c.path[0]] for i, sp in enumerate(lv.spans[(x, y)])
+                       if lv.owner_of((x, y), sp) == own)
+            bottom = next((x, y, i) for (x, y) in [c.path[-1]] for i, sp in enumerate(lv.spans[(x, y)])
+                          if lv.owner_of((x, y), sp) == own)
+            assert bottom in flood(lv, top, outside, {})
+            assert top not in flood(lv, bottom, outside, {})
+            checked += 1
+    assert checked
+
+
+def test_validator_catches_a_softlock():
+    """A ledge you can drop off into a closed pit: the exit is still reachable from the start,
+    but a player who drops in is stuck. The validator must say so."""
+    from badlevel.graph import MissionGraph
+    from badlevel.level import Entity, Level
+    lv = Level(seed=0, cell=32, width=14, height=8, config=GenConfig(), graph=MissionGraph())
+    for x in range(1, 13):
+        for y in range(1, 4):
+            lv.spans[(x, y)] = [(128, 320)]          # upper walkway
+    for x in range(5, 9):
+        for y in range(4, 7):
+            lv.spans[(x, y)] = [(0, 320)]            # pit below, open to the walkway
+    lv.entities.append(Entity("player_start", (2.5 * 32, 2.5 * 32, 152)))
+    lv.entities.append(Entity("exit", (11.5 * 32, 2.5 * 32, 160), {}, ((11 * 32, 2 * 32, 128), (12 * 32, 3 * 32, 192))))
+    report = validate(lv)
+    assert not report["ok"] and any("softlock" in e for e in report["errors"])
+    # give the pit a staircase back up (16-unit steps) and the softlock is gone
+    for cell, f in (((9, 6), 16), ((10, 6), 32), ((11, 6), 48), ((12, 6), 64),
+                    ((12, 5), 80), ((11, 5), 96), ((10, 5), 112), ((10, 4), 128)):
+        lv.spans[cell] = [(f, 320)]
+    assert validate(lv)["ok"], validate(lv)["errors"]

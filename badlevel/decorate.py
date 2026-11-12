@@ -43,7 +43,7 @@ class RoomCtx:
                 continue
             for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
                 n = (c[0] + dx, c[1] + dy)
-                if not self.room.contains(*n) and n in self.level.spans:
+                if not self.room.contains(*n) and self.level.spans_in(n, self.room.floor, self.room.ceil):
                     out.append(c)
                     break
         return out
@@ -53,12 +53,11 @@ class RoomCtx:
                    for c in cells)
 
     def set_floor(self, c: Cell, f: int):
-        self.level.spans[c] = [(f, self.room.ceil)]
+        self.level.replace_in(c, *self.room.slot, [(f, self.room.ceil)])
         self.used.add(c)
 
     def make_solid(self, c: Cell):
-        self.level.spans.pop(c, None)
-        self.level.owner.pop(c, None)
+        self.level.replace_in(c, *self.room.slot, [])
         self.used.add(c)
 
 
@@ -184,7 +183,7 @@ def f_balcony(ctx: RoomCtx, rng: random.Random) -> bool:
             if not ctx.free(list(stairs)) or any(c in ctx.used or not r.contains(*c) for c in deck_cells):
                 continue
             for c in deck_cells:
-                ctx.level.spans[c] = [(r.floor, r.floor + under), (r.floor + deck, r.ceil)]
+                ctx.level.replace_in(c, *r.slot, [(r.floor, r.floor + under), (r.floor + deck, r.ceil)])
                 ctx.used.add(c)
             for c, f in stairs.items():
                 ctx.set_floor(c, f)
@@ -256,7 +255,7 @@ def _pick_free(ctx: RoomCtx, rng: random.Random, taken: Set[Cell], floor_only=Tr
     r = ctx.room
     cands = []
     for c in r.cells():
-        spans = ctx.level.spans.get(c)
+        spans = ctx.level.room_spans(c, r)
         if not spans or len(spans) != 1 or c in taken or c in ctx.clear or c in ctx.level.diag:
             continue
         if floor_only and spans[0][0] != r.floor:
@@ -273,7 +272,7 @@ def _pick_free(ctx: RoomCtx, rng: random.Random, taken: Set[Cell], floor_only=Tr
 
 
 def _flat_cell(level: Level, room: Room, c) -> bool:
-    spans = level.spans.get(c)
+    spans = level.room_spans(c, room)
     return bool(spans) and len(spans) == 1 and spans[0][0] == room.floor and c not in level.diag \
         and room.contains(*c)
 
@@ -291,12 +290,13 @@ def _flat_block(ctx: RoomCtx, fx: float, fy: float, avoid=()):
 
 
 def _nearest_open(level: Level, room: Room, fx: float, fy: float):
-    cands = [c for c in room.cells() if c not in level.diag and level.spans.get(c)]
+    cands = [c for c in room.cells() if c not in level.diag and level.room_spans(c, room)]
     return min(cands, key=lambda c: (c[0] + 0.5 - fx) ** 2 + (c[1] + 0.5 - fy) ** 2)
 
 
-def _at(level: Level, c: Cell, top=False, z_off=24.0):
-    f = level.floor_at(c, top=top)
+def _at(level: Level, room: Room, c: Cell, top=False, z_off=24.0):
+    spans = level.room_spans(c, room)
+    f = spans[-1][0] if top else spans[0][0]
     return ((c[0] + 0.5) * level.cell, (c[1] + 0.5) * level.cell, f + z_off)
 
 
@@ -361,7 +361,7 @@ def decorate(level: Level, rng: random.Random):
                 continue
             lit.add(c)
             ents.append(Entity("light", ((c[0] + 0.5) * level.cell, (c[1] + 0.5) * level.cell,
-                                         level.spans[c][-1][1] - 24),
+                                         level.room_spans(c, room)[-1][1] - 24),
                                {"intensity": 250 if len(spots) > 1 else 300}))
 
         if room.kind == "start":
@@ -373,10 +373,10 @@ def decorate(level: Level, rng: random.Random):
                 dx = sum(d[0] for d in ctx.doors) / len(ctx.doors) + 0.5 - (c[0] + 0.5)
                 dy = sum(d[1] for d in ctx.doors) / len(ctx.doors) + 0.5 - (c[1] + 0.5)
                 angle = int(round(math.degrees(math.atan2(dy, dx)) / 45.0)) * 45 % 360
-            ents.append(Entity("player_start", _at(level, c), {"angle": angle}))
+            ents.append(Entity("player_start", _at(level, room, c), {"angle": angle}))
             c2 = _pick_free(ctx, rng, taken)
             if c2:
-                ents.append(Entity("weapon", _at(level, c2, z_off=0), {"type": "shotgun"}))
+                ents.append(Entity("weapon", _at(level, room, c2, z_off=0), {"type": "shotgun"}))
         elif room.kind == "exit":
             block = _flat_block(ctx, cx, cy)
             if block is None:
@@ -395,7 +395,7 @@ def decorate(level: Level, rng: random.Random):
             if c is None:
                 raise LayoutError("no spot for key")
             taken.update(ped or [c])
-            ents.append(Entity("key", _at(level, c, z_off=24), {"color": node.key}))
+            ents.append(Entity("key", _at(level, room, c, z_off=24), {"color": node.key}))
 
         # enemies
         per = {"combat": 28, "arena": 20, "hub": 40, "key": 45, "supply": 80, "exit": 60}.get(room.kind)
@@ -403,20 +403,20 @@ def decorate(level: Level, rng: random.Random):
             for _ in range(max(1, area // per)):
                 c = _pick_free(ctx, rng, taken)
                 if c:
-                    ents.append(Entity("enemy", _at(level, c), {"tier": tier}))
+                    ents.append(Entity("enemy", _at(level, room, c), {"tier": tier}))
         # high ground gets a sniper and a reward
         for attr in ("deck_cells", "top_cells"):
             cells = [c for c in getattr(ctx, attr, []) if c not in taken]
             if cells:
                 c = rng.choice(cells)
                 taken.add(c)
-                ents.append(Entity("enemy", _at(level, c, top=True), {"tier": tier}))
+                ents.append(Entity("enemy", _at(level, room, c, top=True), {"tier": tier}))
                 cells.remove(c)
                 if cells:
                     c = rng.choice(cells)
                     taken.add(c)
                     ents.append(Entity("armor" if room.kind == "arena" else "ammo",
-                                       _at(level, c, top=True, z_off=0), {}))
+                                       _at(level, room, c, top=True, z_off=0), {}))
 
         # pickups
         n_items = {"supply": 3, "combat": 1, "arena": 2, "hub": 1, "secret": 2, "key": 1}.get(room.kind, 0)
@@ -430,7 +430,7 @@ def decorate(level: Level, rng: random.Random):
             else:
                 kind = rng.choice(["health", "health", "ammo", "armor" if tier > 1 else "ammo"])
                 props = {}
-            ents.append(Entity(kind, _at(level, c, z_off=0), props))
+            ents.append(Entity(kind, _at(level, room, c, z_off=0), props))
 
     # corridor lights and doors
     for corr in level.corridors:

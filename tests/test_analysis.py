@@ -115,7 +115,8 @@ def test_analysis_is_deterministic(report):
 
 
 def test_balcony_rooms_show_high_ground():
-    level = generate(seed=7)
+    level = next(lv for lv in (generate(seed=s) for s in range(40))
+                 if any("balcony" in r.features for r in lv.rooms))
     rep = analyze(level)
     balcony = [r for r in rep["rooms"] if "balcony" in r["features"]]
     assert balcony and any(r["high_ground"] and r["high_ground"]["height_adv"] > 32 for r in balcony)

@@ -131,6 +131,19 @@ def to_map(level: Level) -> str:
             p = {"classname": "func_door_secret", "spawnflags": 0}
             out.append(_entity(p, [brush_text(lo, hi, *(["bl_wall"] * 3))]))
             continue
+        elif e.kind == "lift":
+            # func_plat is drawn in its raised position and travels `height` units down
+            lo, hi = _ibox(e.bounds)
+            p = {"classname": "func_plat", "height": e.props["travel"], "speed": 150,
+                 "_badlevel_low": e.props["low"], "_badlevel_high": e.props["high"]}
+            out.append(_entity(p, [brush_text(lo, hi, *(["bl_lift"] * 3))]))
+            continue
+        elif e.kind == "ladder":
+            # Quake 1 has no ladders: a func_ladder volume (Quake 2 / Half-Life style) for importers
+            lo, hi = _ibox(e.bounds)
+            p = {"classname": "func_ladder", "_badlevel_low": e.props["low"], "_badlevel_high": e.props["high"]}
+            out.append(_entity(p, [brush_text(lo, hi, *(["bl_ladder"] * 3))]))
+            continue
         elif e.kind == "exit":
             lo, hi = _ibox(e.bounds)
             p = {"classname": "trigger_changelevel", "map": "start"}

@@ -10,7 +10,8 @@ seed + config
    ▼
 1. mission graph     start → fights → arena → exit, key branches, locked doors,
                      loops (only inside the same lock zone), secret room
-2. spatial layout    rooms on several floor levels, shaped footprints (rect,
+2. spatial layout    rooms on several floor levels or stacked storeys
+                     (stairwells, lifts, ladders, one-way drops), shaped footprints (rect,
                      chamfer, octagon, L, T, U, plus, ring) with real 45° walls,
                      A* corridors 3/5/7 cells wide, some running at 45°,
                      with real stairs (16-unit steps on straight runs)
@@ -122,6 +123,33 @@ an open triangle. In the `.map` they become **triangular prism brushes** (still
 convex, so qbsp is happy), in the `.glb` real diagonal faces, in the JSON
 `"diagonal": [[x, y, corner], ...]`.
 
+## Storeys and vertical connections
+
+`--storeys 1` (the default) is a classic single-storey level: one floor plan with
+height variation. `--storeys 2..5` builds stacked floors. Storeys are a planning
+grid (256 units apart), not hard limits: arenas and hubs may reach up into the
+next storey, rooms on different storeys can sit directly above each other, and
+corridors pass over and under rooms and other corridors.
+
+The critical path changes storey as it goes. Each change uses one of these, with
+its traversal semantics recorded in `level.links` and the IR:
+
+| connector | how | traversal |
+|---|---|---|
+| **stair corridor** | a corridor with a long straight staircase | walk, two-way |
+| **stairwell** | switchback tower; climbs of more than one flight pair stack cycles in the same footprint | walk, two-way |
+| **lift** | shaft with a top landing over open space and a moving platform (`func_plat` in the `.map`) | ride, two-way, accessible |
+| **ladder** | shaft with a ladder volume up to the landing (`func_ladder`: Quake 1 has no ladders, importers map it) | climb, two-way, not accessible |
+| **drop** | a loop corridor that runs level, then falls down a 2-cell shaft | one-way |
+
+Validation is **directed**: you can step up 18 units but drop up to 288, and lifts
+and ladders are explicit links. Besides key order and exit gating, it runs a
+**softlock check**: from every spot you can reach, the next key (and finally the
+exit) must still be reachable. A connected room graph isn't enough.
+
+In the preview, the **Cut** slider hides everything above a height so you can look
+into lower storeys.
+
 ## Corridors
 
 Each corridor gets its own width and may run diagonally:
@@ -166,7 +194,9 @@ ericw-tools. Export working is not the same as import working.
 ## Roadmap ideas
 
 - Verify in TrenchBroom + compile with ericw-tools (qbsp/vis/light)
-- Windows, open room connections, merged halls, interlocking structures
+- Windows, openings and atriums between storeys (visual vs physical connectivity), vertical landmarks
+- Merged halls and multi-storey compositions with semantic regions
+- Mezzanines: upper-storey corridors attaching to the balcony of a tall room
 - TrenchBroom groups per room/corridor in the `.map`
 - Engine plugins: Godot `@tool` importer for the JSON, Unity editor window, Unreal Python/Editor Utility
 - Hand-made room templates (Noor's!) mixed with generated rooms

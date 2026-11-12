@@ -13,9 +13,11 @@ ENT_COLORS = {
     "player_start": "#22c55e", "enemy": "#ef4444", "key": "#facc15", "door": "#f97316",
     "secret_door": "#a855f7", "exit": "#10b981", "health": "#f472b6", "megahealth": "#ec4899",
     "ammo": "#eab308", "armor": "#38bdf8", "weapon": "#e5e7eb", "light": "#fde68a",
+    "lift": "#f59e0b", "ladder": "#a16207",
 }
 KIND_LABEL = {"start": "START", "exit": "EXIT", "arena": "ARENA", "hub": "hub", "combat": "fight",
-              "supply": "supply", "key": "KEY", "secret": "secret"}
+              "supply": "supply", "key": "KEY", "secret": "secret", "stairwell": "stairs ⇅",
+              "lift": "lift ⇅", "ladder": "ladder ⇅"}
 
 
 def _height_color(f: int, lo: int, hi: int) -> str:
@@ -54,8 +56,11 @@ def map_svg(level: Level) -> str:
         a, b = level.rooms[e.a], level.rooms[e.b]
         (ax, ay), (bx, by) = a.center(), b.center()
         cls = "loop" if not e.tree else e.kind
-        color = {"locked": "#f97316", "secret": "#a855f7", "loop": "#93c5fd"}.get(cls, "#ffffff")
-        dash = {"loop": "6 4", "secret": "2 3"}.get(cls, "")
+        drop = any(c.edge == e.id and c.connector == "drop" for c in level.corridors)
+        if drop:
+            cls = "drop"
+        color = {"locked": "#f97316", "secret": "#a855f7", "loop": "#93c5fd", "drop": "#f472b6"}.get(cls, "#ffffff")
+        dash = {"loop": "6 4", "secret": "2 3", "drop": "1 3"}.get(cls, "")
         parts.append(f'<line x1="{ax * s}" y1="{(level.height - ay) * s}" x2="{bx * s}" y2="{(level.height - by) * s}" '
                      f'stroke="{color}" stroke-width="1.6" stroke-opacity=".8" stroke-dasharray="{dash}"/>')
     for r in level.rooms:
@@ -65,7 +70,10 @@ def map_svg(level: Level) -> str:
         if node.key:
             label += f" ({node.key})"
         parts.append(f'<text x="{cx * s}" y="{(level.height - cy) * s - 4}" class="lbl">{html.escape(label)}</text>')
-        parts.append(f'<text x="{cx * s}" y="{(level.height - cy) * s + 8}" class="sub">z{r.floor}</text>')
+        sub = f"z{r.floor}–{r.top_floor}" if r.top_floor is not None else f"z{r.floor}"
+        if level.config and level.config.storeys > 1 and r.top_floor is None:
+            sub = f"S{r.storey} · " + sub
+        parts.append(f'<text x="{cx * s}" y="{(level.height - cy) * s + 8}" class="sub">{sub}</text>')
     for e in level.entities:
         if e.kind == "light":
             continue
@@ -94,6 +102,8 @@ html, body { margin:0; height:100%; background:var(--bg); color:var(--text); fon
 .hud { position:absolute; left:12px; top:12px; display:flex; gap:6px; flex-wrap:wrap; }
 .hud button { background:rgba(20,22,28,.85); color:#eee; border:1px solid #3a3f4b; border-radius:6px; padding:6px 10px; cursor:pointer; font:inherit; }
 .hud button.on { border-color: var(--accent); color: var(--accent); }
+.hud .cut { background:rgba(20,22,28,.85); color:#eee; border:1px solid #3a3f4b; border-radius:6px; padding:3px 10px; display:flex; align-items:center; gap:6px; font-size:13px; }
+.hud .cut input { width:120px; accent-color: var(--accent); }
 .help { position:absolute; left:12px; bottom:12px; color:#cfd4dc; background:rgba(20,22,28,.7); padding:6px 10px; border-radius:6px; font-size:12px; }
 aside { background:var(--panel); border-left:1px solid var(--line); overflow:auto; padding:16px; }
 h1 { font-size:18px; margin:0 0 2px; } h1 span { color:var(--accent); }
@@ -137,6 +147,7 @@ table { width:100%; border-collapse:collapse; font-size:13px; } td { padding:3px
       <button id="fly">Fly (WASD)</button>
       <button id="ceil">Ceilings: off</button>
       <button id="ents" class="on">Entities</button>
+      <label class="cut" title="Hide everything above this height, to look into lower storeys">Cut <input type="range" id="cut" min="0" max="1" step="0.05" value="1"><span id="cutv">all</span></label>
     </div>
     <div class="help" id="help">Drag to orbit · scroll to zoom · right-drag to pan</div>
     <div class="tip" id="tip"></div>
@@ -164,6 +175,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 const GLB_B64 = "__GLB__";
+const $ = id => document.getElementById(id);
 const COLORS = __COLORS__;
 const view = document.getElementById('view');
 const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
@@ -216,6 +228,14 @@ new GLTFLoader().parse(bytes.buffer, '', (gltf) => {
   window.__startPos = start ? start.getWorldPosition(new THREE.Vector3()) : ctr.clone();
   const a = ((start && start.userData.angle) || 0) * Math.PI / 180;
   window.__startYaw = Math.atan2(-Math.cos(a), Math.sin(a));
+  const cut = $('cut'), plane = new THREE.Plane(new THREE.Vector3(0, -1, 0), box.max.y);
+  cut.min = box.min.y.toFixed(2); cut.max = box.max.y.toFixed(2); cut.value = cut.max;
+  window.__setCut = (y) => {
+    cut.value = y; const all = y >= box.max.y - 0.01;
+    plane.constant = +y; renderer.clippingPlanes = all ? [] : [plane];
+    $('cutv').textContent = all ? 'all' : Math.round(y * 32) + 'u';
+  };
+  cut.oninput = () => window.__setCut(+cut.value);
   window.__view = { camera, controls, root }; window.__ready = true;
 });
 
@@ -224,13 +244,13 @@ let mode = 'orbit', yaw = 0, pitch = 0; const keys = {};
 addEventListener('keydown', e => keys[e.code] = true); addEventListener('keyup', e => keys[e.code] = false);
 renderer.domElement.addEventListener('click', () => { if (mode === 'fly') renderer.domElement.requestPointerLock(); });
 addEventListener('mousemove', e => { if (mode === 'fly' && document.pointerLockElement === renderer.domElement) { yaw -= e.movementX * 0.0025; pitch = Math.max(-1.5, Math.min(1.5, pitch - e.movementY * 0.0025)); } });
-const $ = id => document.getElementById(id);
 function setMode(m) {
   mode = m; window.__mode = m; $('orbit').classList.toggle('on', m === 'orbit'); $('fly').classList.toggle('on', m === 'fly');
   controls.enabled = m === 'orbit';
   if (m === 'fly') {
     const p = window.__startPos; camera.position.set(p.x, p.y + 0.55, p.z); yaw = window.__startYaw || 0; pitch = 0;
     ceilings.forEach(c => c.visible = true); $('ceil').textContent = 'Ceilings: on';
+    if (window.__setCut) window.__setCut(+$('cut').max);
     $('help').textContent = 'Click to look around · WASD move · Space/C up/down · Shift fast · Esc release';
   } else { $('help').textContent = 'Drag to orbit · scroll to zoom · right-drag to pan'; document.exitPointerLock(); }
 }
@@ -391,7 +411,7 @@ def _analysis_embed(level: Level, analysis: dict) -> dict:
         bx, by = x - x % stride, y - y % stride
         i = by_key.get((bx, by, f))
         if i is None:
-            cands = by_area.get(area_idx.get(level.owner.get((x, y))), [])
+            cands = by_area.get(area_idx.get(level.owner_of((x, y), level.spans[(x, y)][k])), [])
             cands = [j for j in cands if abs(data[j][fz] - f) <= 16] or cands
             if not cands:
                 continue
@@ -419,6 +439,9 @@ def to_html(level: Level, analysis: dict = None) -> str:
         ("Rooms", stats["rooms"]), ("Corridors", stats["corridors"]),
         ("Loops", sum(1 for e in level.graph.edges if not e.tree)),
         ("Keys", ", ".join(e.key for e in level.graph.edges if e.kind == "locked") or "none"),
+        ("Storeys", stats["storeys"]),
+        ("Vertical connectors", ", ".join(f"{v} {k}" for k, v in stats["connectors"].items() if v) or "-"),
+        ("One-way drops", stats["drops"]),
         ("Room shapes", ", ".join(stats["shapes"])),
         ("Room features", ", ".join(feats) or "-"),
         ("45° wall cells", stats["diagonal_cells"]),
