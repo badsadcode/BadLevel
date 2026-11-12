@@ -175,3 +175,51 @@ def test_sloped_side_faces_close_the_gap():
         return tot
     # on the shared face x = 128: from the low cell's ceiling (160) up to the slope's edge (240), 32 wide
     assert abs(area("ceiling", 128) + area("wall", 128) - 32 * (240 - 160)) < 1e-6
+
+
+# ----------------------------------------------------------------------
+# walls: members and recesses (step 2)
+# ----------------------------------------------------------------------
+def test_walls_break_up_long_flat_walls(styled):
+    """With wall structure, the longest flat wall per room drops clearly (same layouts)."""
+    from badlevel.walls import flat_wall_runs
+    for name in PRESET_STYLE:
+        before, after = [], []
+        for seed in (1, 2, 3):
+            cfg = compile_recipe(PRESETS[name], seed)
+            cfg.arch_walls = False
+            plain = generate(cfg)
+            lv = next(lv for lv in styled[name] if lv.seed == seed)
+            rooms = lambda l: [r for r in l.rooms if not r.is_connector and r.kind != "courtyard"]  # noqa: E731
+            before += [flat_wall_runs(plain, r) for r in rooms(plain)]
+            after += [flat_wall_runs(lv, r) for r in rooms(lv)]
+        assert sum(after) / len(after) < 0.8 * sum(before) / len(before), name
+
+
+def test_recesses_keep_a_solid_wall(styled):
+    """A recess cell belongs to its room and never touches another space directly."""
+    for levels in styled.values():
+        for lv in levels:
+            n = 0
+            for r in lv.rooms:
+                for c in lv.spans:
+                    if r.contains(*c) or not any(o[2] == f"room:{r.id}" for o in lv.owners.get(c, [])):
+                        continue
+                    if not (r.x - 2 <= c[0] < r.x + r.w + 2 and r.y - 2 <= c[1] < r.y + r.h + 2):
+                        continue
+                    n += 1
+                    for dx in (-1, 0, 1):
+                        for dy in (-1, 0, 1):
+                            nb = (c[0] + dx, c[1] + dy)
+                            if nb in lv.spans and not r.contains(*nb):
+                                owners = {o[2] for o in lv.owners.get(nb, [])}
+                                assert owners <= {f"room:{r.id}"} or any(o.startswith("window:") for o in owners), \
+                                    (lv.seed, r.id, c, nb, owners)
+            assert validate(lv)["ok"]
+
+
+def test_walls_off_switch():
+    cfg = compile_recipe(PRESETS["industrial"], 2)
+    cfg.arch_walls = False
+    lv = generate(cfg)
+    assert not any("walls" in r.meta for r in lv.rooms)

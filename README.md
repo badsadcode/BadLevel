@@ -305,6 +305,14 @@ Vaults and roofs are **smooth** (sloped planes in the `.map`, the `.glb` and the
 `ceiling_slopes`); beams, ribs and coffers stay crisp. `arch_smooth: false` keeps a strict
 16-unit grid. Low rooms get low vaults, gables, **tray** or **coffered** ceilings.
 
+**Walls** get structure too (`walls.py`, `arch_walls`): members on the bay lines
+(shafts, frame pilasters, bunker counterforts), recesses cut into the solid wall between
+them (gothic lancet niches with pointed heads, industrial service bays, bunker shelters,
+compound window bays), one end feature in big halls (an apse niche, a loading door, a
+blast door, a bay window) and crane corbels in tall industrial halls. A recess always
+keeps one solid cell between it and any other space. The mean longest flat wall per
+room roughly halves.
+
 Safety: piers go in before a room's features, keep 2 cells from doorways and a walkable
 ring, and are undone if they would split the floor. Ceilings are applied after the
 features and only lowered: never below a walkable surface plus 112 units (the lowest corridor), never below an

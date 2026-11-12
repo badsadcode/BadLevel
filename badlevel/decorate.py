@@ -340,16 +340,21 @@ def decorate(level: Level, rng: random.Random):
     (Two passes over the rooms, in this order, so the random sequence is stable.) With an
     ``arch_style``, a room's cross-section puts its piers in before the features and shapes
     its ceilings after them (see architecture.py; it has its own random stream)."""
-    from . import architecture
+    from . import architecture, walls
     from .spaces import space_for
     from .spaces import corridor as corridor_space
     ctxs: Dict[int, RoomCtx] = {}
     sections = architecture.plan(level)        # {} without an arch_style: nothing changes
+    tiers = architecture.rank_tiers(level) if sections or level.config.arch_style else {}
     for room in level.rooms:
         ctx = RoomCtx(level, room)
         ctxs[room.id] = ctx
         sec = sections.get(room.id)
         piers = architecture.place_piers(level, room, sec, ctx) if sec else 0
+        if room.id in tiers:
+            wall = walls.articulate(level, room, ctx, sec, tiers[room.id])
+            if wall:
+                room.meta["walls"] = wall
         space_for(room.kind).decorate(level, room, ctx, rng)
         if sec:
             lowered = architecture.apply_ceilings(level, room, sec)

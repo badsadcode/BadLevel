@@ -362,3 +362,42 @@ industrial rooms stayed plain boxes. Changes:
 Result over seeds 1-5: plain rooms (secrets excluded) fortress 6/64, industrial 13/78,
 compound 10/63, bunker 21/54. The bunker's remaining plain rooms are 128 units high
 (corridor height): nothing fits under them, and their character has to come from walls.
+
+## D20. Structure along the walls
+
+**Problem.** Noor's note on the showcase: "enormous uninterrupted wall surfaces". After
+step 1 the ceilings had structure, the walls didn't: the longest flat wall per room
+averaged 11-15 m, up to 38 m in the big halls.
+
+**Decision.** `badlevel/walls.py` gives every eligible room of a styled level a rhythm
+along its walls, aligned with its section's bays where it has them:
+- *inward members* on the bay lines of all four walls (shafts, frame pilasters,
+  counterforts 2 wide in bunkers), placed with the pier rules before the features;
+  skipped where the section already stands members against the walls;
+- *outward recesses* between the members: gothic lancet niches with pointed (sloped)
+  heads, industrial service bays in every other bay, bunker shelters (96 high, so they
+  fit 128-high rooms), compound window bays with a 32-unit sill;
+- *one end feature* in grand and major halls: an apse niche 2 deep with a pointed head,
+  a loading door, a blast door, a bay window;
+- *crane corbels* along the long walls of tall industrial halls (forced stepped cells
+  laid over the section).
+
+**Why recesses go outward.** Cutting into the solid around a room changes the wall's
+depth without taking floor from the room, and it is where a wall would have niches.
+It is only safe with rules: the recess cell must be solid rock with no owner, inside
+the border, and every 8-neighbour that isn't the room or the recess itself must be solid
+too, so one cell of wall always remains between it and any other space. All or nothing
+per recess, never at a doorway (2 cells). A recess belongs to its room (owner), so
+windows found later may open from it, which looks right.
+
+**Measured** (seeds 1-3, the same layouts with and without walls): mean longest flat
+wall per room fortress 11.5 -> 5.9 m, industrial 13.0 -> 7.0 m, compound 14.5 -> 5.9 m,
+bunker 7.1 -> 5.4 m; the worst wall per level in fortress, industrial and compound
+19-38 m -> 8-26 m (bunker 9-13 -> 7-9 m). A test requires a clear
+drop for every style. `arch_walls: false` turns the pass off; unstyled levels are
+byte-identical.
+
+**Known limits.** Members are full-height boxes; there are no stepped buttresses or
+string courses yet. Rooms with shaped outlines (octagons, rings) get members only where
+their bounding box meets a wall. Small gothic rooms can look busy with shafts every
+3 cells; the minor tier only thins the recesses.

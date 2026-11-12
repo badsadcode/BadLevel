@@ -192,7 +192,15 @@ def summary(level, report):
         "exposure": lv["exposure_share"], "height_range_m": round((st["z_range"][1] - st["z_range"][0] - 64) / 32, 1),
         "flags": [f"{f['severity']}: {f['message']}" for f in report["flags"]],
         "architecture": arch_summary(level),
+        "flat_walls": flat_walls(level),
     }
+
+
+def flat_walls(level) -> list:
+    """[longest flat wall in the level, mean per room] in metres (walls.py)."""
+    from badlevel.walls import flat_wall_runs
+    runs = [flat_wall_runs(level, r) for r in level.rooms if not r.is_connector and r.kind != "courtyard"]
+    return [max(runs), round(sum(runs) / len(runs), 1)] if runs else [0, 0]
 
 
 def arch_summary(level) -> str:
@@ -262,7 +270,10 @@ def page(out: str, review_md: str = "", before: str = None):
         for e in [e for e in index if e["key"] == key]:
             sm = e["summary"]
             shots = "".join(fig(e, sh) for sh in e["shots"])
-            rows = [("architecture", sm.get("architecture", "none (plain boxes)")), ("composition", sm["composition"]), ("storeys / height range", f'{sm["storeys"]} / {sm["height_range_m"]} m'),
+            fw = sm.get("flat_walls")
+            rows = [("architecture", sm.get("architecture", "none (plain boxes)"))] + \
+                ([("longest flat wall: in the level / mean per room", f"{fw[0]} m / {fw[1]} m")] if fw else []) + [
+                    ("composition", sm["composition"]), ("storeys / height range", f'{sm["storeys"]} / {sm["height_range_m"]} m'),
                     ("rooms", sm["rooms"]), ("mega-room", sm["mega"]), ("open areas / merged halls", f'{sm["open_areas"]} / {sm["halls"]}'),
                     ("windows / galleries", f'{sm["windows"]} / {sm["galleries"]}'), ("vertical connectors / drops", f'{sm["connectors"]} / {sm["drops"]}'),
                     ("loops", sm["loops"]), ("landmarks / cross-storey views", f'{sm["landmarks"]} / {sm["cross_storey_views"]}'),

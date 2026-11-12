@@ -92,6 +92,7 @@ class Section:
         # continuous ceiling surface h(u, v, cell_u, cell_v) for smooth vaults and roofs: evaluated
         # at a cell's corners it gives a sloped plane (None: the profile is stepped by nature)
         self.surf: Optional[Callable[[float, float, int, int], float]] = None
+        self.forced: set = set()       # cells that stay stepped (members laid over a smooth surface)
 
     def set(self, u, v, h):
         self.ceil[(u, v)] = q(h)
@@ -509,23 +510,36 @@ def _eligible(room: Room) -> bool:
     return not room.is_connector and room.kind not in SKIP_KINDS
 
 
+def rank_tiers(level: Level) -> Dict[int, str]:
+    """grand / major / minor for every eligible room: the largest space (and any mega-room) is
+    grand, the next third major, the rest (and small rooms) minor."""
+    rooms = [r for r in level.rooms if _eligible(r)]
+    rooms.sort(key=lambda r: -(len(list(r.cells())) * (r.ceil - r.floor)))
+    n_major = max(1, int(math.ceil(len(rooms) * 0.3)))
+    out = {}
+    for rank, room in enumerate(rooms):
+        tier = "grand" if rank == 0 or room.kind == "megaroom" else "major" if rank <= n_major else "minor"
+        if tier != "grand" and room.w * room.h < 60:
+            tier = "minor"
+        out[room.id] = tier
+    return out
+
+
 def plan(level: Level) -> Dict[int, Section]:
     """Choose a section for every eligible room (rooms ranked by volume into tiers)."""
     cfg = level.config
     style = getattr(cfg, "arch_style", "") or ""
     if style not in PALETTES:
         return {}
-    rooms = [r for r in level.rooms if _eligible(r)]
-    rooms.sort(key=lambda r: -(len(list(r.cells())) * (r.ceil - r.floor)))
-    n_major = max(1, int(math.ceil(len(rooms) * 0.3)))
+    tiers = rank_tiers(level)
+    rooms = sorted((r for r in level.rooms if r.id in tiers),
+                   key=lambda r: -(len(list(r.cells())) * (r.ceil - r.floor)))
     bias = getattr(cfg, "arch_weights", {}) or {}
     out: Dict[int, Section] = {}
     used: Dict[str, int] = {}                  # each use of a profile halves its weight: coherent, not uniform
-    for rank, room in enumerate(rooms):
+    for room in rooms:
         rng = random.Random(f"{cfg.seed}/{cfg.variant}/arch/{room.id}")
-        tier = "grand" if rank == 0 or room.kind == "megaroom" else "major" if rank <= n_major else "minor"
-        if tier != "grand" and room.w * room.h < 60:
-            tier = "minor"
+        tier = tiers[room.id]
         pal = {k: w * float(bias.get(k, 1.0)) * 0.5 ** used.get(k, 0) for k, w in PALETTES[style][tier].items()}
         pal = {k: w for k, w in pal.items() if w > 0}
         fr = Frame(room, flip_v=rng.random() < 0.5)
@@ -630,7 +644,8 @@ def apply_ceilings(level: Level, room: Room, sec: Section):
                 continue
             for sp in level.spans_in(n, f_top, room.ceil):   # an opening beside this cell
                 need = max(need, sp[1])
-        if smooth and c not in level.diag and level.spans[c][-1] == spans[-1]:   # (nothing stacked above)
+        if smooth and c not in level.diag and level.spans[c][-1] == spans[-1] \
+                and fr.uv(c) not in sec.forced:                                    # (nothing stacked above)
             zs = [room.floor + z for z in _corners(fr, sec, c)]
             planar = abs((zs[0] + zs[2]) - (zs[1] + zs[3])) <= 1.0
             if planar and min(zs) >= need and max(zs) <= room.ceil and min(zs) < room.ceil:
