@@ -159,6 +159,28 @@ def test_no_keys_no_doors():
     assert "door" not in kinds and "key" not in kinds and "secret_door" not in kinds
 
 
+def test_corridor_widths_and_diagonals(levels):
+    corridors = [c for lv in levels.values() for c in lv.corridors]
+    assert {c.radius for c in corridors} >= {1, 2, 3}, "3, 5 and 7 wide corridors"
+    assert any(c.diagonal for c in corridors), "some corridors run at 45 degrees"
+    for lv in levels.values():
+        for c in lv.corridors:
+            if c.kind == "secret":
+                assert c.radius == 1, "secret passages stay tight"
+        # every corridor half cell has its two open sides on flat cells of the same corridor
+        for cell, corner in lv.diag.items():
+            owner = lv.owner[cell]
+            if owner.startswith("corridor:"):
+                from badlevel.shapes import SOLID_SIDES
+                for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+                    n = (cell[0] + dx, cell[1] + dy)
+                    if (dx, dy) in SOLID_SIDES[corner]:
+                        assert n not in lv.spans or n in lv.diag
+                    else:
+                        assert lv.owner.get(n) == owner
+                        assert abs(lv.spans[n][0][0] - lv.spans[cell][0][0]) <= lv.config.step_height
+
+
 def test_bigger_levels():
     level = generate(GenConfig(seed=99, main_rooms=10, side_rooms=5, loops=3, keys=2))
     assert len(level.rooms) >= 15

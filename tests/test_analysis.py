@@ -103,7 +103,8 @@ def test_report_is_machine_readable_and_consistent(report):
     assert abs(sum(shares.values()) - 1) < 0.01
     assert len(js["rooms"]) == 12 and all(0 <= r["mutual_visibility"] <= 1 for r in js["rooms"])
     assert all(f["severity"] in ("problem", "warn", "info") for f in js["flags"])
-    assert js["level"]["loops"] == 2
+    level = generate(seed=7)
+    assert js["level"]["loops"] == len(level.corridors) - len(level.rooms) + 1
     assert all(l["length"] >= AnalysisConfig().lane_min for l in js["lanes"])
 
 

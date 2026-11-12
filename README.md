@@ -12,7 +12,8 @@ seed + config
                      loops (only inside the same lock zone), secret room
 2. spatial layout    rooms on several floor levels, shaped footprints (rect,
                      chamfer, octagon, L, T, U, plus, ring) with real 45° walls,
-                     A* corridors with real stairs (16-unit steps on straight runs)
+                     A* corridors 3/5/7 cells wide, some running at 45°,
+                     with real stairs (16-unit steps on straight runs)
 3. room features     pillars · raised platforms · pits · balconies with space
                      underneath (room-over-room) · key pedestals
 4. gameplay markup   player start, enemies (difficulty ramps with depth),
@@ -121,6 +122,20 @@ an open triangle. In the `.map` they become **triangular prism brushes** (still
 convex, so qbsp is happy), in the `.glb` real diagonal faces, in the JSON
 `"diagonal": [[x, y, corner], ...]`.
 
+## Corridors
+
+Each corridor gets its own width and may run diagonally:
+
+- **Width:** 3, 5 or 7 cells (96/160/224 units), with taller ceilings for wider
+  halls (128/160/192). Approaches to arenas and hubs lean wide, side branches
+  narrow, secret passages always 3. Width is clamped to fit the smaller room.
+- **Diagonals:** the router moves in 8 directions (no corner cutting, never
+  diagonal next to a doorway, so entrances stay straight). Diagonal stretches are a
+  band of full cells edged with the same 45° half cells as shaped rooms, sized to
+  match the straight width. Inner corners of bends get chamfered too.
+- If a wide or diagonal route doesn't fit, the corridor falls back to a plain
+  3-wide one instead of failing the level.
+
 ## How the geometry works
 
 The world is a grid of 32-unit columns. Each column stores the **empty spans**
@@ -156,5 +171,6 @@ ericw-tools. Export working is not the same as import working.
 - Engine plugins: Godot `@tool` importer for the JSON, Unity editor window, Unreal Python/Editor Utility
 - Hand-made room templates (Noor's!) mixed with generated rooms
 - Corridors passing over/under each other, bridges, lifts
+- Straight diagonal stair risers (currently stepped across diagonal stretches)
 - Themes and difficulty curves, combat-space metrics (sightlines, cover density)
 - Valve 220 `.map` format and a generated dev-texture WAD

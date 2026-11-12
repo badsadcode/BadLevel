@@ -77,6 +77,9 @@ class Corridor:
     floors: List[int]         # floor height for each centre-line cell
     kind: str = "open"        # open | locked | secret
     key: Optional[str] = None
+    radius: int = 1           # half width in cells: 1 -> 3 wide, 2 -> 5, 3 -> 7
+    height: int = 128
+    diagonal: bool = False    # has 45-degree stretches
 
 
 @dataclass

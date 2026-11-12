@@ -25,8 +25,10 @@ class GenConfig:
     step_height: int = 16        # stair step rise (Quake max step is 18)
     level_step: int = 64         # floor height quantum between rooms
     max_level: int = 4           # floors range over 0 .. max_level * level_step
-    corridor_radius: int = 1     # corridor half width in cells (1 -> 3 cells wide)
-    corridor_height: int = 128
+    corridor_radius: int = 1     # base corridor half width in cells (1 -> 3 cells wide)
+    corridor_height: int = 128   # height of a base-width corridor
+    max_corridor_radius: int = 3 # widest corridors: 7 cells
+    diagonal_chance: float = 0.5 # share of corridors allowed to run at 45 degrees
     room_gap: int = 4            # minimum empty cells between room rectangles
 
     # --- player capsule used for validation ----------------------------

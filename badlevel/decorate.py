@@ -302,11 +302,11 @@ def _at(level: Level, c: Cell, top=False, z_off=24.0):
 
 def _door_entity(level: Level, corr, kind: str) -> Entity:
     cfg = level.config
-    r = cfg.corridor_radius
+    r = corr.radius
     path, floors = corr.path, corr.floors
     best = None
     for i in range(r + 2, len(path) - r - 2):
-        if _straight(path, i, r) and floors[i - 1] == floors[i] == floors[i + 1]:
+        if _straight(path, i, r, axis_only=True) and floors[i - 1] == floors[i] == floors[i + 1]:
             # secret doors hug the visible room side, locked doors sit mid way
             score = i if kind == "secret_door" else abs(i - len(path) // 2)
             if best is None or score < best[0]:
@@ -319,10 +319,10 @@ def _door_entity(level: Level, corr, kind: str) -> Entity:
     s = level.cell
     if dx:  # corridor runs along X -> door spans Y
         lo = (cx * s, (cy - r) * s, f)
-        hi = ((cx + 1) * s, (cy + r + 1) * s, f + cfg.corridor_height)
+        hi = ((cx + 1) * s, (cy + r + 1) * s, f + corr.height)
     else:
         lo = ((cx - r) * s, cy * s, f)
-        hi = ((cx + r + 1) * s, (cy + 1) * s, f + cfg.corridor_height)
+        hi = ((cx + r + 1) * s, (cy + 1) * s, f + corr.height)
     pos = tuple((a + b) / 2 for a, b in zip(lo, hi))
     props = {"corridor": corr.id}
     if corr.key:
@@ -437,7 +437,7 @@ def decorate(level: Level, rng: random.Random):
         for i in range(3, len(corr.path) - 3, 7):
             (x, y), f = corr.path[i], corr.floors[i]
             ents.append(Entity("light", ((x + 0.5) * level.cell, (y + 0.5) * level.cell,
-                                         f + level.config.corridor_height - 16), {"intensity": 200}))
+                                         f + corr.height - 16), {"intensity": 200}))
         if corr.kind == "locked":
             ents.append(_door_entity(level, corr, "door"))
         elif corr.kind == "secret":
