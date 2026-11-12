@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "badlevel"
+version = "0.1.0"
+description = "Procedural Quake-style FPS level blockout generator (engine agnostic)"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+dependencies = []
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[project.scripts]
+badlevel = "badlevel.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["badlevel*"]
