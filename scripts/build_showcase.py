@@ -199,6 +199,21 @@ def viewpoints(level, report):
                           "target": gl(hx * s, hy * s, hall.floor)})
             break
 
+    # 8. a compound's rooftop: from a building's roof (reached by its ladder), over the yard
+    for r in rooms:
+        bs = [b for b in r.meta.get("buildings", []) if b.get("ladder")]
+        if r.kind == "courtyard" and bs:
+            x0, y0, bw, bh = bs[0]["rect"]
+            cx, cy = r.center()
+            # the roof corner farthest from the yard's middle, looking across it
+            corner = max(((x0, y0), (x0 + bw - 1, y0), (x0, y0 + bh - 1), (x0 + bw - 1, y0 + bh - 1)),
+                         key=lambda c: (c[0] + 0.5 - cx) ** 2 + (c[1] + 0.5 - cy) ** 2)
+            shots.append({"name": "rooftop", "caption": f"From a rooftop in the yard ({(bs[0]['top'] - r.floor) / 32:.0f} m "
+                          f"up, reached by its ladder): {len(r.meta['buildings'])} buildings and the roofs around",
+                          "eye": gl((corner[0] + 0.5) * s, (corner[1] + 0.5) * s, bs[0]["top"] + EYE),
+                          "target": gl(cx * s, cy * s, r.floor + 64)})
+            break
+
     # 4. the most interesting sight link: across storeys first, then the longest
     links = report.get("visual", {}).get("links", [])
     if links:

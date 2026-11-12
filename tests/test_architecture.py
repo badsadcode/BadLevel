@@ -345,3 +345,54 @@ def test_deep_chamber_is_seen_from_above(styled):
         # nothing stands in front of the window
         assert all(lv.room_spans(tuple(c), hall) for c in hall.meta["overlook"])
     assert seen >= 4, seen
+
+
+# ----------------------------------------------------------------------
+# compounds: buildings in the yards, roofscape around them
+# ----------------------------------------------------------------------
+@pytest.fixture(scope="module")
+def compounds():
+    return [generate(compile_recipe(PRESETS["compound"], s)) for s in range(1, 7)]
+
+
+def test_yards_have_enterable_buildings(compounds):
+    from badlevel.validate import _node_at, flood
+    yards = with_b = 0
+    for lv in compounds:
+        assert validate(lv)["ok"]
+        start = _node_at(lv, next(e for e in lv.entities if e.kind == "player_start").pos)
+        reach = flood(lv, start, set())
+        reach_cells = {(x, y) for x, y, _ in reach}
+        for y in (r for r in lv.rooms if r.kind == "courtyard"):
+            yards += 1
+            if y.meta.get("buildings"):
+                with_b += 1
+            for b in y.meta.get("buildings", []):
+                x0, y0, bw, bh = b["rect"]
+                inside = [(x, yy) for x in range(x0 + 1, x0 + bw - 1) for yy in range(y0 + 1, y0 + bh - 1)]
+                assert any(c in reach_cells for c in inside), "a building you can walk into"
+                roof_nodes = [(x, yy, len(lv.spans[(x, yy)]) - 1) for x in range(x0, x0 + bw)
+                              for yy in range(y0, y0 + bh) if (x, yy) in lv.spans]
+                if b["ladder"]:
+                    assert any(n in reach for n in roof_nodes), "the ladder reaches the roof"
+    assert with_b >= 0.6 * yards, (with_b, yards)
+
+
+def test_roofscape_is_scenery(compounds):
+    """The roofs around a yard open the view to the sky, but nobody can walk onto them."""
+    from badlevel.validate import _node_at, flood
+    total = 0
+    for lv in compounds:
+        start = _node_at(lv, next(e for e in lv.entities if e.kind == "player_start").pos)
+        reach = flood(lv, start, set())
+        for (x, y, i) in reach:
+            owner = lv.owner_of((x, y), lv.spans[(x, y)][i]) or ""
+            assert not owner.startswith("roof:"), (lv.seed, x, y)
+        roofs = [c for c in lv.spans if any((lv.owner_of(c, sp) or "").startswith("roof:") for sp in lv.spans[c])]
+        assert all(c in lv.sky for c in roofs)
+        total += len(roofs)
+    assert total > 1000
+
+
+def test_roofscape_is_opt_in():
+    assert not compile_recipe(PRESETS["fortress"], 1).open_roofscape

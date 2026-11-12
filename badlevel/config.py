@@ -41,6 +41,8 @@ class GenConfig:
 
     # --- open areas ------------------------------------------------------------
     open_areas: int = 0          # courtyards / plazas open to the sky (0 = none)
+    open_buildings: float = 0.0   # chance a yard gets free-standing buildings first (compound: most yards)
+    open_roofscape: bool = False  # carve the rock around yards into stepped roofs: a skyline, not a pit
     mega_rooms: int = 0          # levels within the level (0 = none)
     mega_styles: dict = field(default_factory=dict)   # {"hangar": 1, "works": 2, "terraces": 0}
 

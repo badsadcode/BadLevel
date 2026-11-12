@@ -506,3 +506,39 @@ A showcase camera rule looks from the booth through the window into the chamber.
 
 **Known limits.** One overlook per level, always a booth with a window (no balcony over
 the void). The booth is a side branch; nothing pulls the player into it, it is found.
+
+## D24. Compounds: buildings in the yards, a roofscape around them
+
+**Problem.** The last finding from the first showcase that no step had touched: a yard
+was a 9-14 m pit with sheer walls on every side and a few blocks inside. It read as a
+roofless room, not as a compound of buildings.
+
+**Decision** (`badlevel/compound.py`):
+- *Buildings.* With `open_buildings` (compound preset: 0.9) a yard gets 1-3 free-standing
+  buildings first (by its size): walls one cell thick, a roof slab, an interior of at
+  least 2x2 at 128+ units, and a 2-cell doorway on the side facing the yard's middle. About
+  two thirds get a ladder up an outside wall (the existing ladder link and entity), and
+  then the rooftop is a vantage point: the room's populate step puts a sniper and a reward
+  on it. Each building keeps a 2-cell walkable ring and stays clear of doorways. Buildings
+  are also one weighted option among the yard features of other presets.
+- *Roofscape.* With `open_roofscape` (compound) the rock around a yard is carved, up to 4
+  cells out, into open air above stepped roofs: 5-cell blocks along each side with their
+  own front height (176-256 units), rising 48 units per ring away from the yard, up to the
+  sky plane, sky above. From the yard: building fronts and a skyline, not a cliff. Facade
+  pilasters stop at the roof beside them.
+
+**Safety.** Roofs are scenery: a cell is carved only if its column is empty from below
+the roof to above the sky, and only if nothing other than the yard or more roof is within
+one cell at those heights (so no room, corridor, gallery or other storey can walk in).
+The lowest front is 176, out of step reach of a balcony deck along a yard wall (144). A
+test checks that no roof span is reachable from the start, that every building interior
+is, and that every ladder reaches its roof. Lights in a yard are never placed on a
+building's roof cell.
+
+**Measured** (compound seeds 1-8): 14 of 16 yards have buildings, 25 ladders; every yard
+has a roofscape (188-509 cells).
+
+**Known limits.** The roofscape is a stepped band, still a wall at its outer edge (96 units
+under the sky plane); where the yard borders other spaces the rock stays full height
+(it reads like a gatehouse or a tower, but it isn't designed as one). Buildings are boxes
+with one doorway: no windows, no interior features, no second storey.

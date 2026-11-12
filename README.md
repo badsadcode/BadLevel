@@ -269,6 +269,12 @@ weighted choice that includes leaving the yard empty: a kiosk or monument, a low
 colonnade, a sunken plaza, a raised terrace, or an arcade with a walkway on top. On
 multi-storey levels, upper-storey galleries can overlook a yard.
 
+**Compounds** (`open_buildings`, `open_roofscape`, the compound preset): yards get 1-3
+free-standing buildings you can walk into, some with a ladder to a rooftop vantage
+point, and the rock around the yard is carved into stepped roofs under the sky, so the
+yard reads as a place between buildings instead of a pit. The roofs are scenery
+(nobody can reach them; a test checks).
+
 ## Mega-rooms
 
 A level within the level (`mega_rooms` in the config; recipes turn it on through scale).

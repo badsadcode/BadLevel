@@ -175,7 +175,7 @@ PRESETS: Dict[str, Recipe] = {r.name: r for r in [
                        "connections, many windows, one level.",
            scale=0.7, openness=0.95, verticality=0.2, claustrophobia=0.0, combat=0.6, exploration=0.6,
            loopiness=0.8, regularity=0.55,
-           overrides={"arch_style": "compound", "merge_chance": 0.65, "max_hall_rooms": 4, "windows": 10, "glazed_chance": 0.5,
+           overrides={"arch_style": "compound", "open_roofscape": True, "open_buildings": 0.9, "merge_chance": 0.65, "max_hall_rooms": 4, "windows": 10, "glazed_chance": 0.5,
                       "height_scale": 1.4, "crate_scale": 1.8, "room_scale": 1.45,
                       "size_bias": {"small": 0.4, "medium": 1.0, "large": 2.5},
                       "corridor_width_bias": {1: 0.3, 2: 1.0, 3: 3.0},

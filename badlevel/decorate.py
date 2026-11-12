@@ -295,8 +295,9 @@ def _flat_block(ctx: RoomCtx, fx: float, fy: float, avoid=()):
     return best[1] if best else None
 
 
-def _nearest_open(level: Level, room: Room, fx: float, fy: float):
-    cands = [c for c in room.cells() if c not in level.diag and level.room_spans(c, room)]
+def _nearest_open(level: Level, room: Room, fx: float, fy: float, single: bool = False):
+    cands = [c for c in room.cells() if c not in level.diag and level.room_spans(c, room)
+             and (not single or len(level.room_spans(c, room)) == 1)]
     return min(cands, key=lambda c: (c[0] + 0.5 - fx) ** 2 + (c[1] + 0.5 - fy) ** 2)
 
 

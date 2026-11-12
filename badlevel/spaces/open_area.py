@@ -120,16 +120,37 @@ class OpenAreaSpace(RoomSpace):
         level.sky.update(room.cells())
 
     def feature_options(self, room: Room):
+        from ..compound import f_buildings
         from ..decorate import f_balcony, f_pit, f_platform
-        return [[], [], [f_kiosk], [f_colonnade], [f_pit], [f_platform], [f_balcony], [f_kiosk, f_colonnade]]
+        return [[], [], [f_kiosk], [f_colonnade], [f_pit], [f_platform], [f_balcony], [f_kiosk, f_colonnade],
+                [f_buildings], [f_buildings, f_colonnade]]
 
     def crate_chance(self, room: Room) -> float:
         return 0.45
 
     def decorate(self, level: Level, room: Room, ctx, rng: random.Random):
+        if getattr(level.config, "open_roofscape", False):
+            from ..compound import roofscape
+            roofscape(level, room, random.Random(f"{level.config.seed}/{level.config.variant}/roofs/{room.id}"))
         if rng.random() < 0.8:
             f_facade(ctx, rng)
+        yb = getattr(level.config, "open_buildings", 0.0)
+        if yb > 0:
+            brng = random.Random(f"{level.config.seed}/{level.config.variant}/buildings/{room.id}")
+            if brng.random() < yb:
+                from ..compound import f_buildings
+                f_buildings(ctx, brng)                 # a compound's yards are places between buildings
         super().decorate(level, room, ctx, rng)
+        if room.meta.get("roofscape"):
+            # a pilaster against a roofscape stops at the roof beside it, not at the sky
+            for c in room.cells():
+                if c in level.spans:
+                    continue
+                roofs = [sp[0] for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))
+                         for sp in level.spans.get((c[0] + dx, c[1] + dy), [])
+                         if level.owner_of((c[0] + dx, c[1] + dy), sp) == f"roof:{room.id}"]
+                if roofs:
+                    level.add_span(c, (min(roofs), room.ceil), f"room:{room.id}", slot=room.slot)
         # pilasters and other solid cells are no longer open to the sky
         level.sky.difference_update([c for c in room.cells() if c not in level.spans])
 

@@ -87,7 +87,8 @@ def place_lights(level: Level, room: Room, max_height: Optional[int] = None, int
     spots = [(0.25, 0.25), (0.75, 0.25), (0.25, 0.75), (0.75, 0.75)] if area >= 140 else [(0.5, 0.5)]
     lit = set()
     for fx, fy in spots:
-        c = _nearest_open(level, room, room.x + room.w * fx, room.y + room.h * fy)
+        c = _nearest_open(level, room, room.x + room.w * fx, room.y + room.h * fy,
+                          single=room.kind == "courtyard")        # (not on a yard building's roof)
         if c in lit:
             continue
         lit.add(c)
