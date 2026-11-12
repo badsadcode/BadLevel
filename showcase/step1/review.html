@@ -1,0 +1,52 @@
+<h2>Step 1: hall cross-sections, before and after</h2>
+
+<p><b>Same 12 levels, same seeds, same camera rules.</b> The layouts are identical; only the
+architecture pass is new (D18). Each screenshot has its predecessor on the left. No examples were
+picked or touched up. Where a level rolled a weak profile, it's shown as it is.</p>
+
+<h3>What works</h3>
+<ul>
+<li><b>Gothic vaults read as Gothic.</b> fortress_1 and fortress_2 got a ribbed pointed vault over the
+whole mega-room: a stepped arch from wall to wall, repeated bay after bay. This is the first time a
+BadLevel space is recognisable from its ceiling alone.</li>
+<li><b>The basilica is a nave with an arcade.</b> fortress_3 has a tall pointed nave, lower aisles and a
+row of 2×2 piers on each side (10 of 10 placed).</li>
+<li><b>Industrial halls get structure you can read.</b> Portal frames (pilasters plus deep trusses) and
+clearspan trusses turn the flat dark lid into a roof structure. The <i>works</i> decks and catwalks now
+sit under it, and it starts to look like a place where something is made.</li>
+<li><b>The bunker got heavy.</b> Mushroom piers with drop panels, deep downstand ribs and haunched edges.
+Underground_1 and underground_3 read as poured concrete, not office rooms.</li>
+<li><b>Compound_3's multispan</b> (gabled spans on two rows of columns) is the most "industrial building"
+silhouette in the set.</li>
+<li><b>Nothing broke.</b> All 12 levels validate. The layouts, room counts and landmark counts are
+unchanged, and exposure moved by at most 5 points (the piers are new cover, but most of them stand in
+halls that were already exposed). Levels without a style are byte-identical to before.</li>
+</ul>
+
+<h3>What doesn't work yet</h3>
+<ul>
+<li><b>Voxel arches.</b> Vaults step 16 units per cell. From across the hall that reads as an arch; from
+underneath it reads as an upside-down staircase. Smooth vaults need sloped brushes in the exporter.
+That's a contained change, and worth discussing.</li>
+<li><b>Small rooms barely change.</b> On multi-storey levels most rooms are 6 m high, which leaves 64 units
+to shape after headroom. They get haunches or a shallow gable, and 4–10 rooms per level stay plain. The
+hierarchy is deliberate, but the minor tier is very quiet.</li>
+<li><b>The sample was unlucky for industrial.</b> industrial_1 and industrial_2 both rolled
+<i>clearspan</i> for their grand hall: deep trusses but no columns. That's a legitimate open volume
+(Noor's point 4), but less "factory" than portal frames or multispan. Sawtooth was available and didn't
+come up in these seeds. Across seeds 1–6 the grand halls were portal ×2, multispan ×2 and clearspan ×2.</li>
+<li><b>Reveals are unchanged.</b> The corridor-to-hall shots still look down a plain corridor at a wall
+of the hall. Framed reveals are step 3.</li>
+<li><b>Untouched by design:</b> the compound's yards still feel like roofless rooms, the bunker is still not
+below ground, and landmarks are still only "the biggest room". Those are later steps.</li>
+<li><b>Preview lighting</b> renders every ceiling black from below, so profiles show mostly as
+silhouettes against the walls. A lit compile (still waiting on your OK to run the downloaded tools)
+would show them better.</li>
+</ul>
+
+<h3>Questions for the next step</h3>
+<ol>
+<li>Smooth sloped vaults in the exporter, or keep the stepped look as an honest grid blockout?</li>
+<li>Should the minor tier get more character (e.g. arched doorways, step 3), or stay quiet on purpose?</li>
+<li>Next in the plan: structural rhythm on walls (step 2), or framed reveals and arches (step 3)?</li>
+</ol>

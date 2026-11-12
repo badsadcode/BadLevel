@@ -279,7 +279,8 @@ def page(out: str, review_md: str = "", before: str = None):
 <div class="facts"><table>{table}</table><div><b>Analysis flags</b><ul>{flags}</ul></div></div>
 <p class="links"><a href="{e["stem"]}.html">Open the interactive 3D preview</a>{f' · <a href="{rel}/{e["stem"]}.html">the same level before</a>' if rel and e["stem"] in old else ""} · <a href="{e["stem"]}.map" download>.map</a> · <a href="{e["stem"]}.glb" download>.glb</a> · <a href="{e["stem"]}.analysis.json" download>analysis</a></p>
 </article>''')
-        sections.append(f'<section><h2>{esc(title)}</h2><p class="note">{esc(note)}</p>{"".join(cards)}</section>')
+        shown = f"From the first review, before this step: {note}" if before else note
+        sections.append(f'<section><h2>{esc(title)}</h2><p class="note">{esc(shown)}</p>{"".join(cards)}</section>')
     with open(os.path.join(out, "index.html"), "w") as fh:
         page_html = PAGE if not before else PAGE.replace("<main>", '<main class="compare">') \
             .replace("architectural showcase</h1>", "architecture, step 1: hall cross-sections</h1>")
