@@ -38,6 +38,8 @@
   "max_drop": 288,
   "tall_room_chance": 0.315,
   "open_areas": 0,
+  "mega_rooms": 0,
+  "mega_styles": {},
   "merge_chance": 0.189,
   "max_hall_rooms": 3,
   "windows": 4,
@@ -112,6 +114,12 @@
     22,
     320,
     320
+   ],
+   "mega": [
+    24,
+    32,
+    448,
+    512
    ]
   }
  }

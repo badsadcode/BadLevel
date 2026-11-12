@@ -242,6 +242,16 @@ weighted choice that includes leaving the yard empty: a kiosk or monument, a low
 colonnade, a sunken plaza, a raised terrace, or an arcade with a walkway on top. On
 multi-storey levels, upper-storey galleries can overlook a yard.
 
+## Mega-rooms
+
+A level within the level (`mega_rooms` in the config; recipes turn it on through scale).
+A huge, tall space that runs its own small generation: **platforms** with stairs,
+**decks** you can walk under, **catwalks** between decks, solid **structures** and
+**tiers** rising towards a wall, each a semantic region. Three characters, because a
+mega-room isn't necessarily an arena: **hangar** (vast and mostly empty), **works**
+(an industrial hall of decks and catwalks) and **terraces** (an amphitheatre or great
+hall). Every region is reachable by construction and checked by a test.
+
 ## Merged halls
 
 Not everything is rooms joined by corridors. About 30% of eligible neighbours (open
@@ -316,7 +326,7 @@ ericw-tools. Export working is not the same as import working.
 ## Roadmap ideas
 
 - Verify in TrenchBroom + compile with ericw-tools (qbsp/vis/light)
-- Mega-rooms via sub-generation, and composition
+- Composition
   (macro structures, compression/release pacing). See docs/DECISIONS.md D12.
 - Multi-storey compositions: halls spanning storeys, interlocking structures
 - TrenchBroom groups per room/region in the `.map`

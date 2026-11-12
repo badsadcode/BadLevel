@@ -33,6 +33,12 @@
    "1": 0.5,
    "2": 2.0,
    "3": 1.5
+  },
+  "mega_rooms": 1,
+  "mega_styles": {
+   "terraces": 3.0,
+   "hangar": 0.5,
+   "works": 0.0
   }
  },
  "compiled": {
@@ -59,6 +65,12 @@
   "max_drop": 288,
   "tall_room_chance": 0.644,
   "open_areas": 1,
+  "mega_rooms": 1,
+  "mega_styles": {
+   "terraces": 3.0,
+   "hangar": 0.5,
+   "works": 0.0
+  },
   "merge_chance": 0.4,
   "max_hall_rooms": 3,
   "windows": 8,
@@ -133,6 +145,12 @@
     22,
     320,
     320
+   ],
+   "mega": [
+    24,
+    32,
+    448,
+    512
    ]
   }
  }

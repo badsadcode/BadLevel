@@ -13,7 +13,14 @@
   "loopiness": 0.6,
   "regularity": 0.35
  },
- "overrides": {},
+ "overrides": {
+  "mega_rooms": 1,
+  "mega_styles": {
+   "terraces": 2.0,
+   "works": 1.0,
+   "hangar": 0.5
+  }
+ },
  "compiled": {
   "seed": 101,
   "variant": 0,
@@ -38,6 +45,12 @@
   "max_drop": 288,
   "tall_room_chance": 0.48999999999999994,
   "open_areas": 0,
+  "mega_rooms": 1,
+  "mega_styles": {
+   "terraces": 2.0,
+   "works": 1.0,
+   "hangar": 0.5
+  },
   "merge_chance": 0.288,
   "max_hall_rooms": 3,
   "windows": 7,
@@ -112,6 +125,12 @@
     22,
     320,
     320
+   ],
+   "mega": [
+    24,
+    32,
+    448,
+    512
    ]
   }
  }

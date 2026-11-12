@@ -41,7 +41,13 @@
    "2": 1.0,
    "3": 2.5
   },
-  "diagonal_chance": 0.2
+  "diagonal_chance": 0.2,
+  "mega_rooms": 1,
+  "mega_styles": {
+   "works": 3.0,
+   "hangar": 1.0,
+   "terraces": 0.0
+  }
  },
  "compiled": {
   "seed": 101,
@@ -67,6 +73,12 @@
   "max_drop": 288,
   "tall_room_chance": 0.5249999999999999,
   "open_areas": 1,
+  "mega_rooms": 1,
+  "mega_styles": {
+   "works": 3.0,
+   "hangar": 1.0,
+   "terraces": 0.0
+  },
   "merge_chance": 0.306,
   "max_hall_rooms": 3,
   "windows": 8,
@@ -141,6 +153,12 @@
     22,
     320,
     320
+   ],
+   "mega": [
+    24,
+    32,
+    448,
+    512
    ]
   }
  }

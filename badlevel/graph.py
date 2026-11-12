@@ -167,6 +167,8 @@ def build_graph(cfg: GenConfig, rng: random.Random) -> MissionGraph:
         s = g.add_node("secret", "small", zone=parent.zone, depth=parent.depth)
         g.add_edge(parent.id, s.id, kind="secret")
 
+    if cfg.mega_rooms > 0:
+        make_mega_rooms(g, cfg, rng)
     if cfg.open_areas > 0:
         make_open_areas(g, cfg, rng)
     if cfg.storeys > 1:
@@ -175,6 +177,16 @@ def build_graph(cfg: GenConfig, rng: random.Random) -> MissionGraph:
 
 
 CONNECTOR_KINDS = ("stairwell", "lift", "ladder")
+
+
+def make_mega_rooms(g: MissionGraph, cfg: GenConfig, rng: random.Random):
+    """Turn the arena (then hubs) into mega-rooms, each with a character (hangar, works, terraces)."""
+    cands = [n for n in g.nodes if n.kind in ("arena", "hub")]
+    cands.sort(key=lambda n: (n.kind != "arena", -sum(1 for _ in g.neighbors(n.id)), rng.random()))
+    styles = ["hangar", "works", "terraces"]
+    for n in cands[:cfg.mega_rooms]:
+        n.kind, n.size = "megaroom", "mega"
+        n.style = weighted(rng, styles, cfg.mega_styles)
 
 
 def make_open_areas(g: MissionGraph, cfg: GenConfig, rng: random.Random):

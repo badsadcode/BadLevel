@@ -187,3 +187,36 @@ columns, which read as towers). Lamps hang at most 7 m up instead of at the sky.
 **Cost / next.** The kiosk is a solid block; a building you can enter belongs to
 mega-rooms (sub-generation). Yards don't yet shape the macro layout (a compound
 should be *organised around* its yard): that is composition.
+
+## D15. Mega-rooms run their own generation inside their footprint
+
+**Decision.** `MegaRoomSpace` (`spaces/mega.py`) is a huge (24-32 cells, capped at 40),
+tall (12-18 m) space whose `decorate` hook runs a small generator: sub-areas joined by
+open transitions instead of rooms and corridors. Vocabulary: **platforms** (raised,
+with stairs), **decks** (on stilts, walkable underneath), **catwalks** (bridges between
+decks at one height, floor open below), **structures** (solid masses) and **tiers**
+(terraces rising towards a wall, two stairs each). Every sub-area is a semantic region
+(`room.meta["regions"]`, cells in `region_cells`).
+
+**Characters, because a mega-room is not necessarily an arena.** *hangar* (sparse: a
+few big structures, a loading dock), *works* (dense: decks on one shared level so
+catwalks line up, platforms, clutter), *terraces* (an amphitheatre / great hall).
+Recipes weight them (`mega_styles`): industrial -> works, compound -> hangar,
+fortress -> terraces, explore -> terraces/works with no enemies at all.
+
+**Reachability by construction.** Each piece is placed together with its stairs, and
+undone if it would split the base floor into islands; stair landings are reserved so
+later clutter cannot block them. A test requires every non-solid region to be
+reachable from the player start.
+
+**What the tests caught.** (1) Terraces were first built inverted (the lowest tier
+against the wall, higher ones in front), which buried the lower tier's stairs and made
+it unreachable; tiers now rise towards the wall and are built front to back. (2) The
+first "works" halls almost never had catwalks, because decks rarely shared a height and
+faced each other; one deck level per hall plus aligned placement fixed it (15 catwalks
+in 20 halls instead of 1 in 30).
+
+**Cost / next.** The interiors are functional and legible but not yet memorable; they
+need iteration with an artist's eye. Mega-rooms are rectangular outlines; structures are
+solid (no enterable buildings yet). Composition should decide *where* a mega-room sits
+(central space with satellites, compression before it).

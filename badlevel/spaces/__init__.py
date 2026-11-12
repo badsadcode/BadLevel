@@ -122,3 +122,4 @@ def vertical_kinds() -> Tuple[str, ...]:
 from . import room as _room          # noqa: E402,F401
 from . import connector as _conn     # noqa: E402,F401
 from . import open_area as _open     # noqa: E402,F401
+from . import mega as _mega          # noqa: E402,F401

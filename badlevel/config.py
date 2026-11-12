@@ -36,6 +36,8 @@ class GenConfig:
 
     # --- open areas ------------------------------------------------------------
     open_areas: int = 0          # courtyards / plazas open to the sky (0 = none)
+    mega_rooms: int = 0          # levels within the level (0 = none)
+    mega_styles: dict = field(default_factory=dict)   # {"hangar": 1, "works": 2, "terraces": 0}
 
     # --- merged halls -------------------------------------------------------
     merge_chance: float = 0.3    # neighbouring rooms joined into one hall instead of a corridor
@@ -81,6 +83,7 @@ class GenConfig:
         "medium": (9, 12, 160, 224),
         "large": (14, 18, 256, 320),
         "yard": (16, 22, 320, 320),      # open areas: the height is where the sky starts
+        "mega": (24, 32, 448, 512),      # mega-rooms
     })
 
     def to_dict(self) -> dict:

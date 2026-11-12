@@ -87,6 +87,7 @@ def compile_recipe(recipe: Recipe, seed: int = 1) -> GenConfig:
     cfg.windows = int(round(_lerp(0, 9, op) * (1 - 0.8 * cl) + 3 * ex * (1 - cl)))
     cfg.glazed_chance = _lerp(0.1, 0.7, op) * (1 - cl)
     cfg.open_areas = 0 if op < 0.65 or cl > 0.6 else 1 if op < 0.85 else 2
+    cfg.mega_rooms = 1 if sc >= 0.75 and cl < 0.6 else 0
     cfg.height_scale = _lerp(1.25, 0.72, cl)
     cfg.corridor_width_bias = {1: _lerp(3.0, 0.5, op) * _lerp(1, 3, cl), 2: 1.0,
                                3: _lerp(0.2, 3.0, op) * _lerp(1, 0.1, cl)}
@@ -147,7 +148,8 @@ PRESETS: Dict[str, Recipe] = {r.name: r for r in [
            overrides={"glazed_chance": 0.0, "windows": 8, "height_scale": 1.15, "merge_chance": 0.4, "open_areas": 1,
                       "connector_weights": {"stairs": 0.25, "stairwell": 0.65, "lift": 0.05, "ladder": 0.05},
                       "feature_weights": {"balcony": 2.5, "pillars": 1.5},
-                      "corridor_width_bias": {1: 0.5, 2: 2.0, 3: 1.5}}),
+                      "corridor_width_bias": {1: 0.5, 2: 2.0, 3: 1.5},
+                      "mega_rooms": 1, "mega_styles": {"terraces": 3.0, "hangar": 0.5, "works": 0.0}}),
     Recipe("industrial", "Big tall halls with platforms and catwalk balconies, a loading yard, lifts "
                          "and ladders, wide service corridors, control-room glass, lots of clutter.",
            scale=0.8, openness=0.6, verticality=0.75, claustrophobia=0.15, combat=0.6, exploration=0.5,
@@ -157,7 +159,8 @@ PRESETS: Dict[str, Recipe] = {r.name: r for r in [
                       "size_bias": {"small": 0.5, "medium": 1.0, "large": 3.0},
                       "connector_weights": {"stairs": 0.1, "stairwell": 0.25, "lift": 0.35, "ladder": 0.3},
                       "feature_weights": {"platform": 2.5, "balcony": 2.5, "pillars": 2.0},
-                      "corridor_width_bias": {1: 0.4, 2: 1.0, 3: 2.5}, "diagonal_chance": 0.2}),
+                      "corridor_width_bias": {1: 0.4, 2: 1.0, 3: 2.5}, "diagonal_chance": 0.2,
+                      "mega_rooms": 1, "mega_styles": {"works": 3.0, "hangar": 1.0, "terraces": 0.0}}),
     Recipe("compound", "Open and spread out: courtyards under the sky, large merged halls, wide "
                        "connections, many windows, one level.",
            scale=0.7, openness=0.95, verticality=0.2, claustrophobia=0.0, combat=0.6, exploration=0.6,
@@ -165,11 +168,13 @@ PRESETS: Dict[str, Recipe] = {r.name: r for r in [
            overrides={"merge_chance": 0.65, "max_hall_rooms": 4, "windows": 10, "glazed_chance": 0.5,
                       "height_scale": 1.4, "crate_scale": 1.8, "room_scale": 1.45,
                       "size_bias": {"small": 0.4, "medium": 1.0, "large": 2.5},
-                      "corridor_width_bias": {1: 0.3, 2: 1.0, 3: 3.0}}),
+                      "corridor_width_bias": {1: 0.3, 2: 1.0, 3: 3.0},
+                      "mega_rooms": 1, "mega_styles": {"hangar": 3.0, "works": 0.5, "terraces": 0.0}}),
     Recipe("explore", "No combat. Vertical, open, full of side rooms, secrets, views ahead and loops: "
                       "for exploration, walking sims and architectural blockouts.",
            scale=0.6, openness=0.6, verticality=0.7, claustrophobia=0.2, combat=0.0, exploration=1.0,
-           loopiness=0.6, regularity=0.35),
+           loopiness=0.6, regularity=0.35,
+           overrides={"mega_rooms": 1, "mega_styles": {"terraces": 2.0, "works": 1.0, "hangar": 0.5}}),
 ]}
 
 

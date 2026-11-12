@@ -17,7 +17,7 @@ ENT_COLORS = {
 }
 KIND_LABEL = {"start": "START", "exit": "EXIT", "arena": "ARENA", "hub": "hub", "combat": "fight",
               "supply": "supply", "key": "KEY", "secret": "secret", "stairwell": "stairs ⇅",
-              "lift": "lift ⇅", "ladder": "ladder ⇅", "courtyard": "YARD ☀"}
+              "lift": "lift ⇅", "ladder": "ladder ⇅", "courtyard": "YARD ☀", "megaroom": "MEGA"}
 
 
 def _height_color(f: int, lo: int, hi: int) -> str:
