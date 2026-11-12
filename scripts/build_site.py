@@ -20,6 +20,49 @@ from badlevel import __version__  # noqa: E402
 from badlevel.cli import main as cli  # noqa: E402
 from badlevel.recipes import PRESETS  # noqa: E402
 
+COMPOSITIONS = {
+    "tree": "Branching growth from the start room (the default).",
+    "hub": "A centre with spokes: side rooms and branches hang off it, loops come back to it.",
+    "central": "Satellites in a tight ring around a big space (here a mega-room).",
+    "linear": "A spine: the critical path runs along one axis, side rooms branch off as ribs.",
+}
+
+
+def build_compositions(out: str, seeds=(301, 302, 303, 304)) -> None:
+    """The four macro structures side by side, with their measured silhouette."""
+    from badlevel import GenConfig, generate
+    from badlevel.cli import GALLERY, write_level
+    from badlevel.export.preview import map_svg
+    from badlevel.fingerprint import fingerprint
+    try:
+        from badlevel.analysis import analyze
+    except ImportError:
+        analyze = None
+    os.makedirs(out, exist_ok=True)
+    rows = []
+    for comp, text in COMPOSITIONS.items():
+        cards = []
+        for seed in seeds:
+            cfg = GenConfig(seed=seed, composition=comp, side_rooms=4, pacing_contrast=True,
+                            mega_rooms=1 if comp == "central" else 0)
+            level = generate(cfg)
+            stem = f"badlevel_{comp}_{seed}"
+            write_level(level, out, FORMATS.split(","), stem=stem, analysis=analyze(level) if analyze else None)
+            fp = fingerprint(level)
+            print(f"composition {comp} seed {seed}: elongation {fp['elongation']:.2f}, "
+                  f"centrality {fp['centrality']:.2f}", flush=True)
+            cards.append(f'<a class="card" href="{stem}.html"><div class="svg">{map_svg(level)}</div>'
+                         f'<b>seed {seed}</b><span>elongation {fp["elongation"]:.2f} · centrality '
+                         f'{fp["centrality"]:.2f} · dead ends {fp["leaf_share"]:.0%}</span></a>')
+        rows.append(f'<section><h2>{comp}</h2><p>{html.escape(text)}</p><div class="grid">{"".join(cards)}</div></section>')
+    note = ("<p>The numbers under each map are the measured silhouette: <b>elongation</b> (how long and thin "
+            "the layout is), <b>centrality</b> (how much one room gathers the connections) and the share of "
+            "<b>dead ends</b>. Click a map for the 3D preview.</p>")
+    page = GALLERY.replace("<h1>BadLevel gallery</h1><div class=\"grid\">__ITEMS__</div>",
+                           "<h1>BadLevel compositions</h1>" + note + "".join(rows))
+    with open(os.path.join(out, "index.html"), "w") as fh:
+        fh.write(page)
+
 FORMATS = "html,map,glb,analysis"
 
 
@@ -44,6 +87,7 @@ def main(out: str = "site") -> int:
         print("badlevel", " ".join(args), flush=True)
         if cli(args) != 0:
             return 1
+    build_compositions(f"{out}/compositions")
 
     presets = "".join(f"<li><b>{html.escape(r.name)}</b> {html.escape(r.description)}</li>" for r in PRESETS.values())
     when = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
@@ -86,6 +130,7 @@ footer { color: var(--muted); font-size: 13px; margin-top: 40px; }
 Version __VERSION__ · commit __COMMIT__ · built __WHEN__</p>
 <div class="cards">
   <a class="card" href="recipes/index.html"><b>Recipes side by side</b><span>Every preset, two seeds each: compact, classic, bunker, fortress, industrial, compound, explore.</span></a>
+  <a class="card" href="compositions/index.html"><b>Compositions side by side</b><span>The four macro structures from above: tree, hub, central, linear, with their measured silhouette.</span></a>
   <a class="card" href="classic/index.html"><b>Single-storey gallery</b><span>Six classic levels: shaped rooms, loops, keys, secrets, merged halls, corridor beats.</span></a>
   <a class="card" href="multistorey/index.html"><b>Multi-storey gallery</b><span>Three storeys: stairwells, lifts, ladders, drops, galleries and windows.</span></a>
 </div>
