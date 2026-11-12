@@ -207,6 +207,36 @@ def f_pedestal(ctx: RoomCtx, rng: random.Random) -> bool:
     return True
 
 
+def f_crates(ctx: RoomCtx, rng: random.Random) -> bool:
+    """Scatter crates / low walls: 40-unit blocks hide a crouching player (low cover),
+    some 64-unit ones block sight entirely. Each keeps a walkable ring around it."""
+    r = ctx.room
+    area = len(list(r.cells()))
+    want = min(8, max(1, area // 28))
+    cells = list(r.cells())
+    rng.shuffle(cells)
+    placed = 0
+    for (x, y) in cells:
+        if placed >= want:
+            break
+        w, h = rng.choice([(1, 1), (2, 1), (1, 2), (2, 2), (3, 1), (1, 3)])
+        block = [(x + dx, y + dy) for dx in range(w) for dy in range(h)]
+        ring = [(x + dx, y + dy) for dx in range(-1, w + 1) for dy in range(-1, h + 1)]
+        if not ctx.free(ring):
+            continue
+        height = 64 if rng.random() < 0.25 else 40
+        for c in block:
+            ctx.set_floor(c, r.floor + height)
+        for c in ring:
+            ctx.used.add(c)
+        placed += 1
+    if placed:
+        r.features.append("crates")
+    return placed > 0
+
+
+CRATE_CHANCE = {"combat": 0.8, "arena": 0.7, "hub": 0.6, "supply": 0.7, "exit": 0.5, "start": 0.4}
+
 FEATURES_BY_KIND = {
     "start": [[f_pillars], []],
     "arena": [[f_balcony, f_pillars], [f_pit, f_pillars], [f_platform, f_pillars], [f_balcony, f_platform]],
@@ -309,6 +339,8 @@ def decorate(level: Level, rng: random.Random):
         options = FEATURES_BY_KIND.get(room.kind, [[]])
         for feat in rng.choice(options):
             feat(ctx, rng)
+        if rng.random() < CRATE_CHANCE.get(room.kind, 0.0):
+            f_crates(ctx, rng)
 
     ents = level.entities
     max_depth = max(n.depth for n in g.nodes) or 1

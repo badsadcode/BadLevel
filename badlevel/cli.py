@@ -17,7 +17,7 @@ from .export import to_glb, to_html, to_json, to_map
 from .export.preview import map_svg
 from .generator import GenerationError, generate
 
-FORMATS = ("map", "glb", "json", "html")
+FORMATS = ("map", "glb", "json", "html", "analysis")
 
 
 def _parse_seeds(text: str):
@@ -45,12 +45,12 @@ def _cfg_from_args(args, seed: int) -> GenConfig:
     return cfg
 
 
-def write_level(level, out_dir: str, formats, stem: str = None):
+def write_level(level, out_dir: str, formats, stem: str = None, analysis: dict = None):
     os.makedirs(out_dir, exist_ok=True)
     stem = stem or f"badlevel_{level.seed}"
     written = []
     for fmt in formats:
-        path = os.path.join(out_dir, f"{stem}.{fmt}")
+        path = os.path.join(out_dir, f"{stem}.analysis.json" if fmt == "analysis" else f"{stem}.{fmt}")
         if fmt == "map":
             data = to_map(level).encode()
         elif fmt == "glb":
@@ -58,7 +58,11 @@ def write_level(level, out_dir: str, formats, stem: str = None):
         elif fmt == "json":
             data = to_json(level).encode()
         elif fmt == "html":
-            data = to_html(level).encode()
+            data = to_html(level, analysis).encode()
+        elif fmt == "analysis":
+            if analysis is None:
+                continue
+            data = json.dumps(analysis, indent=1).encode()
         else:
             raise SystemExit(f"unknown format {fmt}")
         with open(path, "wb") as fh:
@@ -86,21 +90,41 @@ def main(argv=None):
         sp.add_argument("--loops", type=int)
         sp.add_argument("--keys", type=int)
         sp.add_argument("--no-secret", action="store_true")
+        sp.add_argument("--no-analysis", action="store_true", help="skip combat analysis (needs numpy)")
+        sp.add_argument("--candidates", type=int, default=1,
+                        help="generate N variants per seed, keep the first that passes the quality gate")
     args = p.parse_args(argv)
     formats = [f.strip() for f in args.formats.split(",") if f.strip()]
 
     seeds = [args.seed] if args.cmd == "generate" else _parse_seeds(args.seeds)
     cards = []
     for seed in seeds:
+        analysis = None
+        want_analysis = not args.no_analysis and ("html" in formats or "analysis" in formats or args.candidates > 1)
         try:
-            level = generate(_cfg_from_args(args, seed))
+            if want_analysis:
+                try:
+                    from .analysis import analyze, generate_selected
+                except ImportError:
+                    print("numpy not installed: skipping analysis (pip install numpy)", file=sys.stderr)
+                    want_analysis = False
+            if want_analysis and args.candidates > 1:
+                level, analysis = generate_selected(_cfg_from_args(args, seed), args.candidates)
+            else:
+                level = generate(_cfg_from_args(args, seed))
+                if want_analysis:
+                    analysis = analyze(level)
         except GenerationError as e:
             print(f"seed {seed}: FAILED {e}", file=sys.stderr)
             continue
-        files = write_level(level, args.out, formats)
+        files = write_level(level, args.out, formats, analysis=analysis)
         st = level.stats()
+        extra = ""
+        if analysis:
+            sev = [f["severity"] for f in analysis["flags"]]
+            extra = f", flags: {sev.count('problem')} problem / {sev.count('warn')} warn / {sev.count('info')} info"
         print(f"seed {seed}: {st['rooms']} rooms, {st['corridors']} corridors, "
-              f"{st['entities']} entities -> {', '.join(files)}")
+              f"{st['entities']} entities{extra} -> {', '.join(files)}")
         cards.append((seed, map_svg(level), st))
 
     if args.cmd == "gallery" and cards:

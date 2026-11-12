@@ -11,6 +11,7 @@ from dataclasses import asdict, dataclass, field
 @dataclass
 class GenConfig:
     seed: int = 1
+    variant: int = 0             # alternative layouts for the same seed (candidate selection)
 
     # --- mission graph -------------------------------------------------
     main_rooms: int = 6          # rooms on the critical path, incl. start and exit

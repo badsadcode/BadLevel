@@ -12,7 +12,8 @@ license = { text = "MIT" }
 dependencies = []
 
 [project.optional-dependencies]
-test = ["pytest"]
+test = ["pytest", "numpy"]
+analysis = ["numpy"]
 
 [project.scripts]
 badlevel = "badlevel.cli:main"

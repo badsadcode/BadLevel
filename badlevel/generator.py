@@ -19,7 +19,7 @@ def generate(cfg: GenConfig = None, **overrides) -> Level:
     cfg = cfg or GenConfig()
     for k, v in overrides.items():
         setattr(cfg, k, v)
-    master = random.Random(cfg.seed)
+    master = random.Random(cfg.seed if not cfg.variant else f"{cfg.seed}/{cfg.variant}")
     last = None
     for attempt in range(cfg.max_attempts):
         rng = random.Random(master.getrandbits(64))

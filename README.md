@@ -19,14 +19,16 @@ seed + config
                      pickups, high-ground rewards, lights, doors, exit trigger
 5. validation        sealed? every room walkable? does the key really gate
                      the exit? failed attempts are re-rolled automatically
+6. analysis          3D line of sight, exposure, cover, firing lanes, high
+   (optional)        ground, chokepoints, pacing -> flags + candidate gate
    │
    ▼
- Level IR (JSON) ──► .map (Quake/TrenchBroom) · .glb · .html preview
+ Level IR (JSON) ──► .map (Quake/TrenchBroom) · .glb · .html preview · .analysis.json
 ```
 
 ## Quick start
 
-No dependencies, just Python 3.9+.
+The generator has no dependencies, just Python 3.9+. Combat analysis needs `numpy`.
 
 ```bash
 python3 -m badlevel generate --seed 42 --out out
@@ -66,6 +68,42 @@ Entity kinds → Quake classnames: `player_start` → `info_player_start`,
 `key` red/blue → `item_key2`/`item_key1`, `door` → `func_door` (key-locked),
 `secret_door` → `func_door_secret`, `exit` → `trigger_changelevel`, plus items and lights.
 
+## Combat analysis
+
+`badlevel.analysis` (needs `numpy`; the generator does not) looks at a level the
+way a player would. It samples standing positions on all reachable floors,
+including balconies and the floor under them, and casts ~150-200k line-of-sight
+rays through the real 3D occupancy grid. Walls, pillars, crates, balcony decks,
+ledges and exact 45° walls all block. It takes about 0.5 s per level.
+
+| Metric | Meaning |
+|---|---|
+| **exposure** | m² of floor from which an enemy's eye (floor+46) sees your upper body (floor+48). Green < 80, yellow < 200, red ≥ 200 |
+| **crouch cover** | share of those viewers that lose sight of you when you crouch (floor+22), so low walls and crates count |
+| **overlook** | m² of floor you can see |
+| **high ground** | mean height above the positions you see |
+| **firing lanes** | long mutual sightlines (≥ 32 m), deduplicated |
+| **per room** | mutual visibility, exposure mix, cover spots, height levels, entrances, flank pairs, loop membership, high-ground perch |
+| **level** | exposure mix, loops, mandatory chokepoints (bridges in the room graph), pacing along the critical path |
+
+**Flags, not a fun score.** `diagnostics.py` turns metrics into `info` / `warn` /
+`problem` flags: single-approach arenas, rooms with no reason to move, overexposed
+fights, dominant perches, sniper lanes, mandatory chokes, flat pacing, flat levels.
+Thresholds are in `RULES`.
+
+**Candidate gate (variety-safe).** `--candidates N` generates up to N variants of a
+seed and keeps the *first* one without `problem` flags. It never optimizes toward
+target numbers, so open/closed rhythm and deliberate vulnerability survive. Use
+`generate_selected(cfg, candidates, gate=...)` for custom gates.
+
+The preview draws the analysis but does not compute it: heatmap modes (exposure,
+crouch cover, overlook, high ground, longest sightline), firing lanes, chokepoints,
+a pacing chart, clickable flags and rooms, and click-to-inspect on any floor tile.
+
+```bash
+python3 -m badlevel generate --seed 7 --candidates 3 --formats html,map,analysis
+```
+
 ## Room shapes
 
 Rooms are not just boxes. Each one gets a footprint picked by its size and role
@@ -101,14 +139,22 @@ pip install pytest
 python3 -m pytest -q
 ```
 
-Covers: 25 seeds valid and 100% reachable, determinism, sealed brushes,
-outward-facing `.map` planes (qbsp convention), valid `.glb` buffers,
-key gating, CLI.
+Covers: 25 seeds valid and walkable, determinism, sealed brushes, convex
+outward-facing `.map` planes incl. 45° prisms (qbsp convention), valid `.glb`
+buffers, key gating, CLI, and line of sight on hand-built geometry (walls,
+crates vs crouching, balcony decks, 45° half cells), analysis consistency and the
+candidate gate.
+
+**Not yet verified:** opening a `.map` in TrenchBroom and compiling it with
+ericw-tools. Export working is not the same as import working.
 
 ## Roadmap ideas
 
+- Verify in TrenchBroom + compile with ericw-tools (qbsp/vis/light)
+- Windows, open room connections, merged halls, interlocking structures
+- TrenchBroom groups per room/corridor in the `.map`
 - Engine plugins: Godot `@tool` importer for the JSON, Unity editor window, Unreal Python/Editor Utility
 - Hand-made room templates (Noor's!) mixed with generated rooms
-- Corridors passing over/under each other, bridges, windows between rooms, lifts
+- Corridors passing over/under each other, bridges, lifts
 - Themes and difficulty curves, combat-space metrics (sightlines, cover density)
 - Valve 220 `.map` format and a generated dev-texture WAD
