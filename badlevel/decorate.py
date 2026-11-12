@@ -442,6 +442,23 @@ def decorate(level: Level, rng: random.Random):
             (x, y), f = corr.path[i], corr.floors[i]
             ents.append(Entity("light", ((x + 0.5) * level.cell, (y + 0.5) * level.cell,
                                          f + corr.height - 16), {"intensity": 200}))
+        # beats: a fight in a chamber, a reward in an alcove, light in a vault
+        depth = max(g.nodes[level.rooms[corr.a].node].depth, g.nodes[level.rooms[corr.b].node].depth)
+        tier = 1 + min(2, (depth * 3) // (max_depth + 1))
+        s = level.cell
+        for beat in corr.beats:
+            f, top = beat["pos"][2], beat["top"]
+            cells = [tuple(c) for c in beat["cells"]]
+            path_cells = set(corr.path)
+            side = [c for c in cells if c not in path_cells]
+            at = lambda c, z: ((c[0] + 0.5) * s, (c[1] + 0.5) * s, z)
+            ents.append(Entity("light", (beat["pos"][0], beat["pos"][1], top - 24), {"intensity": 260}))
+            if beat["type"] == "chamber" and side:
+                for c in rng.sample(side, min(len(side), rng.randint(1, 2))):
+                    ents.append(Entity("enemy", at(c, f + 24), {"tier": tier}))
+            elif beat["type"] == "alcoves" and side:
+                c = max(side, key=lambda c: abs(c[0] - beat["pos"][0] / s) + abs(c[1] - beat["pos"][1] / s))
+                ents.append(Entity(rng.choice(["health", "ammo", "armor"]), at(c, f), {}))
         if corr.kind == "locked":
             ents.append(_door_entity(level, corr, "door"))
         elif corr.kind == "secret":

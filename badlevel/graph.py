@@ -156,21 +156,7 @@ def build_graph(cfg: GenConfig, rng: random.Random) -> MissionGraph:
                        zone=parent.zone, depth=parent.depth)
         g.add_edge(parent.id, n.id)
 
-    # --- loops ----------------------------------------------------------
-    for _ in range(cfg.loops):
-        pairs = []
-        for a in g.nodes:
-            for b in g.nodes:
-                if a.id < b.id and a.zone == b.zone and not g.connected(a.id, b.id) \
-                        and "secret" not in (a.kind, b.kind) and "exit" not in (a.kind, b.kind):
-                    d = g.hop_distance(a.id, b.id)
-                    if d >= 3:
-                        pairs.append((d, a.id, b.id))
-        if not pairs:
-            break
-        pairs.sort(reverse=True)
-        _, a, b = rng.choice(pairs[: max(3, len(pairs) // 3)])
-        g.add_edge(a, b, tree=False)
+    # --- loops: chosen in the layout, once we know which rooms are close (see choose_loops)
 
     # --- secret -----------------------------------------------------------
     if cfg.secret:

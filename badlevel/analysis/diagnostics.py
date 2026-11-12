@@ -24,6 +24,7 @@ RULES = {
     "sniper_lane": 1280.0,           # 40 m
     "flat_pacing_stdev": 25.0,        # m^2 of exposure across the critical path
     "flat_level_height_levels": 2,
+    "monotone_corridor": 40,          # cells (= metres) of corridor where nothing changes
 }
 
 
@@ -97,6 +98,11 @@ def diagnose(report: dict, rules: dict = None) -> list:
         flags.append(_flag("warn", "flat_level", "Almost no height variation in the whole level."))
     if lv["loops"] == 0:
         flags.append(_flag("warn", "no_loops", "No loops: the level is a pure tree, lots of backtracking."))
+    for c in report.get("corridors", []):
+        if c["monotone_run"] >= R.get("monotone_corridor", 40):
+            flags.append(_flag("warn", "monotone_corridor",
+                               f"corridor {c['id']}: {c['monotone_run']} m with nothing changing (no turn, step, "
+                               "window or beat). Fine for a deliberate sniper alley; otherwise add a beat."))
     vis = report.get("visual")
     if vis:
         storeys = report.get("storeys", 1)

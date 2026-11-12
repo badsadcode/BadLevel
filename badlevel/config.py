@@ -17,6 +17,9 @@ class GenConfig:
     main_rooms: int = 6          # rooms on the critical path, incl. start and exit
     side_rooms: int = 3          # optional rooms hanging off the path
     loops: int = 2               # extra connections that create circuits
+    long_loop_chance: float = 0.25  # a loop may deliberately be long (a sniper alley, a flank run)
+    corridor_beats: bool = True  # break long corridors up with chambers, alcoves, vaults
+    beat_spacing: int = 16       # cells between beats along a long corridor
     keys: int = 1                # 0..2 key/locked-door pairs
     secret: bool = True          # add a secret room
 

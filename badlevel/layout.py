@@ -245,19 +245,24 @@ class Router:
     def add_open(self, c: Cell, lo: int, hi: int):
         self.open_cells.setdefault(c, []).append((lo, hi))
 
-    def _corridor_block(self, ext: int, env: Tuple[int, int]) -> Set[Cell]:
+    def _corridor_block(self, ext: int, env: Tuple[int, int], cross_floor: Optional[int] = None):
+        """(blocked, soft): cells too close to other corridors, and cells where a level corridor
+        may cross another one at exactly its own floor height (a junction, at a small cost)."""
         reach = ext + 1
-        out = set()
+        hard, soft = set(), set()
         for (x, y), ranges in self.open_cells.items():
-            if not any(vertical_conflict(env, rg, 32) for rg in ranges):
+            conflicting = [rg for rg in ranges if vertical_conflict(env, rg, 32)]
+            if not conflicting:
                 continue
+            crossable = cross_floor is not None and all(rg[0] == cross_floor for rg in conflicting)
+            target = soft if crossable else hard
             for dy in range(-reach, reach + 1):
                 for dx in range(-reach, reach + 1):
-                    out.add((x + dx, y + dy))
-        return out
+                    target.add((x + dx, y + dy))
+        return hard, soft - hard
 
     def _allowed(self, c: Cell, a: Room, b: Room, r: int, ext: int, blocked: Set[Cell],
-                 env: Tuple[int, int], b_port: Optional[set]) -> Optional[float]:
+                 env: Tuple[int, int], b_port: Optional[set], soft: Set[Cell] = frozenset()) -> Optional[float]:
         """Extra cost of having the corridor centre at c, or None if blocked."""
         x, y = c
         if x <= ext + 2 or y <= ext + 2 or x >= self.w - ext - 3 or y >= self.h - ext - 3:
@@ -274,7 +279,7 @@ class Router:
                 return None
         if c in blocked:
             return None
-        cost = 0.0
+        cost = 3.0 if c in soft else 0.0       # crossing: allowed, but cross quickly
         for rid, dist in self._near_room.get(c, ()):
             if rid not in (a.id, b.id):
                 if dist <= ext + 1 and vertical_conflict(self.rooms[rid].slot, env):
@@ -301,9 +306,9 @@ class Router:
 
     def route(self, a: Room, b: Room, r: int = 1, diagonal: bool = False, k: int = 1,
               env: Tuple[int, int] = (0, 128), a_port: Optional[set] = None,
-              b_port: Optional[set] = None) -> List[Cell]:
+              b_port: Optional[set] = None, cross_floor: Optional[int] = None) -> List[Cell]:
         ext = max(r, k) if diagonal else r
-        blocked = self._corridor_block(ext, env)
+        blocked, soft = self._corridor_block(ext, env, cross_floor)
         # perimeter cells of a, away from its corners so the opening fits
         start_cells = []
         for c in a.cells():
@@ -331,7 +336,7 @@ class Router:
 
         def allowed(c):
             if c not in allowed_cache:
-                allowed_cache[c] = self._allowed(c, a, b, r, ext, blocked, env, b_port)
+                allowed_cache[c] = self._allowed(c, a, b, r, ext, blocked, env, b_port, soft)
             return allowed_cache[c]
 
         openq = []
@@ -531,6 +536,44 @@ def _corridor_style(g: MissionGraph, e, a: Room, b: Room, cfg: GenConfig, rng: r
     return r, diag
 
 
+def _gap(a: Room, b: Room) -> int:
+    """Cells of empty space between two room footprints (0 if they touch or overlap)."""
+    dx = max(b.x - (a.x + a.w), a.x - (b.x + b.w), 0)
+    dy = max(b.y - (a.y + a.h), a.y - (b.y + b.h), 0)
+    return dx + dy
+
+
+def choose_loops(g: MissionGraph, rooms: List[Room], cfg: GenConfig, rng: random.Random):
+    """Loops make circuits: pick rooms apart in the graph (2+ hops: a triangle that bypasses a room,
+    3+ preferred) but close in space, so the loop corridor is short. Now and then a long one on purpose."""
+    for _ in range(cfg.loops):
+        cands = []
+        for a in rooms:
+            for b in rooms:
+                na, nb = g.nodes[a.node], g.nodes[b.node]
+                if a.id >= b.id or na.zone != nb.zone or g.connected(a.node, b.node):
+                    continue
+                if a.is_connector or b.is_connector or {"secret", "exit"} & {a.kind, b.kind}:
+                    continue
+                hops = g.hop_distance(a.node, b.node)
+                if hops < 2:
+                    continue
+                # close in space; bigger circuits (3+ hops) and same-height pairs (junctions) preferred
+                cands.append((_gap(a, b) + (10 if hops == 2 else 0) + (12 if a.floor != b.floor else 0),
+                              a.node, b.node))
+        if not cands:
+            break
+        cands.sort()
+        if rng.random() < cfg.long_loop_chance:
+            pick = rng.choice(cands[len(cands) // 2:])          # a deliberately long one
+        else:
+            pick = rng.choice(cands[:3])
+        _, a, b = pick
+        e = g.add_edge(a, b, tree=False)
+        if g.nodes[a].storey != g.nodes[b].storey:
+            e.connector = "drop"
+
+
 def _attachment(room: Room, other: Room):
     """(port cells or None, floor) where a corridor from ``room`` to ``other`` attaches."""
     if not room.is_connector:
@@ -587,6 +630,7 @@ def build_layout(g: MissionGraph, cfg: GenConfig, rng: random.Random, seed: int)
             level.diag[c] = corner
             level.diag_span[c] = (room.floor, room.ceil)
 
+    choose_loops(g, rooms, cfg, rng)
     router = Router(rooms, width, height, cfg)
     # route tree edges first (they must succeed), then loops (optional)
     edges = sorted(g.edges, key=lambda e: (not e.tree, e.id))
@@ -606,8 +650,10 @@ def build_layout(g: MissionGraph, cfg: GenConfig, rng: random.Random, seed: int)
         for (rr, dd) in dict.fromkeys([(r, diag), (r, False), (1, False)]):
             h = CORRIDOR_HEIGHT.get(rr, 128 + 32 * (rr - 1))
             env = (min(fa, fb), max(fa, fb) + h)
+            # a level loop may cross other corridors at its own height: junctions instead of detours
+            cross = fa if (not e.tree and fa == fb and not drop) else None
             try:
-                cand = router.route(a, b, rr, dd, diag_half_width(rr), env, a_port, b_port)
+                cand = router.route(a, b, rr, dd, diag_half_width(rr), env, a_port, b_port, cross)
             except LayoutError:
                 continue
             if not e.tree:
@@ -635,6 +681,8 @@ def build_layout(g: MissionGraph, cfg: GenConfig, rng: random.Random, seed: int)
         h = CORRIDOR_HEIGHT.get(r, 128 + 32 * (r - 1))
         corr = carve_corridor(level, router, e.id, a, b, path, floors, ceils, r, k, h, diag,
                               e.kind, e.key, "drop" if drop else None, env)
+        if cfg.corridor_beats and e.kind != "secret":
+            add_beats(level, router, corr, rng)
     if cfg.storeys > 1 and cfg.galleries:
         from .openings import add_galleries
         add_galleries(level, router, rng)
@@ -662,7 +710,12 @@ def carve_corridor(level: Level, router: "Router", edge_id: int, a: Room, b: Roo
     carved = []
     for c, (_, _, f, top) in claim.items():
         if not level.free_at(c, f, top, SLAB) or a.contains(*c) or b.contains(*c):
-            continue                  # the rooms themselves, or something stacked too close
+            # the rooms themselves, something stacked too close, or a corridor we cross
+            for sp in level.spans_in(c, f, top):
+                o = level.owner_of(c, sp) or ""
+                if o.startswith("corridor:") and sp[0] == f and int(o[9:]) not in corr.junctions:
+                    corr.junctions.append(int(o[9:]))
+            continue
         level.add_span(c, (f, top), f"corridor:{cid}")
         carved.append(c)
     carved += add_half_cells(level, cid, carved)
@@ -672,6 +725,93 @@ def carve_corridor(level: Level, router: "Router", edge_id: int, a: Room, b: Roo
             router.add_open(c, lo_, hi_)
     level.corridors.append(corr)
     return corr
+
+
+def _perp(d: Cell) -> Cell:
+    return (-d[1], d[0])
+
+
+def _others_near(level: Level, c: Cell, lo: int, hi: int, own: str) -> bool:
+    """Is any space of another area within one cell of c, in the vertical range [lo, hi)?"""
+    for dx in (-1, 0, 1):
+        for dy in (-1, 0, 1):
+            n = (c[0] + dx, c[1] + dy)
+            for sp in level.spans_in(n, lo - SLAB, hi + SLAB):
+                if level.owner_of(n, sp) != own:
+                    return True
+    return False
+
+
+def add_beats(level: Level, router: "Router", corr: Corridor, rng: random.Random):
+    """Break a long corridor up: every ``beat_spacing`` cells, on a straight level stretch,
+    something changes: a chamber (wider, taller, maybe pillars for cover), alcoves (side
+    niches with a pickup) or a vault (much higher ceiling). Long corridors stay long."""
+    cfg = level.config
+    path, floors = corr.path, corr.floors
+    n, r, h = len(path), corr.radius, corr.height
+    sp = cfg.beat_spacing
+    if n < 2 * sp or corr.connector in ("drop", "gallery"):
+        return
+    own = f"corridor:{corr.id}"
+    L2 = 3
+    targets = list(range(sp, n - sp // 2, sp))
+    for t in targets:
+        cands = [i for i in range(max(L2 + 3, t - 4), min(n - L2 - 3, t + 5))
+                 if _straight(path, i, L2 + 1, axis_only=True) and len(set(floors[i - L2 - 1:i + L2 + 2])) == 1]
+        if not cands:
+            continue
+        i = min(cands, key=lambda j: abs(j - t))
+        f = floors[i]
+        d = _dir(path, i)
+        pd = _perp(d)
+        cx, cy = path[i]
+        kind = rng.choices(["chamber", "alcoves", "vault"], [0.5, 0.3, 0.2])[0]
+        if kind == "chamber":
+            R, top = r + 2, f + h + 64
+            zone = [(cx + d[0] * u + pd[0] * v, cy + d[1] * u + pd[1] * v)
+                    for u in range(-L2, L2 + 1) for v in range(-R, R + 1)]
+            pillars = []
+            if rng.random() < 0.6:
+                pillars = [(cx + pd[0] * v, cy + pd[1] * v) for v in (-(r + 1), r + 1)]
+        elif kind == "alcoves":
+            top = f + h
+            sides = rng.choice([(-1,), (1,), (-1, 1)])
+            zone = [(cx + d[0] * u + pd[0] * s * v, cy + d[1] * u + pd[1] * s * v)
+                    for s in sides for u in (-1, 0, 1) for v in range(-r, r + 3)]
+            pillars = []
+        else:
+            top = f + h + 96
+            zone = [(cx + d[0] * u + pd[0] * v, cy + d[1] * u + pd[1] * v)
+                    for u in range(-L2, L2 + 1) for v in range(-r, r + 1)]
+            pillars = []
+        # everything new must be solid now (or ours, flat at f) and keep a wall to other areas
+        ok = True
+        for c in zone:
+            spans = level.spans.get(c, [])
+            mine = [s_ for s_ in spans if level.owner_of(c, s_) == own]
+            if c in level.diag or any(s_ not in mine and s_[0] < top + SLAB and f - SLAB < s_[1] for s_ in spans):
+                ok = False
+                break
+            if any(m[0] != f for m in mine) or _others_near(level, c, f, top, own):
+                ok = False
+                break
+        if not ok:
+            continue
+        cells = []
+        for c in zone:
+            if c in pillars:
+                continue
+            level.replace_in(c, f - 1, f + h, [])           # our own span (if any) ...
+            level.add_span(c, (f, top), own if not level.owner_at(c, f) else None)  # ... now taller / new
+            cells.append(c)
+        for c in pillars:
+            level.replace_in(c, f - 1, top, [])
+        for c in cells:
+            router.add_open(c, f, top)
+        s = level.cell
+        corr.beats.append({"type": kind, "index": i, "cells": [list(c) for c in cells],
+                           "pos": [(cx + 0.5) * s, (cy + 0.5) * s, f], "top": top,
+                           "pillars": len(pillars)})
 
 
 def cleanup_diagonals(level: Level):

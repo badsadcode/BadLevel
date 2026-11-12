@@ -283,3 +283,35 @@ def test_validator_catches_a_softlock():
                     ((12, 5), 80), ((11, 5), 96), ((10, 5), 112), ((10, 4), 128)):
         lv.spans[cell] = [(f, 320)]
     assert validate(lv)["ok"], validate(lv)["errors"]
+
+
+# ---------------------------------------------------------------- corridors: loops and beats
+def test_loops_are_mostly_short(levels):
+    loops = [len(c.path) for lv in levels.values() for c in lv.corridors
+             if not lv.graph.edges[c.edge].tree]
+    assert loops
+    loops.sort()
+    assert loops[len(loops) // 2] <= 40, f"median loop corridor {loops[len(loops) // 2]} cells"
+    assert loops[-1] >= 40, "some long loops survive on purpose"
+
+
+def test_long_corridors_get_beats(levels):
+    kinds = set()
+    for lv in levels.values():
+        for c in lv.corridors:
+            for b in c.beats:
+                kinds.add(b["type"])
+                cells = [tuple(x) for x in b["cells"]]
+                f = b["pos"][2]
+                for cell in cells:
+                    assert any(sp[0] == f and sp[1] == b["top"] for sp in lv.spans[cell]), "beats are flat and open"
+                if b["type"] in ("chamber", "vault"):
+                    assert b["top"] > f + c.height, "chambers and vaults raise the ceiling"
+    assert {"chamber", "alcoves", "vault"} <= kinds
+
+
+def test_corridor_monotony_is_reported():
+    from badlevel.analysis import analyze
+    rep = analyze(generate(seed=2))
+    assert rep["corridors"] and all(c["monotone_run"] <= c["length"] for c in rep["corridors"])
+    assert rep["level"]["corridor_beats"] > 0

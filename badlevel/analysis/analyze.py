@@ -270,6 +270,8 @@ def analyze(level: Level, cfg: AnalysisConfig = None) -> dict:
                "mutual_visibility": rooms[level.room_by_node(nid).id]["mutual_visibility"],
                "enemies": rooms[level.room_by_node(nid).id]["enemies"]} for nid in main]
 
+    corridors = _corridor_monotony(level)
+
     visual = _visual_connectivity(level, occ, cfg, vi, vj, V, xs, ys, zs, owners, areas, main, pts)
 
     data = np.stack([xs, ys, zs, owner_arr, np.round(exposure, 1), np.round(overlook, 1), np.round(cover, 3),
@@ -287,6 +289,7 @@ def analyze(level: Level, cfg: AnalysisConfig = None) -> dict:
         "lanes": lanes,
         "chokepoints": chokepoints,
         "visual": visual,
+        "corridors": corridors,
         "rooms": rooms,
         "level": {
             "positions": int(n),
@@ -303,6 +306,8 @@ def analyze(level: Level, cfg: AnalysisConfig = None) -> dict:
             "corridors_on_loops": sum(1 for c in level.corridors if c.id not in bridges),
             "mandatory_chokepoints": sum(1 for c in chokepoints if c["mandatory"]),
             "pacing": pacing,
+            "longest_monotone_corridor": max((c["monotone_run"] for c in corridors), default=0),
+            "corridor_beats": sum(len(c["beats"]) for c in corridors),
             "visual_links": len(visual["links"]),
             "cross_storey_views": sum(1 for l in visual["links"] if l["cross_storey"]),
             "glass_views": sum(1 for l in visual["links"] if l["through_glass"]),
@@ -421,3 +426,43 @@ def _visual_connectivity(level, occ, cfg, vi, vj, V, xs, ys, zs, owners, areas, 
         "previews": previews,
         "previewed_share": round(len(ahead) / max(1, len(previews) - 1), 3),
     }
+
+
+def _corridor_monotony(level: Level) -> list:
+    """Per corridor: length, beats, and the longest stretch where nothing changes
+    (no turn, no step, no beat, no junction, no window beside it). In cells = metres."""
+    out = []
+    windows = set()
+    for e in level.entities:
+        if e.kind == "window":
+            (x0, y0, _), (x1, y1, _) = e.bounds
+            s = level.cell
+            for x in range(int(x0 // s) - 1, int(x1 // s) + 1):
+                for y in range(int(y0 // s) - 1, int(y1 // s) + 1):
+                    windows.add((x, y))
+    for c in level.corridors:
+        path, floors = c.path, c.floors
+        beat_idx = {b["index"] for b in c.beats}
+        events = set()
+        for i in range(1, len(path)):
+            d0 = (path[i][0] - path[i - 1][0], path[i][1] - path[i - 1][1])
+            if i + 1 < len(path):
+                d1 = (path[i + 1][0] - path[i][0], path[i + 1][1] - path[i][1])
+                if d0 != d1:
+                    events.add(i)
+            if floors[i] != floors[i - 1]:
+                events.add(i)
+        for bi in beat_idx:
+            events.update(range(bi - 3, bi + 4))
+        r = c.radius + 1
+        for i, (x, y) in enumerate(path):
+            if any((x + dx, y + dy) in windows for dx in range(-r, r + 1) for dy in range(-r, r + 1)):
+                events.add(i)
+        run = best = 0
+        for i in range(len(path)):
+            run = 0 if i in events else run + 1
+            best = max(best, run)
+        out.append({"id": c.id, "length": len(path), "radius": c.radius, "loop": not level.graph.edges[c.edge].tree,
+                    "beats": [b["type"] for b in c.beats], "junctions": list(c.junctions),
+                    "monotone_run": best})
+    return out

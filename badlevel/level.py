@@ -92,6 +92,8 @@ class Corridor:
     key: Optional[str] = None
     radius: int = 1           # half width in cells: 1 -> 3 wide, 2 -> 5, 3 -> 7
     connector: Optional[str] = None   # "drop" for one-way drops
+    junctions: List[int] = field(default_factory=list)   # corridors this one crosses at the same height
+    beats: List[dict] = field(default_factory=list)      # chambers, alcoves, vaults along it
     height: int = 128
     diagonal: bool = False    # has 45-degree stretches
 

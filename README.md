@@ -186,6 +186,27 @@ Each corridor gets its own width and may run diagonally:
 - If a wide or diagonal route doesn't fit, the corridor falls back to a plain
   3-wide one instead of failing the level.
 
+## Long corridors: shorter loops, and beats
+
+Long corridors aren't boring because they're long; they're boring when nothing
+changes. So BadLevel doesn't remove them, it fixes the cause and breaks them up:
+
+- **Loops are chosen after placement**, between rooms that are 2+ steps apart in
+  the graph (a triangle that bypasses a room; 3+ preferred) but close in space.
+  About a quarter of loops may deliberately be long (a flank run, a sniper alley).
+  Level loops may **cross** other corridors at the same height (junctions) instead of
+  detouring around everything.
+- **Beats** every ~16 m on long corridors, on straight level stretches with room to
+  spare: a **chamber** (wider and taller, often with pillars that make cover pockets,
+  and an enemy or two), **alcoves** (side niches with a pickup) or a **vault** (a much
+  higher ceiling with a light).
+- **Monotony analysis:** the longest stretch of each corridor where nothing changes
+  (no turn, step, beat, junction or window). Over 40 m gets a `monotone_corridor`
+  warning.
+
+Single-storey levels went from a median loop corridor of ~90 m to ~26 m, and the
+longest monotone stretch is under 20 m.
+
 ## How the geometry works
 
 The world is a grid of 32-unit columns. Each column stores the **empty spans**
