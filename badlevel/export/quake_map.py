@@ -15,7 +15,7 @@ from ..brushes import Brush, build_brushes
 from ..shapes import corner_vertices
 from ..level import Level
 
-TEXTURES = {"floor": "bl_floor", "wall": "bl_wall", "ceiling": "bl_ceiling",
+TEXTURES = {"floor": "bl_floor", "wall": "bl_wall", "ceiling": "bl_ceiling", "sky": "sky1",
             "door": "bl_door", "trigger": "trigger", "secret": "bl_wall"}
 
 KEY_ITEMS = {"red": ("item_key2", 8), "blue": ("item_key1", 16)}  # gold / silver

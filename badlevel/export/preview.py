@@ -17,7 +17,7 @@ ENT_COLORS = {
 }
 KIND_LABEL = {"start": "START", "exit": "EXIT", "arena": "ARENA", "hub": "hub", "combat": "fight",
               "supply": "supply", "key": "KEY", "secret": "secret", "stairwell": "stairs ⇅",
-              "lift": "lift ⇅", "ladder": "ladder ⇅"}
+              "lift": "lift ⇅", "ladder": "ladder ⇅", "courtyard": "YARD ☀"}
 
 
 def _height_color(f: int, lo: int, hi: int) -> str:
@@ -212,7 +212,7 @@ new GLTFLoader().parse(bytes.buffer, '', (gltf) => {
     if (o.isMesh) {
       const m = o.material;
       if (/bl_(floor|wall|ceiling)/.test(m.name)) { m.map = tex; m.needsUpdate = true; }
-      if (m.name === 'bl_ceiling') { ceilings.push(o); }
+      if (m.name === 'bl_ceiling' || m.name === 'bl_sky') { ceilings.push(o); }
     }
     const kind = o.userData && o.userData.kind;
     if (kind && !o.isMesh && kind !== 'light') {
@@ -481,6 +481,7 @@ def to_html(level: Level, analysis: dict = None, downloads: list = None) -> str:
         ("One-way drops", stats["drops"]),
         ("Windows / galleries", f'{stats["windows"]} / {stats["galleries"]}'),
         ("Merged halls (rooms)", f'{stats["halls"]} ({stats["hall_rooms"]})'),
+        ("Open areas", stats["open_areas"]),
         ("Room shapes", ", ".join(stats["shapes"])),
         ("Room features", ", ".join(feats) or "-"),
         ("45° wall cells", stats["diagonal_cells"]),

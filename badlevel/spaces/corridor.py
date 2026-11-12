@@ -38,7 +38,7 @@ def _corridor_style(g: MissionGraph, e, a: Room, b: Room, cfg: GenConfig, rng: r
         from ..weights import weighted
         if not e.tree:
             opts = [1, 1, 2]
-        elif kinds & {"arena", "hub"}:
+        elif kinds & {"arena", "hub", "courtyard"}:
             opts = [1, 2, 2, 3]
         elif kinds & {"supply", "secret", "key"}:
             opts = [1, 1, 2]

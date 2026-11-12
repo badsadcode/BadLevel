@@ -160,6 +160,7 @@ SHAPES_BY_SIZE = {
     "small": ["rect", "rect", "chamfer", "chamfer", "octagon"],
     "medium": ["rect", "chamfer", "chamfer", "octagon", "L", "L", "T", "U"],
     "large": ["chamfer", "octagon", "octagon", "L", "T", "U", "plus", "ring", "ring"],
+    "yard": ["rect", "rect", "chamfer", "chamfer", "L", "U", "plus", "octagon"],
 }
 SHAPES_BY_KIND = {
     "secret": ["rect", "chamfer"],

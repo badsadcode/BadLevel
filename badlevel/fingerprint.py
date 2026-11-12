@@ -16,7 +16,7 @@ FEATURES = [
     "rooms", "room_area", "room_area_cv", "ceiling", "corridor_width", "corridor_share",
     "storeys", "vertical_spread", "rect_share", "diagonal_share", "hall_share",
     "windows_per_room", "glass_share", "enemies_per_room", "crate_share", "loops",
-    "lift_ladder_share",
+    "lift_ladder_share", "open_area_share",
 ]
 
 
@@ -51,6 +51,7 @@ def fingerprint(level: Level) -> Dict[str, float]:
         "crate_share": sum(1 for r in rooms if "crates" in r.features) / max(1, len(rooms)),
         "loops": len(level.corridors) + seams - len(level.rooms) + 1,
         "lift_ladder_share": sum(1 for r in conns if r.kind in ("lift", "ladder")) / max(1, len(conns)),
+        "open_area_share": len(level.sky) / open_cells,
     }
 
 

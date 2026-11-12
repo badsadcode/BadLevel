@@ -36,6 +36,7 @@ def to_dict(level: Level, include_spans: bool = True) -> dict:
         d["grid"] = {"width": level.width, "height": level.height}
         d["spans"] = [[x, y, spans] for (x, y), spans in sorted(level.spans.items())]
         d["diagonal"] = [[x, y, c] for (x, y), c in sorted(level.diag.items())]
+        d["sky"] = [list(c) for c in sorted(level.sky)]
     return d
 
 

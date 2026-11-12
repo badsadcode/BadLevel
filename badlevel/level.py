@@ -131,6 +131,8 @@ class Level:
     diag_span: Dict[Cell, Span] = field(default_factory=dict)
     # glazed window cells: solid for movement and gunfire, see-through for visual connectivity
     glass: set = field(default_factory=set)
+    # open to the sky: the top of these columns is sky, not a ceiling
+    sky: set = field(default_factory=set)
     # traversal links that are not plain walking: lifts, ladders (two-way, with an interaction)
     links: List[dict] = field(default_factory=list)
     # merged halls: each a list of room ids that form one continuous space (semantic regions)
@@ -218,6 +220,7 @@ class Level:
             "windows": sum(1 for e in self.entities if e.kind == "window"),
             "galleries": sum(1 for r in self.rooms if r.meta.get("gallery")),
             "halls": len(self.halls),
+            "open_areas": sum(1 for r in self.rooms if r.kind == "courtyard"),
             "hall_rooms": sum(len(h) for h in self.halls),
             "z_range": list(self.z_range()),
         }

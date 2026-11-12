@@ -80,7 +80,7 @@ class SpaceType:
         return [room.id]
 
 
-def place_lights(level: Level, room: Room):
+def place_lights(level: Level, room: Room, max_height: Optional[int] = None, intensity: Optional[int] = None):
     from ..decorate import _nearest_open
     from ..level import Entity
     area = room.w * room.h
@@ -91,9 +91,11 @@ def place_lights(level: Level, room: Room):
         if c in lit:
             continue
         lit.add(c)
-        level.entities.append(Entity("light", ((c[0] + 0.5) * level.cell, (c[1] + 0.5) * level.cell,
-                                               level.room_spans(c, room)[-1][1] - 24),
-                                     {"intensity": 250 if len(spots) > 1 else 300}))
+        z = level.room_spans(c, room)[-1][1] - 24
+        if max_height is not None:
+            z = min(z, room.floor + max_height)
+        level.entities.append(Entity("light", ((c[0] + 0.5) * level.cell, (c[1] + 0.5) * level.cell, z),
+                                     {"intensity": intensity or (250 if len(spots) > 1 else 300)}))
 
 
 REGISTRY: Dict[str, SpaceType] = {}
@@ -119,3 +121,4 @@ def vertical_kinds() -> Tuple[str, ...]:
 # built-in space types register themselves on import
 from . import room as _room          # noqa: E402,F401
 from . import connector as _conn     # noqa: E402,F401
+from . import open_area as _open     # noqa: E402,F401

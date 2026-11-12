@@ -40,6 +40,7 @@
   "drop_chance": 0.6,
   "max_drop": 288,
   "tall_room_chance": 0.13999999999999999,
+  "open_areas": 0,
   "merge_chance": 0.108,
   "max_hall_rooms": 3,
   "windows": 1,
@@ -107,6 +108,12 @@
     14,
     18,
     256,
+    320
+   ],
+   "yard": [
+    16,
+    22,
+    320,
     320
    ]
   }

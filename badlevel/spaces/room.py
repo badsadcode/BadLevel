@@ -19,6 +19,10 @@ ROLES = ("start", "combat", "arena", "hub", "supply", "key", "secret", "exit")
 class RoomSpace(SpaceType):
     name = "room"
     kinds = ROLES
+    ENEMY_AREA = {"combat": 28, "arena": 20, "hub": 40, "key": 45, "supply": 80, "exit": 60}   # m^2 per enemy
+    PICKUPS = {"supply": 3, "combat": 1, "arena": 2, "hub": 1, "secret": 2, "key": 1}
+    LIGHT_MAX = None          # cap light height above the floor (open areas)
+    LIGHT_POWER = None
 
     def propose(self, node, floor: int, cfg, rng: random.Random, multi: bool) -> Optional[Room]:
         from ..layout import _room_size
@@ -59,7 +63,7 @@ class RoomSpace(SpaceType):
         tier = 1 + min(2, (node.depth * 3) // (info["max_depth"] + 1))
         cx, cy = room.x + room.w / 2.0, room.y + room.h / 2.0
 
-        place_lights(level, room)
+        place_lights(level, room, self.LIGHT_MAX, self.LIGHT_POWER)
 
         if room.kind == "start":
             c = min((c for c in room.cells() if _flat_cell(level, room, c)),
@@ -95,7 +99,7 @@ class RoomSpace(SpaceType):
             ents.append(Entity("key", _at(level, room, c, z_off=24), {"color": node.key}))
 
         # enemies
-        per = {"combat": 28, "arena": 20, "hub": 40, "key": 45, "supply": 80, "exit": 60}.get(room.kind)
+        per = self.ENEMY_AREA.get(room.kind)
         if per:
             dens = level.config.enemy_density
             count = int(round(max(1, area // per) * dens)) if dens > 0 else 0
@@ -118,7 +122,7 @@ class RoomSpace(SpaceType):
                                        _at(level, room, c, top=True, z_off=0), {}))
 
         # pickups
-        n_items = {"supply": 3, "combat": 1, "arena": 2, "hub": 1, "secret": 2, "key": 1}.get(room.kind, 0)
+        n_items = self.PICKUPS.get(room.kind, 0)
         n_items = int(round(n_items * level.config.pickup_density))
         for k in range(n_items):
             c = _pick_free(ctx, rng, taken)

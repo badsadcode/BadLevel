@@ -100,7 +100,8 @@ def build_mesh(level: Level) -> MeshBuilder:
         for (f, c) in spans:
             if not corner:
                 flats.setdefault(("floor", f), set()).add((x, y))
-                flats.setdefault(("ceiling", c), set()).add((x, y))
+                top = (x, y) in level.sky and (f, c) == spans[-1]
+                flats.setdefault(("sky" if top else "ceiling", c), set()).add((x, y))
             for d, (dx, dy) in enumerate(((1, 0), (-1, 0), (0, 1), (0, -1))):
                 if corner and (dx, dy) in SOLID_SIDES[corner]:
                     continue  # covered by this cell's own diagonal wall

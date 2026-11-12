@@ -17,7 +17,7 @@ from typing import Dict, List, Optional, Set, Tuple
 from .level import Cell, Level
 
 # per-face roles; exporters map these to textures / materials
-FLOOR, WALL, CEIL = "floor", "wall", "ceiling"
+FLOOR, WALL, CEIL, SKY = "floor", "wall", "ceiling", "sky"
 
 
 @dataclass
@@ -56,7 +56,10 @@ def build_brushes(level: Level) -> List[Brush]:
     groups: Dict[Tuple[int, int, str, str], Set[Cell]] = {}
     for c in cols:
         spans = level.spans.get(c, [])
+        sky = c in level.sky and spans
         for (z0, z1, top, bottom) in solid_intervals(spans, zmin, zmax):
+            if sky and z0 == spans[-1][1]:
+                bottom = SKY                  # the solid above an open area is sky
             groups.setdefault((z0, z1, top, bottom), set()).add(c)
 
     s = level.cell

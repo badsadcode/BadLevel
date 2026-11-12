@@ -162,3 +162,28 @@ the feature roll for spaces that never get features.
 **Cost.** Some helpers (feature placement, entity spots) still live in `decorate.py`
 and are imported by the room module; they can move when a second space type needs
 them in a different form.
+
+## D14. Open areas: a plug-in space type with a sky
+
+**Decision.** Courtyards / plazas are `OpenAreaSpace` (`spaces/open_area.py`), the first
+space type added through the D13 interface. A few hubs, arenas or fight rooms become
+courtyards when `open_areas > 0` (recipes: openness; compound 2, fortress 1 as its
+bailey, industrial 1 as a loading yard; never in a bunker). The column is open up to
+sky height (nominally 10 m, clamped to 9-14 m whatever the recipe's ceiling scale)
+and those cells are in `level.sky`: the solid above them gets a sky face (`sky1` in
+the `.map`, `bl_sky` in the `.glb`, `"sky"` in the IR).
+
+**Outdoors is not a big room.** The perimeter gets pilasters in a regular rhythm so the
+walls read as building fronts. Contents are one weighted choice including *nothing*
+(breathing room), a kiosk/monument, a colonnade, a sunken plaza, a raised terrace or
+an arcade with a walkway. Indoor pillars run floor to ceiling; outdoor columns stop
+at 5-7 m because there is no ceiling to hold up (the first render showed 20 m
+columns, which read as towers). Lamps hang at most 7 m up instead of at the sky.
+
+**Default levels unchanged.** With `open_areas = 0` the graph step is skipped; the
+`.map` output of the 38 golden levels stayed byte-identical. The IR gained an empty
+`"sky"` list.
+
+**Cost / next.** The kiosk is a solid block; a building you can enter belongs to
+mega-rooms (sub-generation). Yards don't yet shape the macro layout (a compound
+should be *organised around* its yard): that is composition.

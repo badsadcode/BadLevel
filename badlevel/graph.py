@@ -167,12 +167,25 @@ def build_graph(cfg: GenConfig, rng: random.Random) -> MissionGraph:
         s = g.add_node("secret", "small", zone=parent.zone, depth=parent.depth)
         g.add_edge(parent.id, s.id, kind="secret")
 
+    if cfg.open_areas > 0:
+        make_open_areas(g, cfg, rng)
     if cfg.storeys > 1:
         assign_storeys(g, cfg, rng, [n.id for n in main])
     return g
 
 
 CONNECTOR_KINDS = ("stairwell", "lift", "ladder")
+
+
+def make_open_areas(g: MissionGraph, cfg: GenConfig, rng: random.Random):
+    """Turn a few well-connected rooms into courtyards (open to the sky). Hubs and the arena
+    first: places where routes meet make good yards; start, exit, keys and secrets stay rooms."""
+    cands = [n for n in g.nodes if n.kind in ("hub", "arena", "combat")]
+    degree = {n.id: sum(1 for _ in g.neighbors(n.id)) for n in cands}
+    rank = {"hub": 0, "arena": 1, "combat": 2}
+    cands.sort(key=lambda n: (rank[n.kind], -degree[n.id], rng.random()))
+    for n in cands[:cfg.open_areas]:
+        n.kind, n.size = "courtyard", "yard"
 
 
 def assign_storeys(g: MissionGraph, cfg: GenConfig, rng: random.Random, main: List[int]):

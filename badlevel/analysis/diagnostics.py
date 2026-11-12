@@ -14,7 +14,7 @@ from __future__ import annotations
 import statistics
 
 RULES = {
-    "fight_kinds": ("arena", "combat", "hub"),
+    "fight_kinds": ("arena", "combat", "hub", "courtyard"),
     "single_approach_min_enemies": 3,
     "no_reposition_min_area": 60.0,
     "no_reposition_mutual": 0.9,

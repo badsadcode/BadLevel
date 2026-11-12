@@ -86,6 +86,7 @@ def compile_recipe(recipe: Recipe, seed: int = 1) -> GenConfig:
     cfg.merge_chance = _lerp(0.0, 0.6, op) * (1 - cl)
     cfg.windows = int(round(_lerp(0, 9, op) * (1 - 0.8 * cl) + 3 * ex * (1 - cl)))
     cfg.glazed_chance = _lerp(0.1, 0.7, op) * (1 - cl)
+    cfg.open_areas = 0 if op < 0.65 or cl > 0.6 else 1 if op < 0.85 else 2
     cfg.height_scale = _lerp(1.25, 0.72, cl)
     cfg.corridor_width_bias = {1: _lerp(3.0, 0.5, op) * _lerp(1, 3, cl), 2: 1.0,
                                3: _lerp(0.2, 3.0, op) * _lerp(1, 0.1, cl)}
@@ -139,25 +140,26 @@ PRESETS: Dict[str, Recipe] = {r.name: r for r in [
                       "size_bias": {"small": 2.5, "medium": 1.0, "large": 0.15},
                       "connector_weights": {"stairs": 0.15, "stairwell": 0.25, "lift": 0.3, "ladder": 0.3},
                       "feature_weights": {"balcony": 0.0}, "merge_chance": 0.05}),
-    Recipe("fortress", "Tall, ordered, defensive. Several storeys climbed by stairwells, great halls, "
-                       "galleries and arrow slits.",
+    Recipe("fortress", "Tall, ordered, defensive. An inner courtyard, several storeys climbed by "
+                       "stairwells, great halls, galleries and arrow slits.",
            scale=0.7, openness=0.35, verticality=0.92, claustrophobia=0.25, combat=0.8, exploration=0.4,
            loopiness=0.45, regularity=0.9,
-           overrides={"glazed_chance": 0.0, "windows": 8, "height_scale": 1.15, "merge_chance": 0.4,
+           overrides={"glazed_chance": 0.0, "windows": 8, "height_scale": 1.15, "merge_chance": 0.4, "open_areas": 1,
                       "connector_weights": {"stairs": 0.25, "stairwell": 0.65, "lift": 0.05, "ladder": 0.05},
                       "feature_weights": {"balcony": 2.5, "pillars": 1.5},
                       "corridor_width_bias": {1: 0.5, 2: 2.0, 3: 1.5}}),
-    Recipe("industrial", "Big tall halls with platforms and catwalk balconies, lifts and ladders, "
-                         "wide service corridors, control-room glass, lots of clutter.",
+    Recipe("industrial", "Big tall halls with platforms and catwalk balconies, a loading yard, lifts "
+                         "and ladders, wide service corridors, control-room glass, lots of clutter.",
            scale=0.8, openness=0.6, verticality=0.75, claustrophobia=0.15, combat=0.6, exploration=0.5,
            loopiness=0.6, regularity=0.7,
            overrides={"height_scale": 1.35, "glazed_chance": 0.65, "windows": 8, "crate_scale": 2.0, "room_scale": 1.4,
+                      "open_areas": 1,
                       "size_bias": {"small": 0.5, "medium": 1.0, "large": 3.0},
                       "connector_weights": {"stairs": 0.1, "stairwell": 0.25, "lift": 0.35, "ladder": 0.3},
                       "feature_weights": {"platform": 2.5, "balcony": 2.5, "pillars": 2.0},
                       "corridor_width_bias": {1: 0.4, 2: 1.0, 3: 2.5}, "diagonal_chance": 0.2}),
-    Recipe("compound", "Open and spread out: large merged halls, wide connections, many windows, "
-                       "one level. A precursor of real open areas.",
+    Recipe("compound", "Open and spread out: courtyards under the sky, large merged halls, wide "
+                       "connections, many windows, one level.",
            scale=0.7, openness=0.95, verticality=0.2, claustrophobia=0.0, combat=0.6, exploration=0.6,
            loopiness=0.8, regularity=0.55,
            overrides={"merge_chance": 0.65, "max_hall_rooms": 4, "windows": 10, "glazed_chance": 0.5,

@@ -232,6 +232,16 @@ Each corridor gets its own width and may run diagonally:
 - If a wide or diagonal route doesn't fit, the corridor falls back to a plain
   3-wide one instead of failing the level.
 
+## Open areas
+
+Courtyards, plazas and yards open to the sky (`open_areas` in the config; recipes turn
+it on through openness: compound 2, fortress 1, industrial 1). The top of their
+columns is sky (`sky1` texture in the `.map`, `bl_sky` material in the `.glb`), the
+perimeter gets pilasters so walls read as building fronts, and the contents are a
+weighted choice that includes leaving the yard empty: a kiosk or monument, a low
+colonnade, a sunken plaza, a raised terrace, or an arcade with a walkway on top. On
+multi-storey levels, upper-storey galleries can overlook a yard.
+
 ## Merged halls
 
 Not everything is rooms joined by corridors. About 30% of eligible neighbours (open
@@ -306,7 +316,7 @@ ericw-tools. Export working is not the same as import working.
 ## Roadmap ideas
 
 - Verify in TrenchBroom + compile with ericw-tools (qbsp/vis/light)
-- Open areas (courtyards, plazas), mega-rooms via sub-generation, and composition
+- Mega-rooms via sub-generation, and composition
   (macro structures, compression/release pacing). See docs/DECISIONS.md D12.
 - Multi-storey compositions: halls spanning storeys, interlocking structures
 - TrenchBroom groups per room/region in the `.map`

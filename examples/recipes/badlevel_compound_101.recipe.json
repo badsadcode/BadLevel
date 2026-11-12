@@ -2,7 +2,7 @@
  "format": "badlevel-recipe",
  "version": 1,
  "name": "compound",
- "description": "Open and spread out: large merged halls, wide connections, many windows, one level. A precursor of real open areas.",
+ "description": "Open and spread out: courtyards under the sky, large merged halls, wide connections, many windows, one level.",
  "dials": {
   "scale": 0.7,
   "openness": 0.95,
@@ -55,6 +55,7 @@
   "drop_chance": 0.6,
   "max_drop": 288,
   "tall_room_chance": 0.13999999999999999,
+  "open_areas": 2,
   "merge_chance": 0.65,
   "max_hall_rooms": 4,
   "windows": 10,
@@ -122,6 +123,12 @@
     14,
     18,
     256,
+    320
+   ],
+   "yard": [
+    16,
+    22,
+    320,
     320
    ]
   }

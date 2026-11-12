@@ -34,6 +34,9 @@ class GenConfig:
     max_drop: int = 288          # highest intentional drop (units)
     tall_room_chance: float = 0.4  # arenas / hubs reaching up into the next storey
 
+    # --- open areas ------------------------------------------------------------
+    open_areas: int = 0          # courtyards / plazas open to the sky (0 = none)
+
     # --- merged halls -------------------------------------------------------
     merge_chance: float = 0.3    # neighbouring rooms joined into one hall instead of a corridor
     max_hall_rooms: int = 3      # rooms (semantic regions) per merged hall
@@ -77,6 +80,7 @@ class GenConfig:
         "small": (6, 8, 128, 160),
         "medium": (9, 12, 160, 224),
         "large": (14, 18, 256, 320),
+        "yard": (16, 22, 320, 320),      # open areas: the height is where the sky starts
     })
 
     def to_dict(self) -> dict:

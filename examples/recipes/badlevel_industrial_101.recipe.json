@@ -2,7 +2,7 @@
  "format": "badlevel-recipe",
  "version": 1,
  "name": "industrial",
- "description": "Big tall halls with platforms and catwalk balconies, lifts and ladders, wide service corridors, control-room glass, lots of clutter.",
+ "description": "Big tall halls with platforms and catwalk balconies, a loading yard, lifts and ladders, wide service corridors, control-room glass, lots of clutter.",
  "dials": {
   "scale": 0.8,
   "openness": 0.6,
@@ -19,6 +19,7 @@
   "windows": 8,
   "crate_scale": 2.0,
   "room_scale": 1.4,
+  "open_areas": 1,
   "size_bias": {
    "small": 0.5,
    "medium": 1.0,
@@ -65,6 +66,7 @@
   "drop_chance": 0.6,
   "max_drop": 288,
   "tall_room_chance": 0.5249999999999999,
+  "open_areas": 1,
   "merge_chance": 0.306,
   "max_hall_rooms": 3,
   "windows": 8,
@@ -132,6 +134,12 @@
     14,
     18,
     256,
+    320
+   ],
+   "yard": [
+    16,
+    22,
+    320,
     320
    ]
   }

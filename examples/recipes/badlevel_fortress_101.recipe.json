@@ -2,7 +2,7 @@
  "format": "badlevel-recipe",
  "version": 1,
  "name": "fortress",
- "description": "Tall, ordered, defensive. Several storeys climbed by stairwells, great halls, galleries and arrow slits.",
+ "description": "Tall, ordered, defensive. An inner courtyard, several storeys climbed by stairwells, great halls, galleries and arrow slits.",
  "dials": {
   "scale": 0.7,
   "openness": 0.35,
@@ -18,6 +18,7 @@
   "windows": 8,
   "height_scale": 1.15,
   "merge_chance": 0.4,
+  "open_areas": 1,
   "connector_weights": {
    "stairs": 0.25,
    "stairwell": 0.65,
@@ -57,6 +58,7 @@
   "drop_chance": 0.6,
   "max_drop": 288,
   "tall_room_chance": 0.644,
+  "open_areas": 1,
   "merge_chance": 0.4,
   "max_hall_rooms": 3,
   "windows": 8,
@@ -124,6 +126,12 @@
     14,
     18,
     256,
+    320
+   ],
+   "yard": [
+    16,
+    22,
+    320,
     320
    ]
   }
