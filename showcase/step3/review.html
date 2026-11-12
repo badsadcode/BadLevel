@@ -1,0 +1,43 @@
+<h2>Step 3: portals and framed reveals</h2>
+
+<p><b>Same 12 levels, same seeds, same camera rules.</b> Left: step 2. Right: step 3 (D21). Corridor openings
+now get a frame, and big halls point their end feature at the way in. Nothing was picked or touched up.</p>
+
+<h3>What works</h3>
+<ul>
+<li><b>Portals.</b> Corridor openings into styled rooms get jambs: solid members on both sides, so a doorway
+reads as a doorway in a wall. Bunkers get 2-deep blast frames. In grand and major rooms the mouth rises above
+the corridor: a pointed arch (gothic), a round arch (compound), a tall opening under a lintel (industrial).</li>
+<li><b>The splay.</b> A first version only raised the mouth itself, and the renders showed that's invisible
+from inside the corridor: the low corridor ceiling hides the frame until you're standing in it. Now the last
+2 corridor cells ramp up into the portal, so the opening grows as you walk towards it. In fortress_2 and the
+industrial levels you can see the corridor lid lift ahead of you. 74 of 75 heads got the full 2-cell
+ramp.</li>
+<li><b>Framed reveals, with surprises.</b> About two-thirds of the time, a big hall's end feature (apse,
+loading door, blast door, bay window) goes on the wall facing the way in, on its axis. The rest stay oblique.
+Over seeds 1–5 and the big halls with a recognisable way in: 31 face it, 15 more look straight through to the
+next portal across the hall (the classic Quake vista, counted separately), and 41 are oblique.</li>
+<li><b>Doors still work.</b> A mouth holding a door is never raised, and a test checks that every door still
+reaches the ceiling of the corridor it closes. All levels validate, 85 tests pass, levels without a style
+are byte-identical, and the magenta crack check found nothing in 48 shots.</li>
+</ul>
+
+<h3>What doesn't work yet</h3>
+<ul>
+<li><b>The reveal camera undersells it.</b> The fixed camera rule stands 4 cells back and aims at the hall's
+centre, which is often off the corridor axis, so half of most reveal shots is corridor wall. The 3D previews
+show the portals better: walk out of a corridor into a hall, then turn round. I didn't change the camera
+rules in this step, to keep the comparison fair.</li>
+<li><b>Fortress has the fewest axial features</b> (6 of 20 face the way in or look through). Its far walls are
+crowded with wide doorways.</li>
+<li><b>Plain frames.</b> Jambs are boxes and arches have no voussoirs or moulding. The axis is the mouth's centre
+line, not the line of sight from deeper in the corridor. Diagonal corridor mouths get no head.</li>
+</ul>
+
+<h3>Questions</h3>
+<ol>
+<li>Should the reveal camera follow the corridor axis (truer to how a player arrives) for the next
+review?</li>
+<li>Next: richer member shapes (buttresses, capitals, mouldings), the real underground mode, or open
+compounds with free-standing buildings?</li>
+</ol>

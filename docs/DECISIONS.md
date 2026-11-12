@@ -425,6 +425,11 @@ final ceilings, every entity and every door. A mouth holding a door is never rai
 locked door must still seal its corridor; a test checks every door), and raising only cuts
 rock with one solid cell kept around it, the same rule as wall recesses.
 
+*Splay*: the first version raised only the mouth, and the renders showed it was invisible
+from inside the corridor (the low corridor ceiling hides the frame until you stand in it).
+So the corridor's last 2 cells now ramp their ceiling up into the portal (sloped, same
+rock rules, never over a door): the opening grows as you approach.
+
 **Decision, part 2: framed reveals** (in `walls.py`, before the room's features). The way
 in to a big hall is the opening whose corridor comes from the room nearer the start (or the
 only opening). With probability `arch_axial` (0.65) the hall's end feature (apse, loading

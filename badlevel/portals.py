@@ -202,4 +202,57 @@ def _head(level: Level, room: Room, op: dict, style: str, doors: set, smooth: bo
                 owners[i] = (lo, max(hi, peak), name)
         if max(zs) > flat:
             level.ceil_slope[m] = zs
+    _splay(level, room, mouth, d, f, top, q(top + rise // 2) if arch else peak, doors, smooth)
     return rise
+
+
+def _splay(level: Level, room: Room, mouth: List[Cell], d, f: int, top: int, h_s: int, doors: set,
+           smooth: bool, layers: int = 2) -> int:
+    """The corridor's last cells before the mouth: the ceiling ramps up towards the portal, so
+    the opening grows as you walk up to it (from inside a low corridor a raised head alone is
+    hidden behind the corridor's own ceiling). Tries 2 layers, then 1."""
+    if not smooth or h_s <= top:
+        return 0
+    for n in range(layers, 0, -1):
+        cells = [(m[0] + d[0] * k, m[1] + d[1] * k) for k in range(1, n + 1) for m in mouth]
+        if any(c in doors or c in level.diag or c in level.ceil_slope or not level.spans.get(c)
+               or level.spans[c][-1] != (f, top) for c in cells):
+            continue
+        planned = set(cells) | set(mouth)
+        ok = True
+        for c in cells:
+            if level.spans_in(c, top + 1, h_s + 16):
+                ok = False
+            for dx in (-1, 0, 1):
+                for dy in (-1, 0, 1):
+                    nb = (c[0] + dx, c[1] + dy)
+                    if nb in planned or room.contains(*nb):
+                        continue
+                    for sp in level.spans_in(nb, top, h_s + 16):
+                        if sp != (f, top):          # the corridor itself, further back, is fine
+                            ok = False
+                    if nb in level.glass:
+                        ok = False
+        if not ok:
+            continue
+        # axial coordinate of the mouth's back edge, and which way the corridor runs from it
+        m0 = mouth[0]
+        sign = d[0] or d[1]
+        a0 = (m0[0] if d[0] else m0[1]) + (1 if sign > 0 else 0)
+
+        def z(X, Y):
+            a = X if d[0] else Y
+            dist = max(0.0, min(float(n), (a - a0) * sign))
+            return h_s - (h_s - top) * dist / n
+        for c in cells:
+            zs = tuple(int(round(z(c[0] + dx, c[1] + dy))) for dx, dy in ((0, 0), (1, 0), (1, 1), (0, 1)))
+            flat = max(top, (min(zs) // 16) * 16)
+            level.replace_in(c, f, top, [(f, flat)])
+            owners = level.owners.get(c, [])
+            for i, (lo, hi, name) in enumerate(owners):
+                if lo == f and name.startswith("corridor:"):
+                    owners[i] = (lo, max(hi, h_s), name)
+            if max(zs) > flat:
+                level.ceil_slope[c] = zs
+        return n
+    return 0
