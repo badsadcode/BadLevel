@@ -136,19 +136,27 @@ def viewpoints(level, report):
         room = level.rooms[t["room"]]
         path = corr.path if corr.b == room.id else corr.path[::-1]
         floors = corr.floors if corr.b == room.id else corr.floors[::-1]
+        # where the corridor enters the hall; the camera looks along the corridor's last stretch,
+        # as a player arrives (not at the hall's centre, which is often off the axis)
+        m = next((j for j, c in enumerate(path) if room.contains(*c)), len(path) - 1)
         # stand between any door and the hall (doors open in the game; in a screenshot they're a wall)
-        k = max(0, len(path) - 5)
+        k = max(0, m - 5)
         for d in level.entities:
             if d.kind in ("door", "secret_door") and d.props.get("corridor") == corr.id:
                 dc = (int(d.pos[0] // s), int(d.pos[1] // s))
                 near = min(range(len(path)), key=lambda j: abs(path[j][0] - dc[0]) + abs(path[j][1] - dc[1]))
                 k = max(k, near + 2)
-        k = min(k, len(path) - 2)
+        k = max(0, min(k, m - 2))
         (x, y), f = path[k], floors[k]
-        shots.append({"name": "reveal", "caption": f"The strongest reveal: a {t['corridor_m'][0]:.0f} m wide, "
-                      f"{t['corridor_m'][1]:.1f} m high corridor opening into the {room.kind} "
-                      f"({t['contrast']:.0f}× its cross-section)",
-                      "eye": gl((x + 0.5) * s, (y + 0.5) * s, f + EYE), "target": _room_center(level, room, 0.25)})
+        a, b = path[max(0, m - 4)], path[max(0, m - 1)]
+        dx, dy = b[0] - a[0], b[1] - a[1]
+        n = max(1e-6, (dx * dx + dy * dy) ** 0.5)
+        tx, ty = b[0] + 0.5 + dx / n * 12, b[1] + 0.5 + dy / n * 12
+        target = gl(tx * s, ty * s, f + EYE + 48) if (dx or dy) else _room_center(level, room, 0.25)
+        shots.append({"name": "reveal", "caption": f"The strongest reveal, looking along the corridor: a "
+                      f"{t['corridor_m'][0]:.0f} m wide, {t['corridor_m'][1]:.1f} m high corridor opening into the "
+                      f"{room.kind} ({t['contrast']:.0f}× its cross-section)",
+                      "eye": gl((x + 0.5) * s, (y + 0.5) * s, f + EYE), "target": target})
 
     # 5 (listed before 4). a courtyard, if the level has one: open sky is a focus of the review
     yards = [r for r in rooms if r.kind == "courtyard"]
@@ -163,6 +171,20 @@ def viewpoints(level, report):
                           f"at {(yard.ceil - yard.floor) / 32:.0f} m ({', '.join(yard.features) or 'nothing in it'})",
                           "eye": gl((c[0] + 0.5) * s, (c[1] + 0.5) * s, yard.floor + EYE),
                           "target": _room_center(level, yard, 0.45)})
+
+    # 6. where an underground level meets the surface: from inside the entrance, looking up at the sky
+    for r in rooms:
+        if r.meta.get("surface"):
+            base = [c for c in r.cells() if c not in level.diag and any(
+                (c[0], c[1], i) in reach and sp[0] == r.floor for i, sp in enumerate(level.spans.get(c, [])))]
+            if base:
+                c = _corner_eye(level, occ, r, base, r.floor + 0.8 * (r.ceil - r.floor))
+                cx, cy = r.center()
+                shots.append({"name": "surface", "caption": f"The way in from the surface: the {r.kind} room is "
+                              f"open to the sky, {(r.ceil - r.floor) / 32:.0f} m up; everything after it is underground",
+                              "eye": gl((c[0] + 0.5) * s, (c[1] + 0.5) * s, r.floor + EYE),
+                              "target": gl(cx * s, cy * s, r.ceil + 160)})
+            break
 
     # 4. the most interesting sight link: across storeys first, then the longest
     links = report.get("visual", {}).get("links", [])

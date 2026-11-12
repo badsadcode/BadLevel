@@ -217,9 +217,18 @@ def assign_storeys(g: MissionGraph, cfg: GenConfig, rng: random.Random, main: Li
     connections: a stair corridor, or a connector room (stairwell / lift / ladder)."""
     S = cfg.storeys
     best = None
+    deep = getattr(cfg, "underground", False)
     for _ in range(24):
-        st = {main[0]: rng.randrange(S)}
-        for a, b in zip(main, main[1:]):
+        st = {main[0]: S - 1 if deep else rng.randrange(S)}
+        if deep:
+            # underground: in from the surface (top storey) and down, one storey at a time, all the
+            # way to the bottom before the big hall (the deep chamber) when there's room for it
+            arena = next((i for i, n in enumerate(main) if g.nodes[n].kind in ("megaroom", "arena")), len(main) - 1)
+            span = list(range(1, arena + 1)) if arena >= S else list(range(1, len(main)))
+            downs = set(rng.sample(span, min(S - 1, len(span))))
+            for i, (a, b) in enumerate(zip(main, main[1:]), start=1):
+                st[b] = st[a] - (1 if i in downs else 0)
+        for a, b in ([] if deep else zip(main, main[1:])):
             s = st[a]
             if rng.random() < cfg.storey_change:
                 s += rng.choice([-1, 1]) if 0 < s < S - 1 else (1 if s == 0 else -1)

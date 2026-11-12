@@ -328,11 +328,36 @@ def _door_entity(level: Level, corr, kind: str) -> Entity:
     else:
         lo = ((cx - r) * s, cy * s, f)
         hi = ((cx + r + 1) * s, (cy + 1) * s, f + corr.height)
+    # a door fills the whole opening it closes: where the carved corridor is taller than its nominal
+    # height (stair corridors), the door reaches its real ceiling instead of leaving a gap above it
+    top = hi[2]
+    for x in range(int(lo[0] // s), int((hi[0] - 1) // s) + 1):
+        for y in range(int(lo[1] // s), int((hi[1] - 1) // s) + 1):
+            for sp in level.spans_in((x, y), f, f + 1):
+                top = max(top, sp[1])
+    hi = (hi[0], hi[1], top)
     pos = tuple((a + b) / 2 for a, b in zip(lo, hi))
     props = {"corridor": corr.id}
     if corr.key:
         props["key"] = corr.key
     return Entity(kind, pos, props, (lo, hi))
+
+
+def surface_entrance(level: Level):
+    """Underground levels start at the surface: the start room is open to the sky (a hatch or
+    pit you came down into), where nothing is stacked above it. It makes 'below ground' readable."""
+    start = next((r for r in level.rooms if r.kind == "start"), None)
+    if start is None:
+        return
+    opened = 0
+    for c in start.cells():
+        spans = level.room_spans(c, start)
+        if spans and level.spans[c][-1] == spans[-1]:
+            level.sky.add(c)
+            opened += 1
+    if opened:
+        start.meta["surface"] = True
+        start.features.append("surface")
 
 
 def decorate(level: Level, rng: random.Random):
@@ -344,6 +369,8 @@ def decorate(level: Level, rng: random.Random):
     from .spaces import space_for
     from .spaces import corridor as corridor_space
     ctxs: Dict[int, RoomCtx] = {}
+    if level.config.underground:
+        surface_entrance(level)
     sections = architecture.plan(level)        # {} without an arch_style: nothing changes
     tiers = architecture.rank_tiers(level) if sections or level.config.arch_style else {}
     for room in level.rooms:

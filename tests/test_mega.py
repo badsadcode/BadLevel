@@ -78,7 +78,8 @@ def test_decks_can_be_walked_under(megas):
 def test_recipes_use_mega_rooms():
     assert compile_recipe(PRESETS["industrial"]).mega_rooms == 1
     assert compile_recipe(PRESETS["compact"]).mega_rooms == 0
-    assert compile_recipe(PRESETS["bunker"]).mega_rooms == 0
+    # the bunker is underground: tight concrete rooms and one deep chamber at the bottom (D22)
+    assert compile_recipe(PRESETS["bunker"]).mega_rooms == 1
     lv = generate(compile_recipe(PRESETS["explore"], 3))
     m = mega_of(lv)
     assert not any(e.kind == "enemy" for e in lv.entities), "a mega-room is not necessarily an arena"

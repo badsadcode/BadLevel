@@ -140,11 +140,13 @@ PRESETS: Dict[str, Recipe] = {r.name: r for r in [
     Recipe("classic", "Quake-style: varied rooms, height changes, loops, a key and a secret.",
            scale=0.5, openness=0.45, verticality=0.45, claustrophobia=0.3, combat=0.6, exploration=0.5,
            loopiness=0.5, regularity=0.35),
-    Recipe("bunker", "Low, narrow, orthogonal. Small concrete rooms, firing slits, ladders and lifts "
-                     "between underground levels. Tense and close.",
+    Recipe("bunker", "Underground: in through a hatch from the surface and down, storey by storey. Low, "
+                     "narrow, orthogonal concrete rooms, firing slits, ladders and lifts, and at the bottom one "
+                     "deep chamber cut from the rock. Tense and close.",
            scale=0.45, openness=0.1, verticality=0.55, claustrophobia=0.9, combat=0.8, exploration=0.3,
            loopiness=0.3, regularity=0.95,
-           overrides={"arch_style": "bunker", "storeys": 2, "glazed_chance": 0.0, "windows": 4, "tall_room_chance": 0.0, "room_scale": 0.75,
+           overrides={"arch_style": "bunker", "underground": True, "storeys": 3, "mega_rooms": 1,
+                      "mega_styles": {"hangar": 2.0, "works": 1.0, "terraces": 0.0}, "glazed_chance": 0.0, "windows": 4, "tall_room_chance": 0.0, "room_scale": 0.75,
                       "size_bias": {"small": 2.5, "medium": 1.0, "large": 0.15},
                       "connector_weights": {"stairs": 0.15, "stairwell": 0.25, "lift": 0.3, "ladder": 0.3},
                       "feature_weights": {"balcony": 0.0}, "merge_chance": 0.05, "composition": "linear"}),

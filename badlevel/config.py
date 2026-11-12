@@ -26,6 +26,7 @@ class GenConfig:
     # --- storeys -----------------------------------------------------------
     storeys: int = 1             # 1 = classic single-storey level; 2-5 = stacked floors
     storey_height: int = 256     # planning grid between storeys (rooms may span more)
+    underground: bool = False    # in from the surface and down: start on top, open to the sky; exit deepest
     storey_change: float = 0.5   # chance the critical path changes storey at each room
     # how a change of storey is made: stair corridor, switchback stairwell, lift, ladder
     connector_weights: dict = field(default_factory=lambda: {

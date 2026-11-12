@@ -448,3 +448,34 @@ crowded with wide doorways.
 **Known limits.** Jambs are plain boxes; arches have no voussoirs or moulding. The axis
 is the mouth's centre line, not the line of sight from deeper in the corridor. Diagonal
 corridor mouths and mouths spanning a corner get no head.
+
+## D22. Underground mode, and the reveal camera follows the corridor
+
+**Problem.** In every review since the first showcase, "underground facility" failed:
+the bunker preset was a flat 2-storey chain that climbed *up* from a basement, with
+nothing that said "below ground".
+
+**Decision.** `underground` (set by the bunker preset):
+- *Descent.* The start is on the top storey; the critical path steps **down** one storey
+  at a time (positions chosen at random along the path, all before the big hall when it
+  fits), so the exit is the deepest point and the path never climbs back. Branches keep
+  their usual freedom.
+- *Surface entrance.* The start room is open to the sky where nothing is stacked above it:
+  a hatch or pit you came down into. The rest of the level is under ceilings and rock.
+- *The deep chamber.* The bunker now has one big hall (hangar or works), and because the
+  descent comes first it sits on the bottom storey. Its section is **cavern**: a rough
+  ceiling from a coarse random lattice (interpolated, kept in 16-unit steps so it looks
+  cut, not poured) with rock pillars left standing, and rough-cut walls (recesses of random
+  width, depth and height, no rhythm). The contrast with the ribbed concrete above is the point.
+- The preset goes to 3 storeys; low, narrow, orthogonal rooms, slits, ladders and lifts
+  stay. Pacing contrast turns on (a big space now exists), so the way into the deep
+  chamber is compressed.
+
+**Bug found on the way.** A locked door took its height from the corridor's nominal
+height; on a stair corridor whose carved space is taller, it left a gap above the door
+(96 units in bunker seed 4). Doors now fill the whole opening they close (generator-wide;
+a test checks every door in the styled presets).
+
+**Camera.** The showcase's reveal camera now looks along the corridor's last stretch
+from 4 cells before the hall (slightly upwards), as a player arrives, instead of at the
+hall's centre, which was often off the axis and filled half the shot with corridor wall.

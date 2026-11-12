@@ -68,7 +68,7 @@ def test_recipe_files_round_trip(tmp_path):
     assert cli_main(["generate", "--seed", "3", "--recipe", "bunker", "--out", str(tmp_path),
                      "--formats", "map", "--no-analysis"]) == 0
     data = json.loads((tmp_path / "badlevel_3.recipe.json").read_text())
-    assert data["name"] == "bunker" and data["compiled"]["storeys"] == 2
+    assert data["name"] == "bunker" and data["compiled"]["storeys"] == 3
     again = get_recipe(str(tmp_path / "badlevel_3.recipe.json"))
     assert again.dials() == PRESETS["bunker"].dials() and again.overrides == PRESETS["bunker"].overrides
     assert cli_main(["compare", "--recipes", "compact,bunker", "--seeds", "1", "--out", str(tmp_path / "cmp"),

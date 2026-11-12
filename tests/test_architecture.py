@@ -283,3 +283,36 @@ def test_portals_off_switch():
     cfg.arch_portals = False
     lv = generate(cfg)
     assert not any("portals" in r.meta for r in lv.rooms) and validate(lv)["ok"]
+
+
+# ----------------------------------------------------------------------
+# underground (the bunker preset)
+# ----------------------------------------------------------------------
+def test_underground_goes_down_from_the_surface(styled):
+    for lv in styled["bunker"]:
+        assert lv.config.underground and validate(lv)["ok"]
+        top = max(r.storey for r in lv.rooms)
+        start = next(r for r in lv.rooms if r.kind == "start")
+        exit_ = next(r for r in lv.rooms if r.kind == "exit")
+        assert start.storey == top and start.meta.get("surface")
+        assert any(c in lv.sky for c in start.cells())
+        assert exit_.storey == 0
+        # the critical path never climbs back up
+        main = sorted((n for n in lv.graph.nodes if getattr(n, "main", False)), key=lambda n: n.depth)
+        storeys = [n.storey for n in main]
+        assert all(b <= a for a, b in zip(storeys, storeys[1:])), storeys
+
+
+def test_deep_chamber(styled):
+    profiles = []
+    for lv in styled["bunker"]:
+        mega = [r for r in lv.rooms if r.kind == "megaroom"]
+        assert mega and mega[0].storey == 0
+        profiles.append(mega[0].meta["arch"]["profile"])
+    assert profiles.count("cavern") >= 3, profiles
+
+
+def test_underground_is_opt_in():
+    assert not compile_recipe(PRESETS["fortress"], 1).underground
+    lv = generate(seed=4, storeys=3)
+    assert not any(r.meta.get("surface") for r in lv.rooms)

@@ -121,6 +121,25 @@ def articulate(level: Level, room: Room, ctx, sec: Optional[Section], tier: str)
     near_door = {(x + dx, y + dy) for (x, y) in ctx.doors for dx in range(-2, 3) for dy in range(-2, 3)}
     counts = {"members": 0, "recesses": 0, "end": 0}
 
+    # --- a cavern's walls are rough-cut: recesses of random width, depth and height, no rhythm
+    if sec is not None and sec.name == "cavern":
+        for side_name in ("v0", "v1", "u0", "u1"):
+            side = Side(fr, side_name)
+            a = rng.randint(1, 3)
+            while a < side.length - 2:
+                w = rng.randint(1, 3)
+                if a + w > side.length - 1:
+                    break
+                cells = [fr.cell(*side.inner(x)) for x in range(a, a + w)]
+                ceil_here = min(_local_ceiling(sec, fr, side.inner(x)) for x in range(a, a + w))
+                top = min(q(rng.uniform(96, H * 0.7)), ceil_here - 16)
+                if top >= 96 and carve_recess(level, room, ctx, cells, side.out_dir(), rng.choice([1, 1, 2]), 0,
+                                              top, None, near_door):
+                    counts["recesses"] += 1
+                a += w + rng.randint(1, 4)
+        counts["rough"] = 1
+        return counts
+
     # --- the end walls of big halls: one strong feature, opposite or beside the entrance
     if tier in ("grand", "major") and fr.W >= 7:
         end = {"gothic": dict(frac_w=0.34, depth=2, frac_h=0.7, z0=0, pointed=True),

@@ -318,6 +318,11 @@ openings get jambs, and in big rooms a raised head (pointed arch, round arch, li
 so the low corridor frames the hall; about two thirds of big halls put their end
 feature on the axis of the way in, the rest stay oblique for surprise. Never over a door.
 
+**Underground** (`underground`, the bunker preset): in from the surface and down. The
+start room is open to the sky, the critical path steps down storey by storey to an exit
+on the deepest storey, and at the bottom there's a deep chamber cut from the rock
+(cavern section: rough ceiling, rock pillars, rough-cut walls).
+
 Safety: piers go in before a room's features, keep 2 cells from doorways and a walkable
 ring, and are undone if they would split the floor. Ceilings are applied after the
 features and only lowered: never below a walkable surface plus 112 units (the lowest corridor), never below an

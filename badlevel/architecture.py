@@ -468,11 +468,37 @@ def coffered(fr: Frame, rng: random.Random) -> Optional[Section]:
     return s
 
 
+def cavern(fr: Frame, rng: random.Random) -> Optional[Section]:
+    """Rough-hewn rock: an irregular ceiling (a coarse random lattice, interpolated, kept in
+    16-unit steps: it should look cut, not poured) and a few rock pillars. Underground only."""
+    L, W, H = fr.L, fr.W, fr.H
+    if H < HEAD + 64 or W < 8:
+        return None
+    s = Section("cavern", fr)
+    step = rng.choice([3, 4, 5])
+    low = max(HEAD + 32, int(H * 0.55))
+    lat = {(i, j): rng.uniform(low, H) for i in range(L // step + 2) for j in range(W // step + 2)}
+    for u in range(L):
+        for v in range(W):
+            i, j = u / step, v / step
+            i0, j0 = int(i), int(j)
+            a, b = i - i0, j - j0
+            h = (lat[(i0, j0)] * (1 - a) * (1 - b) + lat[(i0 + 1, j0)] * a * (1 - b)
+                 + lat[(i0, j0 + 1)] * (1 - a) * b + lat[(i0 + 1, j0 + 1)] * a * b)
+            s.set(u, v, h)
+    for _ in range(rng.randint(1, 3) if W >= 12 else 0):     # rock left standing
+        p = rng.choice([2, 3])
+        u0, v0 = rng.randint(3, max(3, L - 4 - p)), rng.randint(3, max(3, W - 4 - p))
+        s.piers.append(_pier(u0, v0, p))
+    s.info = {"lattice": step, "low": low}
+    return s
+
+
 PROFILES: Dict[str, Callable] = {
     "basilica": basilica, "single-aisle": single_aisle, "vault": vault, "undercroft": undercroft,
     "gable": gable, "shed": shed, "portal": portal, "clearspan": clearspan, "sawtooth": sawtooth,
     "multispan": multispan, "ribbed": ribbed, "barrel": barrel, "mushroom": mushroom, "haunched": haunched,
-    "tray": tray, "coffered": coffered,
+    "tray": tray, "coffered": coffered, "cavern": cavern,
     "plain": lambda fr, rng: None,
 }
 
@@ -540,7 +566,10 @@ def plan(level: Level) -> Dict[int, Section]:
     for room in rooms:
         rng = random.Random(f"{cfg.seed}/{cfg.variant}/arch/{room.id}")
         tier = tiers[room.id]
-        pal = {k: w * float(bias.get(k, 1.0)) * 0.5 ** used.get(k, 0) for k, w in PALETTES[style][tier].items()}
+        palette = PALETTES[style][tier]
+        if getattr(cfg, "underground", False) and tier == "grand":
+            palette = {"cavern": 4.0, "barrel": 1.0}            # the deep chamber is cut from the rock
+        pal = {k: w * float(bias.get(k, 1.0)) * 0.5 ** used.get(k, 0) for k, w in palette.items()}
         pal = {k: w for k, w in pal.items() if w > 0}
         fr = Frame(room, flip_v=rng.random() < 0.5)
         sec = None
