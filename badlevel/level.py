@@ -126,6 +126,8 @@ class Level:
     # half-solid cells with a 45-degree wall: cell -> corner of the solid triangle
     diag: Dict[Cell, str] = field(default_factory=dict)
     diag_span: Dict[Cell, Span] = field(default_factory=dict)
+    # glazed window cells: solid for movement and gunfire, see-through for visual connectivity
+    glass: set = field(default_factory=set)
     # traversal links that are not plain walking: lifts, ladders (two-way, with an interaction)
     links: List[dict] = field(default_factory=list)
     graph: object = None
@@ -208,5 +210,7 @@ class Level:
             "connectors": {k: sum(1 for r in self.rooms if r.kind == k) for k in ("stairwell", "lift", "ladder")},
             "links": len(self.links),
             "drops": sum(1 for c in self.corridors if getattr(c, "connector", None) == "drop"),
+            "windows": sum(1 for e in self.entities if e.kind == "window"),
+            "galleries": sum(1 for r in self.rooms if r.meta.get("gallery")),
             "z_range": list(self.z_range()),
         }

@@ -97,6 +97,31 @@ def diagnose(report: dict, rules: dict = None) -> list:
         flags.append(_flag("warn", "flat_level", "Almost no height variation in the whole level."))
     if lv["loops"] == 0:
         flags.append(_flag("warn", "no_loops", "No loops: the level is a pure tree, lots of backtracking."))
+    vis = report.get("visual")
+    if vis:
+        storeys = report.get("storeys", 1)
+        cross = [l for l in vis["links"] if l["cross_storey"]]
+        if storeys > 1 and not cross:
+            flags.append(_flag("warn", "no_vertical_landmarks",
+                               "Nothing on another storey can be seen from anywhere. Add a window, gallery or atrium "
+                               "so players see where they are going."))
+        for l in cross[:2]:
+            flags.append(_flag("info", "vertical_view",
+                               f"{l['a']} looks onto {l['b']} on another storey ({l['hops']} rooms/corridors apart"
+                               + (", through glass" if l["through_glass"] else "") + ").",
+                               pos=[(x + y) / 2 for x, y in zip(l["from"], l["to"])]))
+        if vis["landmarks"] and vis["landmarks"][0]["seen_from"] >= 3:
+            lm = vis["landmarks"][0]
+            flags.append(_flag("info", "landmark", f"{lm['area']} is a landmark: seen from {lm['seen_from']} areas "
+                                                   "you can't walk to directly."))
+        far = [p for p in vis["previews"] if p["steps_ahead"] >= 2]
+        if far:
+            best = max(far, key=lambda p: p["steps_ahead"])
+            flags.append(_flag("info", "preview", f"{best['room']} can be seen {best['steps_ahead']} rooms before "
+                                                  "you reach it."))
+        elif len(vis["previews"]) > 3:
+            flags.append(_flag("info", "no_previews", "No room on the critical path can be seen before you are "
+                                                      "next to it."))
     order = {"problem": 0, "warn": 1, "info": 2}
     flags.sort(key=lambda f: order[f["severity"]])
     return flags

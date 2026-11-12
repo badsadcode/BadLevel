@@ -13,7 +13,7 @@ ENT_COLORS = {
     "player_start": "#22c55e", "enemy": "#ef4444", "key": "#facc15", "door": "#f97316",
     "secret_door": "#a855f7", "exit": "#10b981", "health": "#f472b6", "megahealth": "#ec4899",
     "ammo": "#eab308", "armor": "#38bdf8", "weapon": "#e5e7eb", "light": "#fde68a",
-    "lift": "#f59e0b", "ladder": "#a16207",
+    "lift": "#f59e0b", "ladder": "#a16207", "window": "#7dd3fc",
 }
 KIND_LABEL = {"start": "START", "exit": "EXIT", "arena": "ARENA", "hub": "hub", "combat": "fight",
               "supply": "supply", "key": "KEY", "secret": "secret", "stairwell": "stairs ⇅",
@@ -299,6 +299,13 @@ function setupAnalysis(A) {
   A.chokepoints.forEach(c => { const m = new THREE.Mesh(new THREE.TorusGeometry(1.4, 0.12, 8, 32), new THREE.MeshBasicMaterial({ color: c.mandatory ? 0xd03b3b : 0xfab219 }));
     m.rotation.x = Math.PI / 2; m.position.copy(toV(...c.pos)).add(new THREE.Vector3(0, 0.15, 0)); chokes.add(m); });
   chokes.visible = false; scene.add(chokes);
+  // visual-only connections (see, can't walk directly): cyan sight lines, warmer if across storeys
+  const vis = new THREE.Group();
+  ((A.visual && A.visual.links) || []).forEach(l => {
+    const g = new THREE.BufferGeometry().setFromPoints([toV(...l.from), toV(...l.to)]);
+    vis.add(new THREE.Line(g, new THREE.LineBasicMaterial({ color: l.cross_storey ? 0xfacc15 : 0x22d3ee })));
+  });
+  vis.visible = false; scene.add(vis);
 
   let mode = 'exposure';
   function paint() {
@@ -321,12 +328,24 @@ function setupAnalysis(A) {
   $('analysis').innerHTML = `<h2>Combat analysis</h2>${sel}
     <div class="modes" id="an-modes">${Object.entries(MODES).map(([k, m]) => `<button data-m="${k}">${m.label}</button>`).join('')}<button data-m="off">Off</button></div>
     <div class="scale" id="an-legend"></div>
-    <div class="modes"><button id="an-lanes">Firing lanes</button><button id="an-chokes">Chokepoints</button></div>
+    <div class="modes"><button id="an-lanes">Firing lanes</button><button id="an-chokes">Chokepoints</button><button id="an-vis">Sight links</button></div>
     <div class="muted">Click a tile in the 3D view to inspect that position.</div>
     <table>${rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('')}</table>
+    ${visualPanel(A.visual)}
     <h2>Pacing along the critical path</h2><div class="muted">Mean exposure per room, start → exit. Variety is good.</div>${pacing(lv.pacing)}
     <h2>Flags (${A.flags.length})</h2><div class="muted">Potential issues and notable spots, not a fun score. Click to look.</div>${flags}
     <h2>Rooms</h2><table class="rooms"><tr><th>room</th><th>m²</th><th>mutual vis.</th><th>exposed</th><th>cover spots</th><th>heights</th><th>ways in</th></tr>${roomRows}</table>`;
+  function visualPanel(V) {
+    if (!V) return '';
+    const cross = V.links.filter(l => l.cross_storey).length, glass = V.links.filter(l => l.through_glass).length;
+    const lm = V.landmarks.map(l => `${esc(l.area)} (${l.seen_from})`).join(', ') || 'none';
+    const pv = V.previews.filter(p => p.steps_ahead >= 2).map(p => `${esc(p.room)}: ${p.steps_ahead} ahead`).join(', ') || 'none';
+    return `<h2>Visual connectivity</h2><div class="muted">Seeing is not walking: areas that see each other but are 3+ steps apart on foot. Yellow lines cross storeys.</div>
+      <table><tr><td>Sight links / across storeys / through glass</td><td>${V.links.length} / ${cross} / ${glass}</td></tr>
+      <tr><td>Landmarks (seen from)</td><td>${lm}</td></tr>
+      <tr><td>Critical-path rooms seen 2+ rooms ahead</td><td>${Math.round(V.previewed_share * 100)}%</td></tr>
+      <tr><td>Previews</td><td>${pv}</td></tr></table>`;
+  }
   function esc(t) { return String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]); }
   function pacing(P) {
     const w = 340, h = 90, max = Math.max(1, ...P.map(p => p.exposure_mean)), bw = w / P.length;
@@ -343,10 +362,12 @@ function setupAnalysis(A) {
   document.querySelectorAll('#an-modes button').forEach(b => b.onclick = () => { mode = b.dataset.m; paint(); });
   $('an-lanes').onclick = () => { lanes.visible = !lanes.visible; $('an-lanes').classList.toggle('on', lanes.visible); };
   $('an-chokes').onclick = () => { chokes.visible = !chokes.visible; $('an-chokes').classList.toggle('on', chokes.visible); };
+  $('an-vis').onclick = () => { vis.visible = !vis.visible; $('an-vis').classList.toggle('on', vis.visible); };
   function focus(p, dist = 14) { setMode('orbit'); const v = toV(...p); controls.target.copy(v); camera.position.set(v.x + dist * 0.5, v.y + dist, v.z + dist * 0.7); controls.update(); }
   document.querySelectorAll('#analysis .flag').forEach(el => el.onclick = () => { const f = A.flags[+el.dataset.i];
     if (f.pos) focus(f.pos); else if (f.room !== undefined) focus(A.room_centers[f.room], 20);
-    if (f.code === 'sniper_lane' && !lanes.visible) $('an-lanes').click(); if (f.code === 'mandatory_choke' && !chokes.visible) $('an-chokes').click(); });
+    if (f.code === 'sniper_lane' && !lanes.visible) $('an-lanes').click(); if (f.code === 'mandatory_choke' && !chokes.visible) $('an-chokes').click();
+    if (['vertical_view', 'landmark', 'preview'].includes(f.code) && !vis.visible) $('an-vis').click(); });
   document.querySelectorAll('#analysis tr.r').forEach(el => el.onclick = () => focus(A.room_centers[+el.dataset.room], 20));
   // click a tile to inspect it
   const ray = new THREE.Raycaster(), mouse = new THREE.Vector2(); let down = null;
@@ -365,7 +386,7 @@ function setupAnalysis(A) {
     tip.style.display = 'block';
   });
   paint();
-  window.__analysis = { setMode: m => { mode = m; paint(); }, focus, lanes, chokes };
+  window.__analysis = { setMode: m => { mode = m; paint(); }, focus, lanes, chokes, vis };
 }
 
 function resize() { const w = view.clientWidth, h = view.clientHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
@@ -424,7 +445,8 @@ def _analysis_embed(level: Level, analysis: dict) -> dict:
     return {"config": analysis["config"], "fields": fields, "data": data, "tiles": tiles,
             "areas": analysis["areas"], "lanes": analysis["lanes"], "chokepoints": analysis["chokepoints"],
             "rooms": analysis["rooms"], "level": analysis["level"], "flags": analysis["flags"],
-            "selection": analysis.get("selection"), "room_centers": centers}
+            "selection": analysis.get("selection"), "room_centers": centers,
+            "visual": analysis.get("visual")}
 
 
 def to_html(level: Level, analysis: dict = None) -> str:
@@ -442,6 +464,7 @@ def to_html(level: Level, analysis: dict = None) -> str:
         ("Storeys", stats["storeys"]),
         ("Vertical connectors", ", ".join(f"{v} {k}" for k, v in stats["connectors"].items() if v) or "-"),
         ("One-way drops", stats["drops"]),
+        ("Windows / galleries", f'{stats["windows"]} / {stats["galleries"]}'),
         ("Room shapes", ", ".join(stats["shapes"])),
         ("Room features", ", ".join(feats) or "-"),
         ("45° wall cells", stats["diagonal_cells"]),

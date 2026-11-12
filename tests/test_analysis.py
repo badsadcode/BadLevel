@@ -149,3 +149,79 @@ def test_cli_writes_analysis(tmp_path):
                      "--candidates", "2"]) == 0
     rep = json.loads((tmp_path / "badlevel_5.analysis.json").read_text())
     assert rep["selection"]["candidates"]
+
+
+# ---------------------------------------------------------------- openings
+def two_rooms_with_wall(window=None):
+    """Two rooms side by side, one solid wall cell column between them (x = 10)."""
+    from badlevel.graph import MissionGraph
+    lv = Level(seed=0, cell=32, width=22, height=8, config=GenConfig(), graph=MissionGraph())
+    for x in range(1, 21):
+        if x == 10:
+            continue
+        for y in range(1, 7):
+            lv.add_span((x, y), (0, 192), "room:0" if x < 10 else "room:1")
+    if window:
+        lo, hi, glazed = window
+        for y in (3, 4):
+            lv.add_span((10, y), (lo, hi), "window:0")
+            if glazed:
+                lv.glass.add((10, y))
+    return lv
+
+
+def test_slit_window_is_see_through_but_not_walkable():
+    from badlevel.validate import flood
+    viewer, target = p(4, 3, EYE), p(16, 3, CHEST)
+    assert not sees(Occupancy(two_rooms_with_wall()), viewer, target)
+    lv = two_rooms_with_wall((32, 80, False))
+    assert sees(Occupancy(lv), viewer, target), "eye level looks through the slit"
+    assert not sees(Occupancy(lv), viewer, p(11, 3, CROUCH)), "crouching right behind the wall hides you"
+    assert sees(Occupancy(lv), viewer, p(16, 3, CROUCH)), "but far back, a low line of sight still drops through"
+    reach = flood(lv, (4, 3, 0), set(), {})
+    assert not any(x >= 10 for (x, y, i) in reach), "a 48-unit slit never lets a player through"
+
+
+def test_glass_blocks_walking_and_bullets_but_not_sight():
+    from badlevel.validate import flood
+    lv = two_rooms_with_wall((16, 176, True))       # tall pane: a player would fit without the glass
+    viewer, target = p(4, 3, EYE), p(16, 3, CHEST)
+    assert not sees(Occupancy(lv, glass_opaque=True), viewer, target), "combat: glass stops fire"
+    assert sees(Occupancy(lv, glass_opaque=False), viewer, target), "visual: you see through glass"
+    assert not any(x >= 10 for (x, y, i) in flood(lv, (4, 3, 0), set(), {}))
+
+
+def test_generated_windows_and_galleries():
+    from badlevel.validate import flood, _node_at
+    levels = [generate(GenConfig(seed=s, storeys=3)) for s in range(8)]
+    windows = [e for lv in levels for e in lv.entities if e.kind == "window"]
+    assert windows and any(e.props["glazed"] for e in windows) and any(not e.props["glazed"] for e in windows)
+    galleries = 0
+    for lv in levels:
+        start = _node_at(lv, next(e for e in lv.entities if e.kind == "player_start").pos)
+        reach = flood(lv, start, set())
+        for c, spans in lv.spans.items():
+            for i, (f, top) in enumerate(spans):
+                if (lv.owner_at(c, f) or "").startswith("window:"):
+                    assert (c[0], c[1], i) not in reach, "windows are never walked through"
+        for r in lv.rooms:
+            if not r.meta.get("gallery"):
+                continue
+            galleries += 1
+            G = r.meta["gallery_floor"]
+            deck = [tuple(c) for c in r.meta["gallery"]]
+            assert all(len(lv.room_spans(c, r)) == 2 for c in deck), "a deck over open floor"
+            assert any((c[0], c[1], 1) in reach for c in deck), "the gallery can be reached"
+            corr = next(c for c in lv.corridors if c.connector == "gallery" and r.id in (c.a, c.b))
+            other = lv.rooms[corr.a if corr.b == r.id else corr.b]
+            assert lv.graph.nodes[other.node].zone == lv.graph.nodes[r.node].zone, "never bypasses a lock"
+    assert galleries > 0
+
+
+def test_visual_connectivity_report():
+    reports = [analyze(generate(GenConfig(seed=s, storeys=3))) for s in range(4)]
+    for rep in reports:
+        vis = rep["visual"]
+        assert all(l["hops"] >= 3 for l in vis["links"])
+        assert len(vis["previews"]) >= 3 and 0 <= vis["previewed_share"] <= 1
+    assert any(rep["level"]["cross_storey_views"] > 0 for rep in reports)

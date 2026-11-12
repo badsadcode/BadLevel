@@ -72,7 +72,7 @@ def successors(level: Level, node: Node, blocked: Set[Cell], links=None) -> Iter
     here = level.spans[(x, y)][i]
     for dx, dy in DIRS:
         n = (x + dx, y + dy)
-        if n in blocked or n not in level.spans or n in level.diag:
+        if n in blocked or n not in level.spans or n in level.diag or n in level.glass:
             continue
         for j, sp in enumerate(level.spans[n]):
             if _can_move(level, here, sp):
@@ -114,7 +114,7 @@ def can_reach(level: Level, targets: Set[Node], blocked: Set[Cell], links=None) 
         here = level.spans[(x, y)][i]
         for dx, dy in DIRS:
             p = (x + dx, y + dy)
-            if p in blocked or p not in level.spans or p in level.diag:
+            if p in blocked or p not in level.spans or p in level.diag or p in level.glass:
                 continue
             for j, sp in enumerate(level.spans[p]):
                 if (p[0], p[1], j) not in seen and _can_move(level, sp, here):
@@ -135,7 +135,7 @@ def validate(level: Level) -> Dict[str, object]:
             break
     for c, spans in level.spans.items():
         for (f, ceil) in spans:
-            if ceil - f < level.config.player_height:
+            if ceil - f < level.config.player_height and not (level.owner_at(c, f) or "").startswith("window:"):
                 errors.append(f"span at {c} too low ({ceil - f})")
         for a, b in zip(spans, spans[1:]):
             if b[0] <= a[1]:

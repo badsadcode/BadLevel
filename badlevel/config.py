@@ -31,6 +31,11 @@ class GenConfig:
     max_drop: int = 288          # highest intentional drop (units)
     tall_room_chance: float = 0.4  # arenas / hubs reaching up into the next storey
 
+    # --- openings ----------------------------------------------------------
+    windows: int = 5             # most windows per level (0 = none)
+    glazed_chance: float = 0.4   # tall glass panes vs firing slits
+    galleries: bool = True       # tall rooms get an upper-storey gallery (multi-storey only)
+
     # --- geometry --------------------------------------------------------
     cell: int = 32               # grid cell size in units
     step_height: int = 16        # stair step rise (Quake max step is 18)

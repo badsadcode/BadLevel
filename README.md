@@ -150,6 +150,28 @@ exit) must still be reachable. A connected room graph isn't enough.
 In the preview, the **Cut** slider hides everything above a height so you can look
 into lower storeys.
 
+## Windows, galleries and visual connectivity
+
+Seeing is not walking. BadLevel keeps the two apart:
+
+- **Firing slits:** 48-unit openings cut through thin walls between two different
+  areas. You can see and shoot through; a player (56 tall) never fits, so they are
+  visual-only by construction. Crouch right behind the wall and you're hidden.
+- **Glazed windows:** tall panes in `level.glass`. Walls for movement and gunfire,
+  see-through for visual connectivity. In the `.map`: a `func_wall` with `alpha`
+  (transparent in modern Quake engines).
+- **Galleries (mezzanines):** tall rooms on multi-storey levels get a deck at the
+  upper storey's height, reached by a corridor from an upper-storey room in the same
+  lock zone. An overlook onto the hall below, and a one-way way down (the softlock
+  check keeps it fair).
+
+The analysis builds a **visibility graph** next to the walking graph: area pairs
+that see each other although they are 3+ steps apart on foot (flagged when the
+view crosses storeys or goes through glass), **landmarks** (rooms seen from many
+places), and **previews**: how many rooms ahead each critical-path room can first be
+seen. Levels with storeys but no cross-storey views get a `no_vertical_landmarks`
+warning. In the preview: *Sight links* toggle and a Visual connectivity table.
+
 ## Corridors
 
 Each corridor gets its own width and may run diagonally:
@@ -194,9 +216,10 @@ ericw-tools. Export working is not the same as import working.
 ## Roadmap ideas
 
 - Verify in TrenchBroom + compile with ericw-tools (qbsp/vis/light)
-- Windows, openings and atriums between storeys (visual vs physical connectivity), vertical landmarks
 - Merged halls and multi-storey compositions with semantic regions
-- Mezzanines: upper-storey corridors attaching to the balcony of a tall room
+- Placing windows and galleries *for* previews along the critical path (now they
+  are opportunistic: multi-storey levels preview far less than single-storey ones)
+- Open archways between adjacent rooms
 - TrenchBroom groups per room/corridor in the `.map`
 - Engine plugins: Godot `@tool` importer for the JSON, Unity editor window, Unreal Python/Editor Utility
 - Hand-made room templates (Noor's!) mixed with generated rooms

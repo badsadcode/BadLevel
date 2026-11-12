@@ -144,6 +144,14 @@ def to_map(level: Level) -> str:
             p = {"classname": "func_ladder", "_badlevel_low": e.props["low"], "_badlevel_high": e.props["high"]}
             out.append(_entity(p, [brush_text(lo, hi, *(["bl_ladder"] * 3))]))
             continue
+        elif e.kind == "window":
+            if not e.props.get("glazed"):
+                continue  # a slit is just a hole in the wall
+            lo, hi = _ibox(e.bounds)
+            # glass: a func_wall pane; "alpha" makes it see-through in modern Quake engines
+            p = {"classname": "func_wall", "alpha": "0.35", "_badlevel_kind": "window_glass"}
+            out.append(_entity(p, [brush_text(lo, hi, *(["bl_glass"] * 3))]))
+            continue
         elif e.kind == "exit":
             lo, hi = _ibox(e.bounds)
             p = {"classname": "trigger_changelevel", "map": "start"}

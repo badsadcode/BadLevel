@@ -182,7 +182,9 @@ def test_corridor_widths_and_diagonals(levels):
                 for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
                     n = (cell[0] + dx, cell[1] + dy)
                     if (dx, dy) in SOLID_SIDES[corner]:
-                        assert n not in lv.spans or n in lv.diag
+                        # solid side: faces solid, another half cell, or a window cut later
+                        assert n not in lv.spans or n in lv.diag or all(
+                            (lv.owner_of(n, sp) or "").startswith("window:") for sp in lv.spans[n])
                     else:
                         assert lv.owner_of(n, lv.spans[n][0]) == owner
                         assert abs(lv.spans[n][0][0] - lv.spans[cell][0][0]) <= lv.config.step_height

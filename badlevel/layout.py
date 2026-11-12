@@ -632,34 +632,46 @@ def build_layout(g: MissionGraph, cfg: GenConfig, rng: random.Random, seed: int)
             level.notes.append(f"loop {e.a}-{e.b} dropped")
             continue
         diag = diag and any(d[0] and d[1] for d in (_dir(path, i) for i in range(len(path) - 1)))
-        cid = len(level.corridors)
         h = CORRIDOR_HEIGHT.get(r, 128 + 32 * (r - 1))
-        corr = Corridor(cid, e.id, a.id, b.id, path, floors, e.kind, e.key, radius=r, height=h, diagonal=diag,
-                        connector="drop" if drop else None)
-        # each carved cell takes the floor of its nearest centre-line cell
-        claim: Dict[Cell, Tuple[int, int, int, int]] = {}
-        for i, (c0, f, top) in enumerate(zip(path, floors, ceils)):
-            dirs = {_dir(path, i)}
-            if i > 0:
-                dirs.add(_dir(path, i - 1))   # union of both stamps at bends
-            for d in dirs:
-                for c, dist in _stamp(c0, d, r, k):
-                    pri = (dist, i, f, top)
-                    if c not in claim or pri < claim[c]:
-                        claim[c] = pri
-        carved = []
-        for c, (_, _, f, top) in claim.items():
-            if not level.free_at(c, f, top, SLAB) or a.contains(*c) or b.contains(*c):
-                continue                  # the rooms themselves, or something stacked too close
-            level.add_span(c, (f, top), f"corridor:{cid}")
-            carved.append(c)
-        carved += add_half_cells(level, cid, carved)
-        for c in carved:
-            sp = level.spans_in(c, *env)
-            for (lo_, hi_) in sp:
-                router.add_open(c, lo_, hi_)
-        level.corridors.append(corr)
+        corr = carve_corridor(level, router, e.id, a, b, path, floors, ceils, r, k, h, diag,
+                              e.kind, e.key, "drop" if drop else None, env)
+    if cfg.storeys > 1 and cfg.galleries:
+        from .openings import add_galleries
+        add_galleries(level, router, rng)
     return level
+
+
+def carve_corridor(level: Level, router: "Router", edge_id: int, a: Room, b: Room, path, floors, ceils,
+                   r: int, k: int, h: int, diag: bool, kind: str = "open", key=None, connector=None,
+                   env=None) -> Corridor:
+    """Carve a routed corridor into the level and register it."""
+    cid = len(level.corridors)
+    corr = Corridor(cid, edge_id, a.id, b.id, path, floors, kind, key, radius=r, height=h, diagonal=diag,
+                    connector=connector)
+    # each carved cell takes the floor of its nearest centre-line cell
+    claim: Dict[Cell, Tuple[int, int, int, int]] = {}
+    for i, (c0, f, top) in enumerate(zip(path, floors, ceils)):
+        dirs = {_dir(path, i)}
+        if i > 0:
+            dirs.add(_dir(path, i - 1))   # union of both stamps at bends
+        for d in dirs:
+            for c, dist in _stamp(c0, d, r, k):
+                pri = (dist, i, f, top)
+                if c not in claim or pri < claim[c]:
+                    claim[c] = pri
+    carved = []
+    for c, (_, _, f, top) in claim.items():
+        if not level.free_at(c, f, top, SLAB) or a.contains(*c) or b.contains(*c):
+            continue                  # the rooms themselves, or something stacked too close
+        level.add_span(c, (f, top), f"corridor:{cid}")
+        carved.append(c)
+    carved += add_half_cells(level, cid, carved)
+    env = env or (min(floors), max(ceils))
+    for c in carved:
+        for (lo_, hi_) in level.spans_in(c, *env):
+            router.add_open(c, lo_, hi_)
+    level.corridors.append(corr)
+    return corr
 
 
 def cleanup_diagonals(level: Level):

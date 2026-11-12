@@ -20,7 +20,7 @@ _CORNER_CODE = {"sw": 1, "se": 2, "nw": 3, "ne": 4}
 
 
 class Occupancy:
-    def __init__(self, level: Level, z_step: int = 8):
+    def __init__(self, level: Level, z_step: int = 8, glass_opaque: bool = True):
         self.level = level
         self.cell = level.cell
         self.z_step = z_step
@@ -35,6 +35,9 @@ class Occupancy:
         self.diag = np.zeros((level.width, level.height), dtype=np.int8)
         for (x, y), corner in level.diag.items():
             self.diag[x, y] = _CORNER_CODE[corner]
+        if glass_opaque:  # combat: glass stops bullets; visual connectivity: it doesn't
+            for (x, y) in level.glass:
+                self.open[x, y, :] = False
         for e in level.entities:
             if e.kind == "secret_door" and e.bounds:
                 (x0, y0, z0), (x1, y1, z1) = e.bounds

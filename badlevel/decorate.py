@@ -27,6 +27,10 @@ class RoomCtx:
         self.level = level
         self.room = room
         self.used: Set[Cell] = set(room.world_diag())
+        gallery = [tuple(c) for c in room.meta.get("gallery", [])]
+        if gallery:  # the upper-storey gallery deck: keep features off it, put a sniper on it
+            self.used.update(gallery)
+            self.deck_cells = gallery
         self.doors = self._door_cells()
         self.clear: Set[Cell] = set()
         for (dx0, dy0) in self.doors:

@@ -270,6 +270,8 @@ def analyze(level: Level, cfg: AnalysisConfig = None) -> dict:
                "mutual_visibility": rooms[level.room_by_node(nid).id]["mutual_visibility"],
                "enemies": rooms[level.room_by_node(nid).id]["enemies"]} for nid in main]
 
+    visual = _visual_connectivity(level, occ, cfg, vi, vj, V, xs, ys, zs, owners, areas, main, pts)
+
     data = np.stack([xs, ys, zs, owner_arr, np.round(exposure, 1), np.round(overlook, 1), np.round(cover, 3),
                      np.round(longest, 1), np.round(height_adv, 1), vertical, cls], axis=1)
     total = max(1, n)
@@ -277,12 +279,14 @@ def analyze(level: Level, cfg: AnalysisConfig = None) -> dict:
         "format": "badlevel-analysis",
         "version": 1,
         "seed": level.seed,
+        "storeys": len({r.storey for r in level.rooms}),
         "config": asdict(cfg),
         "samples": {"fields": FIELDS, "area_per_sample_m2": aps, "count": int(n),
                     "data": [[round(float(v), 3) for v in row] for row in data]},
         "areas": areas,
         "lanes": lanes,
         "chokepoints": chokepoints,
+        "visual": visual,
         "rooms": rooms,
         "level": {
             "positions": int(n),
@@ -299,8 +303,121 @@ def analyze(level: Level, cfg: AnalysisConfig = None) -> dict:
             "corridors_on_loops": sum(1 for c in level.corridors if c.id not in bridges),
             "mandatory_chokepoints": sum(1 for c in chokepoints if c["mandatory"]),
             "pacing": pacing,
+            "visual_links": len(visual["links"]),
+            "cross_storey_views": sum(1 for l in visual["links"] if l["cross_storey"]),
+            "glass_views": sum(1 for l in visual["links"] if l["through_glass"]),
+            "previewed_share": visual["previewed_share"],
         },
     }
     from .diagnostics import diagnose
     report["flags"] = diagnose(report)
     return report
+
+
+def _area_graph(level: Level):
+    """Physical connections between areas (rooms and corridors), for counting hops."""
+    adj = defaultdict(set)
+    for c in level.corridors:
+        ca = f"corridor:{c.id}"
+        for rid in (c.a, c.b):
+            adj[ca].add(f"room:{rid}")
+            adj[f"room:{rid}"].add(ca)
+    return adj
+
+
+def _hops(adj, a, b, limit=8):
+    if a == b:
+        return 0
+    seen, frontier = {a}, [a]
+    for d in range(1, limit + 1):
+        nxt = []
+        for n in frontier:
+            for m in adj[n]:
+                if m == b:
+                    return d
+                if m not in seen:
+                    seen.add(m)
+                    nxt.append(m)
+        frontier = nxt
+    return limit + 1
+
+
+def _visual_connectivity(level, occ, cfg, vi, vj, V, xs, ys, zs, owners, areas, main, pts):
+    """What can be *seen* from where, as opposed to walked to.
+
+    links:     area pairs that see each other although they are 2+ physical hops apart
+               (windows, galleries, long open views), with cross-storey and through-glass flags
+    landmarks: rooms seen from many non-adjacent areas
+    previews:  how many rooms ahead along the critical path each room can first be seen
+    """
+    n = len(xs)
+    if level.glass:
+        from .occupancy import Occupancy
+        see_occ = Occupancy(level, glass_opaque=False)
+        see = see_occ.visible(pts(vi, cfg.eye_height), pts(vj, cfg.target_height), cfg.ray_step)
+        S = np.zeros((n, n), dtype=bool)
+        S[vi[see], vj[see]] = True
+    else:
+        S = V
+    owner_idx = np.array([areas.index(o) for o in owners])
+    adj = _area_graph(level)
+    pair = defaultdict(list)
+    ii, jj = np.nonzero(S)
+    for i, j in zip(ii, jj):
+        a, b = owners[i], owners[j]
+        if a != b and a < b:
+            pair[(a, b)].append((i, j))
+    floor_of = {}
+    for a in areas:
+        idx = np.nonzero(owner_idx == areas.index(a))[0]
+        floor_of[a] = float(np.median(zs[idx])) if len(idx) else 0.0
+    links = []
+    for (a, b), lines in pair.items():
+        hops = _hops(adj, a, b)
+        if hops < 3:      # 2 hops = through a doorway or across a room: not a separate view
+            continue
+        i, j = max(lines, key=lambda ij: (zs[ij[0]] - zs[ij[1]]) ** 2 + (xs[ij[0]] - xs[ij[1]]) ** 2
+                   + (ys[ij[0]] - ys[ij[1]]) ** 2)
+        links.append({
+            "a": a, "b": b, "sightlines": len(lines), "hops": int(hops),
+            "cross_storey": abs(floor_of[a] - floor_of[b]) >= 128,
+            "through_glass": bool(any(not V[x, y] for x, y in lines)),
+            "from": [float(xs[i]), float(ys[i]), float(zs[i] + cfg.eye_height)],
+            "to": [float(xs[j]), float(ys[j]), float(zs[j] + cfg.target_height)],
+        })
+    links.sort(key=lambda l: (-l["cross_storey"], -l["hops"], -l["sightlines"]))
+
+    seen_from = defaultdict(set)
+    for l in links:
+        seen_from[l["b"]].add(l["a"])
+        seen_from[l["a"]].add(l["b"])
+    landmarks = sorted(({"area": a, "seen_from": len(v)} for a, v in seen_from.items() if a.startswith("room:")),
+                       key=lambda d: -d["seen_from"])[:5]
+
+    # previews along the critical path: first room from which each later room is visible
+    main_rooms = [level.room_by_node(nid).id for nid in main]
+    # the walk along the critical path: room, corridor, room, ... with the room index of each step
+    walk = []
+    for k, rid in enumerate(main_rooms):
+        walk.append((f"room:{rid}", k))
+        if k + 1 < len(main_rooms):
+            nxt = main_rooms[k + 1]
+            for c in level.corridors:
+                if {c.a, c.b} == {rid, nxt}:
+                    walk.append((f"corridor:{c.id}", k))
+    visible = defaultdict(set)
+    for (a, b), _ in pair.items():
+        visible[a].add(b)
+        visible[b].add(a)
+    previews = []
+    for k, rid in enumerate(main_rooms):
+        target = f"room:{rid}"
+        first = next((ri for area, ri in walk if ri < k and target in visible[area]), None)
+        previews.append({"room": target, "steps_ahead": (k - first) if first is not None else 0})
+    ahead = [p for p in previews[1:] if p["steps_ahead"] >= 2]
+    return {
+        "links": links[:40],
+        "landmarks": landmarks,
+        "previews": previews,
+        "previewed_share": round(len(ahead) / max(1, len(previews) - 1), 3),
+    }
