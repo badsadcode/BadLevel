@@ -87,6 +87,10 @@ def main(argv=None):
     p.add_argument("--version", action="version", version=__version__)
     sub = p.add_subparsers(dest="cmd", required=True)
     sub.add_parser("presets", help="list the preset recipes")
+    ev = sub.add_parser("evaluate", help="distinctness report: are presets / compositions recognisably different?")
+    ev.add_argument("what", choices=["presets", "compositions"], nargs="?", default="presets")
+    ev.add_argument("--seeds", default="1-6")
+    ev.add_argument("--out", default="out/evaluation")
     for name in ("generate", "gallery", "compare"):
         sp = sub.add_parser(name)
         if name == "generate":
@@ -118,6 +122,8 @@ def main(argv=None):
             dials = " ".join(f"{k}={v:g}" for k, v in r.dials().items())
             print(f"{r.name:11s} {r.description}\n{'':11s} {dials}")
         return 0
+    if args.cmd == "evaluate":
+        return run_evaluation(args.what, _parse_seeds(args.seeds), args.out)
     formats = [f.strip() for f in args.formats.split(",") if f.strip()]
 
     seeds = [args.seed] if args.cmd == "generate" else _parse_seeds(args.seeds)
@@ -188,6 +194,49 @@ def main(argv=None):
         with open(os.path.join(args.out, "index.html"), "w") as fh:
             fh.write(page)
         print(f"gallery -> {os.path.join(args.out, 'index.html')}")
+    return 0
+
+
+def run_evaluation(what: str, seeds, out: str, link_levels: bool = False) -> int:
+    """Write <out>/index.html and <out>/evaluation.json; with link_levels also each level's preview."""
+    from .config import GenConfig
+    from .evaluate import evaluate_configs, render_html
+    from .export.preview import map_svg
+    from .recipes import PRESETS, compile_recipe
+    os.makedirs(out, exist_ok=True)
+    if what == "presets":
+        items = [(n, compile_recipe(r, s)) for n, r in PRESETS.items() for s in seeds]
+        title = "BadLevel: are the presets distinct?"
+        intro = ("Every preset generated with the same seeds, each level reduced to a fingerprint of 22 features "
+                 "(room sizes, ceilings, corridors, storeys, regularity, halls, windows, combat, loops, open sky, "
+                 "mega-rooms and the silhouette). Distinct between presets, varied within each one.")
+    else:
+        items = [(c, GenConfig(seed=s, composition=c, side_rooms=4, pacing_contrast=True,
+                               mega_rooms=1 if c == "central" else 0)) for c in ("tree", "hub", "central", "linear")
+                 for s in seeds]
+        title = "BadLevel: are the compositions distinct?"
+        intro = ("The same settings with only the composition changed. Compositions differ in macro shape, so the "
+                 "silhouette (elongation, centrality, dead ends) is the measure that matters here; the other "
+                 "features are noise for this question.")
+    report = evaluate_configs(items)
+    thumbs = {}
+    for label, cfg in items[:]:
+        if len(thumbs.get(label, [])) >= 4:
+            continue
+        try:
+            level = generate(cfg)
+        except GenerationError:
+            continue
+        href = f"{label}_{cfg.seed}.html"
+        if link_levels:
+            write_level(level, out, ["html", "map"], stem=f"{label}_{cfg.seed}")
+        thumbs.setdefault(label, []).append((href if link_levels else "#", map_svg(level)))
+    with open(os.path.join(out, "evaluation.json"), "w") as fh:
+        json.dump(report, fh, indent=1)
+    with open(os.path.join(out, "index.html"), "w") as fh:
+        fh.write(render_html(report, title, intro, thumbs))
+    print(f"{what}: {report['accuracy']:.0%} recognised (silhouette {report['silhouette_accuracy']:.0%}), "
+          f"separation {report['separation']} -> {os.path.join(out, 'index.html')}")
     return 0
 
 

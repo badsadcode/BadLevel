@@ -102,6 +102,19 @@ Presets are checked for **identity**: `fingerprint.py` describes a level as ~17
 features, and a test requires each preset to be recognisable from its fingerprint
 alone. Why things are built this way: [docs/DECISIONS.md](docs/DECISIONS.md).
 
+## Evaluation
+
+```bash
+python3 -m badlevel evaluate presets --seeds 1-6 --out out/evaluation
+```
+
+Generates every preset (or every composition: `evaluate compositions`) for several
+seeds and reports how recognisable each one is (confusion matrix), which ones drift
+towards each other, how much variety each keeps inside itself versus the distance
+between them, what makes each one itself (a feature profile), and space metrics
+(biggest space, intimate vs expansive rooms, exploration, brush count). Published on
+the live preview site as the Evaluation page.
+
 ## Outputs
 
 | File | Use it for |

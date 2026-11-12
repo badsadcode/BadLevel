@@ -88,6 +88,9 @@ def main(out: str = "site") -> int:
         if cli(args) != 0:
             return 1
     build_compositions(f"{out}/compositions")
+    from badlevel.cli import run_evaluation
+    run_evaluation("presets", range(1, 7), f"{out}/evaluation", link_levels=True)
+    run_evaluation("compositions", range(1, 7), f"{out}/evaluation/compositions", link_levels=True)
 
     presets = "".join(f"<li><b>{html.escape(r.name)}</b> {html.escape(r.description)}</li>" for r in PRESETS.values())
     when = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
@@ -131,6 +134,7 @@ Version __VERSION__ · commit __COMMIT__ · built __WHEN__</p>
 <div class="cards">
   <a class="card" href="recipes/index.html"><b>Recipes side by side</b><span>Every preset, two seeds each: compact, classic, bunker, fortress, industrial, compound, explore.</span></a>
   <a class="card" href="compositions/index.html"><b>Compositions side by side</b><span>The four macro structures from above: tree, hub, central, linear, with their measured silhouette.</span></a>
+  <a class="card" href="evaluation/index.html"><b>Evaluation: are they distinct?</b><span>Measured: how recognisable each preset is, which ones get confused, how varied each one stays. Also <a href="evaluation/compositions/index.html">for compositions</a>.</span></a>
   <a class="card" href="classic/index.html"><b>Single-storey gallery</b><span>Six classic levels: shaped rooms, loops, keys, secrets, merged halls, corridor beats.</span></a>
   <a class="card" href="multistorey/index.html"><b>Multi-storey gallery</b><span>Three storeys: stairwells, lifts, ladders, drops, galleries and windows.</span></a>
 </div>

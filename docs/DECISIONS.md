@@ -258,3 +258,29 @@ in shape), and compositions are still four hand-made strategies rather than a gr
 (2) Recipes chose the composition before applying a preset's overrides, so a fortress
 whose courtyard and mega-room come from overrides was composed as a plain tree; the
 composition is now derived after overrides.
+
+## D17. Distinctness is evaluated, published and guarded
+
+**Decision.** `badlevel/evaluate.py` generates many seeds per preset (or composition),
+fingerprints every level and reports: leave-one-out recognition and a confusion
+matrix, the closest pairs (drift warning), **variety inside each label vs distance
+between labels** (separation), a z-score profile per label ("what makes it itself"),
+and space metrics answering the modularity note (biggest space, intimate vs expansive
+rooms, side rooms, secrets, brush count). `badlevel evaluate presets|compositions`
+writes `evaluation.json` and an HTML page; the live site publishes both on every push.
+
+**Why variety matters as much as accuracy.** A preset that always made the same level
+would be perfectly recognisable and still a failure. Tests require every preset to
+have variety and the separation to stay above 1 (levels of different presets further
+apart than levels of the same one).
+
+**First results.** Presets: 100% recognised on 6 seeds each, separation 1.6x; the
+closest pair is fortress <-> industrial (both tall, multi-storey, organised around a big
+space), the next compact <-> classic. Compositions: 71% from the silhouette alone
+(chance 25%) but only 50% from the full fingerprint, because compositions differ only
+in macro shape and the other features are noise for that question; silhouette
+separation is reported separately.
+
+**Next.** Fortress and industrial need more distance (stairwell towers vs lift
+shafts already differ; their footprints and halls should too). Hub vs central remains
+the weakest composition pair.
