@@ -19,7 +19,9 @@ from typing import Dict, List, Optional, Set, Tuple
 from .config import GenConfig
 from .graph import MissionGraph
 from .level import Cell, Corridor, Level, Room
-from .shapes import pick_shape
+from .spaces import space_for
+from .spaces.corridor import _corridor_style, add_beats
+from .spaces.hall import _mergeable, _seam_cells, _seam_ok, build_halls
 
 DIRS = [(1, 0), (0, 1), (-1, 0), (0, -1)]
 # 8 directions in 45-degree order, so turn angle = index difference
@@ -87,30 +89,13 @@ def _storey_floors(g: MissionGraph, cfg: GenConfig, rng: random.Random) -> Dict[
 
 
 def place_rooms(g: MissionGraph, cfg: GenConfig, rng: random.Random) -> List[Room]:
-    from .connectors import connector_size
-    from .graph import CONNECTOR_KINDS
     multi = cfg.storeys > 1
     H = cfg.storey_height
     preset = _storey_floors(g, cfg, rng) if multi else {}
 
     def make(node, x, y, floor, parent_floor):
-        """A candidate room for a node at (x, y), or None if its connector can't be built."""
-        if node.kind in CONNECTOR_KINDS:
-            top = node.top
-            size = connector_size(node.kind, top - floor, rng)
-            if size is None:
-                return None
-            w, h, meta = size
-            r = Room(-1, node.id, node.kind, x, y, w, h, floor, top + 160, storey=node.storey,
-                     top_floor=top, meta=meta)
-            return r
-        w, h, height = _room_size(cfg, node.size, rng)
-        if multi:
-            if node.kind in ("arena", "hub") and rng.random() < cfg.tall_room_chance:
-                height = rng.randrange(H + 96, 2 * H - 32 + 1, 16)      # reaches into the next storey
-            else:
-                height = min(height, H - 64)                           # leaves room for a storey above
-        return Room(-1, node.id, node.kind, x, y, w, h, floor, floor + height, storey=node.storey)
+        """A candidate room for a node, or None if its space type can't exist at this height."""
+        return space_for(node.kind).propose(node, floor, cfg, rng, multi)
 
     first = g.nodes[0]
     rooms: Dict[int, Room] = {}
@@ -231,13 +216,7 @@ def place_rooms(g: MissionGraph, cfg: GenConfig, rng: random.Random) -> List[Roo
     result = [rooms[n.id] for n in g.nodes]
     merged_nodes = {n for h in halls for n in h}
     for r in result:
-        if r.is_connector or r.node in merged_nodes:
-            continue                         # merged rooms stay rectangular so their seams line up
-        node = g.nodes[r.node]
-        shape = pick_shape(r.w, r.h, node.size, node.kind, rng, cfg.shape_weights)
-        r.shape = shape.name
-        if shape.name != "rect" or shape.diag:
-            r.mask, r.diag = shape.cells, shape.diag
+        space_for(r.kind).assign_shape(r, g.nodes[r.node], cfg, rng, r.node in merged_nodes)
     minx = min(r.x for r in result)
     miny = min(r.y for r in result)
     for idx, r in enumerate(result):
@@ -248,32 +227,6 @@ def place_rooms(g: MissionGraph, cfg: GenConfig, rng: random.Random) -> List[Roo
         for n in h:
             rooms[n].meta["hall"] = sorted(h)
     return result
-
-
-def _mergeable(e, parent: Room, node, g: MissionGraph) -> bool:
-    """Can this tree edge become a seam inside one hall instead of a corridor?"""
-    from .graph import CONNECTOR_KINDS
-    if not e.tree or e.kind != "open" or e.connector:
-        return False
-    kinds = {parent.kind, node.kind}
-    if kinds & set(CONNECTOR_KINDS) or kinds & {"secret", "key"}:
-        return False
-    return parent.storey == node.storey
-
-
-def _seam_cells(a: Room, b: Room):
-    """Pairs of touching cells (one in a, one in b) along the shared edge of two rectangles."""
-    out = []
-    for c in a.cells():
-        for dx, dy in DIRS:
-            n = (c[0] + dx, c[1] + dy)
-            if b.contains(*n):
-                out.append((c, n, (dx, dy)))
-    return out
-
-
-def _seam_ok(a: Room, b: Room) -> bool:
-    return len(_seam_cells(a, b)) >= 6
 
 
 def _port_floor(room: Room, other_floor: int, other_top: Optional[int] = None) -> int:
@@ -591,64 +544,11 @@ def add_half_cells(level: Level, cid: int, carved: List[Cell]) -> List[Cell]:
     return added
 
 
-def _corridor_style(g: MissionGraph, e, a: Room, b: Room, cfg: GenConfig, rng: random.Random):
-    kinds = {g.nodes[e.a].kind, g.nodes[e.b].kind}
-    if a.is_connector or b.is_connector:
-        return 1, False                  # connector ports are 3 cells wide
-    if e.kind == "secret":
-        r, diag = 1, False
-    else:
-        from .weights import weighted
-        if not e.tree:
-            opts = [1, 1, 2]
-        elif kinds & {"arena", "hub"}:
-            opts = [1, 2, 2, 3]
-        elif kinds & {"supply", "secret", "key"}:
-            opts = [1, 1, 2]
-        else:
-            opts = [1, 2, 2]
-        r, diag = weighted(rng, opts, cfg.corridor_width_bias), rng.random() < cfg.diagonal_chance
-    # the opening must fit the smaller room
-    smallest = min(a.w, a.h, b.w, b.h)
-    r = max(1, min(r, cfg.max_corridor_radius, (smallest - 3) // 2))
-    return r, diag
-
-
 def _gap(a: Room, b: Room) -> int:
     """Cells of empty space between two room footprints (0 if they touch or overlap)."""
     dx = max(b.x - (a.x + a.w), a.x - (b.x + b.w), 0)
     dy = max(b.y - (a.y + a.h), a.y - (b.y + b.h), 0)
     return dx + dy
-
-
-def build_halls(level: Level, g: MissionGraph, cfg: GenConfig):
-    """Record merged halls, and turn seams between rooms at different heights into terrace
-    steps across the whole seam (16-unit steps in the higher room, down towards the seam)."""
-    seen = set()
-    for r in level.rooms:
-        h = tuple(r.meta.get("hall", ()))
-        if h and h not in seen:
-            seen.add(h)
-            level.halls.append(list(h))
-    for e in g.edges:
-        if not e.merged:
-            continue
-        a, b = level.rooms[e.a], level.rooms[e.b]
-        hi, lo = (a, b) if a.floor > b.floor else (b, a)
-        d = hi.floor - lo.floor
-        rows = d // cfg.step_height - 1
-        if rows <= 0:
-            continue                          # within one step: seamless
-        terrace = []
-        for c_hi, _, (dx, dy) in _seam_cells(hi, lo):
-            for j in range(rows):
-                c = (c_hi[0] - dx * j, c_hi[1] - dy * j)
-                if not hi.contains(*c):
-                    break
-                level.replace_in(c, *hi.slot, [(lo.floor + cfg.step_height * (j + 1), hi.ceil)])
-                terrace.append(list(c))
-        hi.meta.setdefault("terrace", []).extend(terrace)
-        hi.features.append("terrace")
 
 
 def choose_loops(g: MissionGraph, rooms: List[Room], cfg: GenConfig, rng: random.Random):
@@ -684,13 +584,7 @@ def choose_loops(g: MissionGraph, rooms: List[Room], cfg: GenConfig, rng: random
 
 def _attachment(room: Room, other: Room):
     """(port cells or None, floor) where a corridor from ``room`` to ``other`` attaches."""
-    if not room.is_connector:
-        return None, room.floor
-    from .connectors import ports
-    p = ports(room)
-    target = other.top_floor if other.is_connector else other.floor
-    key = "high" if abs(target - room.top_floor) < abs(target - room.floor) else "low"
-    return p[key]
+    return space_for(room.kind).attachment(room, other)
 
 
 def _drop_fits(hi: Room, lo: Room, cfg: GenConfig, h: int = 128) -> bool:
@@ -714,7 +608,6 @@ def plan_drop(path: List[Cell], fa: int, fb: int, r: int, h: int):
 
 
 def build_layout(g: MissionGraph, cfg: GenConfig, rng: random.Random, seed: int) -> Level:
-    from .connectors import build_connector
     rooms = place_rooms(g, cfg, rng)
     width = max(r.x + r.w for r in rooms) + PAD
     height = max(r.y + r.h for r in rooms) + PAD
@@ -729,14 +622,7 @@ def build_layout(g: MissionGraph, cfg: GenConfig, rng: random.Random, seed: int)
     level = Level(seed=seed, cell=cfg.cell, width=width, height=height,
                   rooms=rooms, graph=g, config=cfg)
     for room in rooms:
-        if room.is_connector:
-            build_connector(level, room, cfg.step_height)
-            continue
-        for c in room.cells():
-            level.add_span(c, (room.floor, room.ceil), f"room:{room.id}", slot=room.slot)
-        for c, corner in room.world_diag().items():
-            level.diag[c] = corner
-            level.diag_span[c] = (room.floor, room.ceil)
+        space_for(room.kind).build(level, room, cfg)
 
     build_halls(level, g, cfg)
     choose_loops(g, rooms, cfg, rng)
@@ -845,94 +731,6 @@ def carve_corridor(level: Level, router: "Router", edge_id: int, a: Room, b: Roo
             router.add_open(c, lo_, hi_)
     level.corridors.append(corr)
     return corr
-
-
-def _perp(d: Cell) -> Cell:
-    return (-d[1], d[0])
-
-
-def _others_near(level: Level, c: Cell, lo: int, hi: int, own: str) -> bool:
-    """Is any space of another area within one cell of c, in the vertical range [lo, hi)?"""
-    for dx in (-1, 0, 1):
-        for dy in (-1, 0, 1):
-            n = (c[0] + dx, c[1] + dy)
-            for sp in level.spans_in(n, lo - SLAB, hi + SLAB):
-                if level.owner_of(n, sp) != own:
-                    return True
-    return False
-
-
-def add_beats(level: Level, router: "Router", corr: Corridor, rng: random.Random):
-    """Break a long corridor up: every ``beat_spacing`` cells, on a straight level stretch,
-    something changes: a chamber (wider, taller, maybe pillars for cover), alcoves (side
-    niches with a pickup) or a vault (much higher ceiling). Long corridors stay long."""
-    cfg = level.config
-    path, floors = corr.path, corr.floors
-    n, r, h = len(path), corr.radius, corr.height
-    sp = cfg.beat_spacing
-    if n < 2 * sp or corr.connector in ("drop", "gallery"):
-        return
-    own = f"corridor:{corr.id}"
-    L2 = 3
-    targets = list(range(sp, n - sp // 2, sp))
-    for t in targets:
-        cands = [i for i in range(max(L2 + 3, t - 4), min(n - L2 - 3, t + 5))
-                 if _straight(path, i, L2 + 1, axis_only=True) and len(set(floors[i - L2 - 1:i + L2 + 2])) == 1]
-        if not cands:
-            continue
-        i = min(cands, key=lambda j: abs(j - t))
-        f = floors[i]
-        d = _dir(path, i)
-        pd = _perp(d)
-        cx, cy = path[i]
-        kind = rng.choices(["chamber", "alcoves", "vault"], [0.5, 0.3, 0.2])[0]
-        if kind == "chamber":
-            R, top = r + 2, f + h + 64
-            zone = [(cx + d[0] * u + pd[0] * v, cy + d[1] * u + pd[1] * v)
-                    for u in range(-L2, L2 + 1) for v in range(-R, R + 1)]
-            pillars = []
-            if rng.random() < 0.6:
-                pillars = [(cx + pd[0] * v, cy + pd[1] * v) for v in (-(r + 1), r + 1)]
-        elif kind == "alcoves":
-            top = f + h
-            sides = rng.choice([(-1,), (1,), (-1, 1)])
-            zone = [(cx + d[0] * u + pd[0] * s * v, cy + d[1] * u + pd[1] * s * v)
-                    for s in sides for u in (-1, 0, 1) for v in range(-r, r + 3)]
-            pillars = []
-        else:
-            top = f + h + 96
-            zone = [(cx + d[0] * u + pd[0] * v, cy + d[1] * u + pd[1] * v)
-                    for u in range(-L2, L2 + 1) for v in range(-r, r + 1)]
-            pillars = []
-        # everything new must be solid now (or ours, flat at f) and keep a wall to other areas
-        ok = True
-        for c in zone:
-            spans = level.spans.get(c, [])
-            mine = [s_ for s_ in spans if level.owner_of(c, s_) == own]
-            near_diag = any((c[0] + dx, c[1] + dy) in level.diag for dx in (-1, 0, 1) for dy in (-1, 0, 1))
-            if near_diag or any(s_ not in mine and s_[0] < top + SLAB and f - SLAB < s_[1] for s_ in spans):
-                ok = False
-                break
-            if any(m[0] != f for m in mine) or _others_near(level, c, f, top, own):
-                ok = False
-                break
-        if not ok:
-            continue
-        cells = []
-        for c in zone:
-            if c in pillars:
-                continue
-            level.replace_in(c, f - 1, f + h, [])           # our own span (if any) ...
-            level.add_span(c, (f, top), own if not level.owner_at(c, f) else None)  # ... now taller / new
-            cells.append(c)
-        for c in pillars:
-            level.replace_in(c, f - 1, top, [])
-        for c in cells:
-            router.add_open(c, f, top)
-        s = level.cell
-        corr.beats.append({"type": kind, "index": i, "cells": [list(c) for c in cells],
-                           "pos": [(cx + 0.5) * s, (cy + 0.5) * s, f], "top": top,
-                           "pillars": len(pillars)})
 
 
 def cleanup_diagonals(level: Level):

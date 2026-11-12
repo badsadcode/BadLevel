@@ -336,143 +336,17 @@ def _door_entity(level: Level, corr, kind: str) -> Entity:
 
 
 def decorate(level: Level, rng: random.Random):
-    g = level.graph
+    """Each room's space type adds its features, then its contents; then the corridors' contents.
+    (Two passes over the rooms, in this order, so the random sequence is stable.)"""
+    from .spaces import space_for
+    from .spaces import corridor as corridor_space
     ctxs: Dict[int, RoomCtx] = {}
     for room in level.rooms:
         ctx = RoomCtx(level, room)
         ctxs[room.id] = ctx
-        options = FEATURES_BY_KIND.get(room.kind, [[]])
-        fw = level.config.feature_weights
-
-        def option_weight(opt):
-            w = 1.0
-            for f in opt:
-                w *= float(fw.get(f.__name__[2:], 1.0))
-            return w if opt else float(fw.get("none", 1.0))
-        ws = [option_weight(o) for o in options]
-        chosen = rng.choices(options, ws)[0] if sum(ws) > 0 else []
-        for feat in chosen:
-            feat(ctx, rng)
-        if rng.random() < min(1.0, CRATE_CHANCE.get(room.kind, 0.0) * level.config.crate_scale):
-            f_crates(ctx, rng)
-
-    ents = level.entities
-    max_depth = max(n.depth for n in g.nodes) or 1
+        space_for(room.kind).decorate(level, room, ctx, rng)
+    info = {"max_depth": max(n.depth for n in level.graph.nodes) or 1}
     for room in level.rooms:
-        ctx = ctxs[room.id]
-        node = g.nodes[room.node]
-        taken: Set[Cell] = set()
-        area = room.w * room.h
-        tier = 1 + min(2, (node.depth * 3) // (max_depth + 1))
-
-        # lights
-        cx, cy = room.x + room.w / 2.0, room.y + room.h / 2.0
-        spots = [(0.25, 0.25), (0.75, 0.25), (0.25, 0.75), (0.75, 0.75)] if area >= 140 else [(0.5, 0.5)]
-        lit = set()
-        for fx, fy in spots:
-            c = _nearest_open(level, room, room.x + room.w * fx, room.y + room.h * fy)
-            if c in lit:
-                continue
-            lit.add(c)
-            ents.append(Entity("light", ((c[0] + 0.5) * level.cell, (c[1] + 0.5) * level.cell,
-                                         level.room_spans(c, room)[-1][1] - 24),
-                               {"intensity": 250 if len(spots) > 1 else 300}))
-
-        if room.kind == "start":
-            c = min((c for c in room.cells() if _flat_cell(level, room, c)),
-                    key=lambda c: (c[0] + 0.5 - cx) ** 2 + (c[1] + 0.5 - cy) ** 2)
-            taken.add(c)
-            angle = 0
-            if ctx.doors:
-                dx = sum(d[0] for d in ctx.doors) / len(ctx.doors) + 0.5 - (c[0] + 0.5)
-                dy = sum(d[1] for d in ctx.doors) / len(ctx.doors) + 0.5 - (c[1] + 0.5)
-                angle = int(round(math.degrees(math.atan2(dy, dx)) / 45.0)) * 45 % 360
-            ents.append(Entity("player_start", _at(level, room, c), {"angle": angle}))
-            c2 = _pick_free(ctx, rng, taken)
-            if c2:
-                ents.append(Entity("weapon", _at(level, room, c2, z_off=0), {"type": "shotgun"}))
-        elif room.kind == "exit":
-            block = _flat_block(ctx, cx, cy)
-            if block is None:
-                raise LayoutError("no spot for the exit")
-            ex, ey = block[0]
-            s = level.cell
-            lo = (ex * s, ey * s, room.floor)
-            hi = ((ex + 2) * s, (ey + 2) * s, room.floor + 64)
-            ents.append(Entity("exit", ((ex + 1) * s, (ey + 1) * s, room.floor + 32), {}, (lo, hi)))
-            for x in (ex, ex + 1):
-                for y in (ey, ey + 1):
-                    taken.add((x, y))
-        elif room.kind == "key":
-            ped = getattr(ctx, "pedestal", None)
-            c = ped[0] if ped else _pick_free(ctx, rng, taken)
-            if c is None:
-                raise LayoutError("no spot for key")
-            taken.update(ped or [c])
-            ents.append(Entity("key", _at(level, room, c, z_off=24), {"color": node.key}))
-
-        # enemies
-        per = {"combat": 28, "arena": 20, "hub": 40, "key": 45, "supply": 80, "exit": 60}.get(room.kind)
-        if per:
-            dens = level.config.enemy_density
-            count = int(round(max(1, area // per) * dens)) if dens > 0 else 0
-            for _ in range(max(1, count) if dens > 0 else 0):
-                c = _pick_free(ctx, rng, taken)
-                if c:
-                    ents.append(Entity("enemy", _at(level, room, c), {"tier": tier}))
-        # high ground gets a sniper and a reward
-        for attr in ("deck_cells", "top_cells"):
-            cells = [c for c in getattr(ctx, attr, []) if c not in taken]
-            if cells and rng.random() < min(1.0, level.config.enemy_density):
-                c = rng.choice(cells)
-                taken.add(c)
-                ents.append(Entity("enemy", _at(level, room, c, top=True), {"tier": tier}))
-                cells.remove(c)
-                if cells:
-                    c = rng.choice(cells)
-                    taken.add(c)
-                    ents.append(Entity("armor" if room.kind == "arena" else "ammo",
-                                       _at(level, room, c, top=True, z_off=0), {}))
-
-        # pickups
-        n_items = {"supply": 3, "combat": 1, "arena": 2, "hub": 1, "secret": 2, "key": 1}.get(room.kind, 0)
-        n_items = int(round(n_items * level.config.pickup_density))
-        for k in range(n_items):
-            c = _pick_free(ctx, rng, taken)
-            if not c:
-                break
-            if room.kind == "secret":
-                kind = ["megahealth", "weapon"][k % 2]
-                props = {"type": "rocket_launcher"} if kind == "weapon" else {}
-            else:
-                kind = rng.choice(["health", "health", "ammo", "armor" if tier > 1 else "ammo"])
-                props = {}
-            ents.append(Entity(kind, _at(level, room, c, z_off=0), props))
-
-    # corridor lights and doors
+        space_for(room.kind).populate(level, room, ctxs[room.id], rng, info)
     for corr in level.corridors:
-        for i in range(3, len(corr.path) - 3, 7):
-            (x, y), f = corr.path[i], corr.floors[i]
-            ents.append(Entity("light", ((x + 0.5) * level.cell, (y + 0.5) * level.cell,
-                                         f + corr.height - 16), {"intensity": 200}))
-        # beats: a fight in a chamber, a reward in an alcove, light in a vault
-        depth = max(g.nodes[level.rooms[corr.a].node].depth, g.nodes[level.rooms[corr.b].node].depth)
-        tier = 1 + min(2, (depth * 3) // (max_depth + 1))
-        s = level.cell
-        for beat in corr.beats:
-            f, top = beat["pos"][2], beat["top"]
-            cells = [tuple(c) for c in beat["cells"]]
-            path_cells = set(corr.path)
-            side = [c for c in cells if c not in path_cells]
-            at = lambda c, z: ((c[0] + 0.5) * s, (c[1] + 0.5) * s, z)
-            ents.append(Entity("light", (beat["pos"][0], beat["pos"][1], top - 24), {"intensity": 260}))
-            if beat["type"] == "chamber" and side and rng.random() < min(1.0, level.config.enemy_density):
-                for c in rng.sample(side, min(len(side), rng.randint(1, 2))):
-                    ents.append(Entity("enemy", at(c, f + 24), {"tier": tier}))
-            elif beat["type"] == "alcoves" and side:
-                c = max(side, key=lambda c: abs(c[0] - beat["pos"][0] / s) + abs(c[1] - beat["pos"][1] / s))
-                ents.append(Entity(rng.choice(["health", "ammo", "armor"]), at(c, f), {}))
-        if corr.kind == "locked":
-            ents.append(_door_entity(level, corr, "door"))
-        elif corr.kind == "secret":
-            ents.append(_door_entity(level, corr, "secret_door"))
+        corridor_space.populate(level, corr, rng, info)

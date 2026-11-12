@@ -138,3 +138,27 @@ open areas, mega-rooms and, above all, **composition** (macro structures such as
 hub and spokes, central space with satellites, stacked tower, compound). The
 fingerprint test stays as a guard; a silhouette-level measure should be added with
 composition.
+
+## D13. Space types are modules behind one interface
+
+**Decision.** Every kind of space implements `SpaceType` (`badlevel/spaces/`):
+`propose` (size, heights, meta), `assign_shape`, `build` (write spans), `attachment`
+(ports), `decorate` (features), `populate` (contents) and `regions`. A registry maps
+room kinds to space types. Rooms (all eight gameplay roles) and connectors
+(stairwell, lift, ladder) are the first modules. Corridors (style, beats, contents)
+and merged halls are relationships rather than room types and got their own
+modules. Placement, carving, decoration and the ports lookup dispatch through the
+registry; `Room.is_connector` asks it too.
+
+**Why.** Open areas and mega-rooms must be *additions*, not more special cases in
+the core. A test registers a new space type from outside the package, generates
+with it and removes it again.
+
+**How it was verified.** A pure refactor: full `.map` + `.json` output of 38 levels
+(defaults, three storeys, six presets) hashed before and after, byte for byte
+identical. Keeping the random sequence stable meant the base class still performs
+the feature roll for spaces that never get features.
+
+**Cost.** Some helpers (feature placement, entity spots) still live in `decorate.py`
+and are imported by the room module; they can move when a second space type needs
+them in a different form.

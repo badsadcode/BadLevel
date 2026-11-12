@@ -266,6 +266,16 @@ changes. So BadLevel doesn't remove them, it fixes the cause and breaks them up:
 Single-storey levels went from a median loop corridor of ~90 m to ~26 m, and the
 longest monotone stretch is under 20 m.
 
+## Space types (for developers)
+
+Every kind of space is a module in `badlevel/spaces/` implementing one interface:
+`propose` (size, heights), `assign_shape`, `build` (write its open spans),
+`attachment` (where corridors connect), `decorate` (features), `populate`
+(contents) and `regions`. Rooms and the vertical connectors are the built-in types;
+corridors and merged halls have their own modules. To add a new kind of space,
+subclass `SpaceType` (or `RoomSpace`) and `register()` it; see
+`tests/test_spaces.py` for a complete example. Background: docs/DECISIONS.md D13.
+
 ## How the geometry works
 
 The world is a grid of 32-unit columns. Each column stores the **empty spans**
@@ -296,8 +306,7 @@ ericw-tools. Export working is not the same as import working.
 ## Roadmap ideas
 
 - Verify in TrenchBroom + compile with ericw-tools (qbsp/vis/light)
-- Space-type modules (rooms, connectors, halls, corridors behind one interface), then
-  open areas (courtyards, plazas), mega-rooms via sub-generation, and composition
+- Open areas (courtyards, plazas), mega-rooms via sub-generation, and composition
   (macro structures, compression/release pacing). See docs/DECISIONS.md D12.
 - Multi-storey compositions: halls spanning storeys, interlocking structures
 - TrenchBroom groups per room/region in the `.map`

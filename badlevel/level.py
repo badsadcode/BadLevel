@@ -50,7 +50,8 @@ class Room:
 
     @property
     def is_connector(self) -> bool:
-        return self.kind in ("stairwell", "lift", "ladder")
+        from .spaces import space_for
+        return space_for(self.kind).vertical
 
     def is_diag(self, cx: int, cy: int) -> bool:
         return (cx - self.x, cy - self.y) in self.diag
