@@ -121,6 +121,70 @@ def articulate(level: Level, room: Room, ctx, sec: Optional[Section], tier: str)
     near_door = {(x + dx, y + dy) for (x, y) in ctx.doors for dx in range(-2, 3) for dy in range(-2, 3)}
     counts = {"members": 0, "recesses": 0, "end": 0}
 
+    # --- the end walls of big halls: one strong feature, opposite or beside the entrance
+    if tier in ("grand", "major") and fr.W >= 7:
+        end = {"gothic": dict(frac_w=0.34, depth=2, frac_h=0.7, z0=0, pointed=True),
+               "industrial": dict(frac_w=0.3, depth=1, frac_h=None, top=176, z0=0, pointed=False),
+               "bunker": dict(frac_w=0.3, depth=1, frac_h=None, top=112, z0=0, pointed=False),
+               "compound": dict(frac_w=0.3, depth=1, frac_h=0.6, z0=32, pointed=False)}[style]
+        w = max(3, min(7, int(round(fr.W * end["frac_w"]))))
+        tries = [(s, (fr.W - w) // 2, False, w) for s in rng.sample(["u0", "u1"], 2)]
+        focus = _incoming_axis(level, room, fr, ctx)
+        if focus:
+            counts["focus"] = 1
+        if focus and rng.random() < getattr(cfg, "arch_axial", 0.65):
+            far, a_mid = focus                              # a framed reveal: the feature faces the way in
+            length = fr.L if far in ("v0", "v1") else fr.W
+            a0 = max(1, min(length - 1 - w, int(round(a_mid - w / 2.0))))
+            narrow = []
+            for shift in (2, -2, 1, -1, 0):                 # it may slide up to 2 cells off a doorway,
+                tries.insert(0, (far, a0 + shift, True, w))
+                if w > 3:                                   # or narrow down to 3 between wide doorways
+                    narrow.insert(0, (far, int(round(a_mid - 1.5)) + shift, True, 3))
+            tries[5:5] = narrow
+        for side_name, a0, axial, w in tries:
+            side = Side(fr, side_name)
+            if a0 < 1 or a0 + w > side.length - 1:
+                continue
+            cells = [fr.cell(*side.inner(a)) for a in range(a0, a0 + w)]
+            ceil_here = min(_local_ceiling(sec, fr, side.inner(a)) for a in range(a0, a0 + w))
+            top = q(H * end["frac_h"]) if end["frac_h"] else end["top"]
+            top = min(top, ceil_here - 16)
+            if top - end["z0"] < 96:
+                continue
+            head = None
+            if end["pointed"] and smooth:
+                rise = min(q(w * 12), ceil_here - 16 - top)
+                if rise >= 16:
+                    d = side.out_dir()
+                    xs = [c[0] if d[1] else c[1] for c in cells]
+                    centre = (min(xs) + max(xs) + 1) / 2.0
+                    half = w / 2.0
+                    base = room.floor + top
+                    head = (lambda A, base=base, rise=rise, centre=centre, half=half:
+                            base + rise * max(0.0, 1 - abs(A - centre) / half))
+            depth = end["depth"]
+            if carve_recess(level, room, ctx, cells, side.out_dir(), depth, end["z0"], top, head, near_door) or \
+                    (depth > 1 and carve_recess(level, room, ctx, cells, side.out_dir(), 1, end["z0"], top, head,
+                                                near_door)):
+                counts["end"] += 1
+                counts["axial"] = int(axial)
+                ctx.used.update(cells)                           # its opening stays clear of members
+                break                                            # one per hall
+        if focus and not counts.get("axial"):
+            # the way in looks straight at another doorway: a through-view, framed by its portal
+            from .portals import openings
+            far, a_mid = focus
+            for op in openings(level, room):
+                uvs = [fr.uv(c) for c in op["cells"]]
+                on_far = all((v == 0 if far == "v0" else v == fr.W - 1 if far == "v1" else
+                              u == 0 if far == "u0" else u == fr.L - 1) for u, v in uvs)
+                if on_far:
+                    pos = [u if far in ("v0", "v1") else v for u, v in uvs]
+                    if min(pos) - 2 <= a_mid <= max(pos) + 3:
+                        counts["through"] = 1
+                        break
+
     # --- inward: members on the bay lines of the long walls (unless the section already has them)
     has_members = sec is not None and any(
         all(v in (0, fr.W - 1) for _, v in g) for g in sec.piers)
@@ -173,41 +237,6 @@ def articulate(level: Level, room: Room, ctx, sec: Optional[Section], tier: str)
             if carve_recess(level, room, ctx, cells, side.out_dir(), spec["depth"], spec["z0"], top, head, near_door):
                 counts["recesses"] += 1
 
-    # --- the end walls of big halls: one strong feature, opposite or beside the entrance
-    if tier in ("grand", "major") and fr.W >= 7:
-        end = {"gothic": dict(frac_w=0.34, depth=2, frac_h=0.7, z0=0, pointed=True),
-               "industrial": dict(frac_w=0.3, depth=1, frac_h=None, top=176, z0=0, pointed=False),
-               "bunker": dict(frac_w=0.3, depth=1, frac_h=None, top=112, z0=0, pointed=False),
-               "compound": dict(frac_w=0.3, depth=1, frac_h=0.6, z0=32, pointed=False)}[style]
-        for side_name in rng.sample(["u0", "u1"], 2):
-            side = Side(fr, side_name)
-            w = max(3, min(7, int(round(fr.W * end["frac_w"]))))
-            a0 = (fr.W - w) // 2
-            cells = [fr.cell(*side.inner(a)) for a in range(a0, a0 + w)]
-            ceil_here = min(_local_ceiling(sec, fr, side.inner(a)) for a in range(a0, a0 + w))
-            top = q(H * end["frac_h"]) if end["frac_h"] else end["top"]
-            top = min(top, ceil_here - 16)
-            if top - end["z0"] < 96:
-                continue
-            head = None
-            if end["pointed"] and smooth:
-                rise = min(q(w * 12), ceil_here - 16 - top)
-                if rise >= 16:
-                    d = side.out_dir()
-                    xs = [c[0] if d[1] else c[1] for c in cells]
-                    centre = (min(xs) + max(xs) + 1) / 2.0
-                    half = w / 2.0
-                    base = room.floor + top
-                    head = (lambda A, base=base, rise=rise, centre=centre, half=half:
-                            base + rise * max(0.0, 1 - abs(A - centre) / half))
-            depth = end["depth"]
-            if carve_recess(level, room, ctx, cells, side.out_dir(), depth, end["z0"], top, head, near_door) or \
-                    (depth > 1 and carve_recess(level, room, ctx, cells, side.out_dir(), 1, end["z0"], top, head,
-                                                near_door)):
-                counts["end"] += 1
-                ctx.used.update(cells)                           # its opening stays clear of members
-                break                                            # one per hall
-
     # --- the end walls get the rhythm too (a 35 m wide hall has 35 m end walls)
     if fr.W >= 9 and not has_members:
         ebay = bay_size(H, fr.W, k, lo, hi)
@@ -227,6 +256,39 @@ def articulate(level: Level, room: Room, ctx, sec: Optional[Section], tier: str)
                     sec.forced.add((u, v))
         counts["corbel"] = rail
     return counts
+
+
+def _incoming_axis(level: Level, room: Room, fr: Frame, ctx) -> Optional[Tuple[str, float]]:
+    """The wall facing the way in, and where along it the way in points: (side, position).
+    The way in is the corridor from the room nearer the start (lower mission-graph depth)."""
+    from .portals import openings
+    g = level.graph
+    depth = g.nodes[room.node].depth
+    best = None
+    ops = openings(level, room)
+    if len(ops) == 1:
+        best = ops[0]                                   # the only way in is the way in
+    for op in ([] if best else ops):
+        corr = level.corridors[op["corridor"]] if op["corridor"] < len(level.corridors) else None
+        if corr is None:
+            continue
+        other = level.rooms[corr.a if corr.b == room.id else corr.b]
+        od = g.nodes[other.node].depth
+        if od < depth and (best is None or len(op["cells"]) > len(best["cells"])):
+            best = op
+    if best is None:
+        return None
+    uvs = [fr.uv(c) for c in best["cells"]]
+    us, vs = [u for u, _ in uvs], [v for _, v in uvs]
+    if all(v == 0 for v in vs):
+        return "v1", sum(us) / len(us) + 0.5
+    if all(v == fr.W - 1 for v in vs):
+        return "v0", sum(us) / len(us) + 0.5
+    if all(u == 0 for u in us):
+        return "u1", sum(vs) / len(vs) + 0.5
+    if all(u == fr.L - 1 for u in us):
+        return "u0", sum(vs) / len(vs) + 0.5
+    return None
 
 
 # ----------------------------------------------------------------------

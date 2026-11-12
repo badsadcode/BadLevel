@@ -401,3 +401,45 @@ byte-identical.
 string courses yet. Rooms with shaped outlines (octagons, rings) get members only where
 their bounding box meets a wall. Small gothic rooms can look busy with shafts every
 3 cells; the minor tier only thins the recesses.
+
+## D21. Portals and framed reveals
+
+**Problem.** The showcase's reveal shots never changed: a low corridor ending in a plain
+rectangular gap in a wall, and whatever happened to be in line with it. Noor: "the change
+in scale exists, but the view into the larger space isn't particularly dramatic", and
+"a corridor opening toward a recognizable architectural feature, but keep some
+surprises".
+
+**Decision, part 1: portals** (`badlevel/portals.py`). Every corridor opening of a styled
+room (a run of room cells whose outside neighbour is a corridor span at the room's floor)
+is framed:
+- *jambs*: the room cells at both ends of the opening become solid members (two deep in a
+  bunker: a blast frame), only if solid wall is behind them, nothing stands there, and the
+  floor stays connected;
+- *head* (grand and major rooms): the mouth rises above the corridor into the wall: a
+  pointed arch (gothic), a round arch (compound), a tall opening under a heavy lintel
+  (industrial). Arches are smooth (sloped mouth cells); the corridor behind stays low, so
+  you look through a tall frame into the big space.
+It runs as decorate's **last** step, after rooms and corridors are populated: it sees the
+final ceilings, every entity and every door. A mouth holding a door is never raised (a
+locked door must still seal its corridor; a test checks every door), and raising only cuts
+rock with one solid cell kept around it, the same rule as wall recesses.
+
+**Decision, part 2: framed reveals** (in `walls.py`, before the room's features). The way
+in to a big hall is the opening whose corridor comes from the room nearer the start (or the
+only opening). With probability `arch_axial` (0.65) the hall's end feature (apse, loading
+door, blast door, bay window) goes on the wall facing it, on its axis; it may slide up to
+2 cells, or narrow to 3, to stay clear of other doorways, and it's placed before the wall
+members so the focal point wins. Otherwise it stays on an end wall: an oblique, side-on
+discovery. When the axis lands on another doorway instead, it's recorded as a
+*through-view* (the next portal framed across the hall, the classic vista), separately
+from *axial*, so the numbers stay honest.
+
+**Measured** (seeds 1-5, grand and major halls): with a way in found, 31 axial features +
+15 through-views of 87; 41 oblique (by choice or no room on the far wall); 17 halls had no
+recognisable way in. Fortress is the weakest (6 of 20 axial or through): its far walls are
+crowded with wide doorways.
+
+**Known limits.** Jambs are plain boxes; arches have no voussoirs or moulding. The axis
+is the mouth's centre line, not the line of sight from deeper in the corridor. Diagonal
+corridor mouths and mouths spanning a corner get no head.

@@ -366,3 +366,6 @@ def decorate(level: Level, rng: random.Random):
         space_for(room.kind).populate(level, room, ctxs[room.id], rng, info)
     for corr in level.corridors:
         corridor_space.populate(level, corr, rng, info)
+    if tiers:
+        from . import portals
+        portals.build(level, tiers)            # frames the openings, last: it sees doors and entities

@@ -223,3 +223,63 @@ def test_walls_off_switch():
     cfg.arch_walls = False
     lv = generate(cfg)
     assert not any("walls" in r.meta for r in lv.rooms)
+
+
+# ----------------------------------------------------------------------
+# portals and framed reveals (step 3)
+# ----------------------------------------------------------------------
+def test_portals_frame_openings(styled):
+    from badlevel.architecture import rank_tiers
+    for name, levels in styled.items():
+        heads = jambs = 0
+        for lv in levels:
+            tiers = rank_tiers(lv)
+            for r in lv.rooms:
+                for p in r.meta.get("portals", []):
+                    jambs += p["jambs"]
+                    if p["head"]:
+                        heads += 1
+                        assert tiers[r.id] in ("grand", "major")
+        assert jambs > 0, name
+        if name != "bunker":
+            assert heads > 0, name
+
+
+def test_doors_still_seal_their_corridors(styled):
+    """A raised mouth never holds a door: every door reaches the ceiling of the cells it closes."""
+    for levels in styled.values():
+        for lv in levels:
+            s = lv.cell
+            for e in lv.entities:
+                if e.kind not in ("door", "secret_door") or not e.bounds:
+                    continue
+                (x0, y0, z0), (x1, y1, z1) = e.bounds
+                for x in range(int(x0 // s), int((x1 - 1) // s) + 1):
+                    for y in range(int(y0 // s), int((y1 - 1) // s) + 1):
+                        for f, top in lv.spans_in((x, y), z0, z1):
+                            assert top <= z1 and (x, y) not in lv.ceil_slope, (lv.seed, e.kind, (x, y), top, z1)
+
+
+def test_framed_reveals_and_surprises():
+    """Some big halls put their end feature on the axis of the way in, others stay oblique."""
+    from badlevel.architecture import rank_tiers
+    axial = oblique = 0
+    for name in ("industrial", "compound"):
+        for seed in range(1, 6):
+            lv = generate(compile_recipe(PRESETS[name], seed))
+            tiers = rank_tiers(lv)
+            for r in lv.rooms:
+                w = r.meta.get("walls", {})
+                if tiers.get(r.id) in ("grand", "major") and w.get("focus"):
+                    if w.get("axial"):
+                        axial += 1
+                    elif not w.get("through"):
+                        oblique += 1
+    assert axial >= 5 and oblique >= 3, (axial, oblique)
+
+
+def test_portals_off_switch():
+    cfg = compile_recipe(PRESETS["compound"], 1)
+    cfg.arch_portals = False
+    lv = generate(cfg)
+    assert not any("portals" in r.meta for r in lv.rooms) and validate(lv)["ok"]

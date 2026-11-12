@@ -313,6 +313,11 @@ blast door, a bay window) and crane corbels in tall industrial halls. A recess a
 keeps one solid cell between it and any other space. The mean longest flat wall per
 room roughly halves.
 
+**Portals and framed reveals** (`portals.py`, `arch_portals`, `arch_axial`): corridor
+openings get jambs, and in big rooms a raised head (pointed arch, round arch, lintel)
+so the low corridor frames the hall; about two thirds of big halls put their end
+feature on the axis of the way in, the rest stay oblique for surprise. Never over a door.
+
 Safety: piers go in before a room's features, keep 2 cells from doorways and a walkable
 ring, and are undone if they would split the floor. Ceilings are applied after the
 features and only lowered: never below a walkable surface plus 112 units (the lowest corridor), never below an
