@@ -1,0 +1,47 @@
+<h2>Step 4: underground, and a reveal camera that follows the corridor</h2>
+
+<p><b>Same 12 seeds and categories.</b> Left: step 3. Right: step 4 (D22). Two changes:</p>
+<ul>
+<li><b>Underground levels</b> (the bunker preset). Their layouts changed: the preset now has 3 storeys
+and a deep chamber.</li>
+<li><b>The reveal camera</b> now looks along the corridor's last stretch, as a player arrives,
+instead of at the hall's centre. The other nine levels have the same geometry as step 3, so their reveal shots
+differ only because of the camera.</li>
+</ul>
+
+<h3>What works</h3>
+<ul>
+<li><b>It goes down now.</b> You start at the surface, in a room open to the sky (the new <i>surface</i> shot
+looks up out of it). The critical path steps down one storey at a time and never climbs back. The exit is
+always on the deepest storey.</li>
+<li><b>The deep chamber.</b> At the bottom there's one big hall cut from the rock: a rough, irregular stepped
+ceiling, rock pillars left standing, and rough-cut walls with recesses of random width, depth and height. It
+contrasts with the ribbed concrete rooms above. Seeds 1–6: always on the bottom storey, a cavern in 5 of 6
+(the other rolled a low barrel vault).</li>
+<li><b>Reveals read as arrivals.</b> Looking straight down the corridor, fortress_2 now frames its arched portal
+with the vault behind it, and the underground reveals look down tight corridors into the rock chambers.</li>
+<li><b>A real bug fixed on the way.</b> A locked door could leave a gap above itself on stair corridors (96
+units in one bunker). Doors now fill the whole opening, and a test checks every door.</li>
+<li>All levels validate, 88 tests pass, levels without a style are byte-identical (26/26), and the crack check is
+clean (0 pink pixels in 51 shots).</li>
+</ul>
+
+<h3>What doesn't work yet</h3>
+<ul>
+<li><b>The surface is just a roofless room.</b> There's no landscape, entrance building or shaft head above
+ground. It reads as "a pit you came down", no more.</li>
+<li><b>The descent happens in connectors.</b> The storeys are joined by the usual stairwells, lifts and ladders.
+There's no long winding ramp, no tall access shaft you can look down, and the deep chamber isn't visible from
+above before you reach it.</li>
+<li><b>Cavern rock is blocky.</b> The ceiling is deliberately stepped (cut, not poured), so it looks more
+quarried than natural. Truly natural caves would need sloped triangles, which the exporter can't make yet.</li>
+<li><b>Fortress reveals</b> still often end at a wall or terrace across the corridor mouth: the hall's interior
+gets in the way of the axis.</li>
+</ul>
+
+<h3>Questions</h3>
+<ol>
+<li>Should the deep chamber be visible from above on the way down (a gallery or a window into it)? That would
+make the descent a reveal of its own.</li>
+<li>Next: open compounds with free-standing buildings, or richer member shapes (buttresses, capitals)?</li>
+</ol>

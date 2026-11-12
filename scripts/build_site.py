@@ -124,9 +124,14 @@ h1 { font-size: 30px; margin: 0; } h1 span { color: var(--accent); }
 .cards { display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
 a.card { display:block; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px;
          color:inherit; text-decoration:none; }
-a.card:hover { border-color: var(--accent); }
-a.card b { display:block; font-size:17px; margin-bottom:4px; }
-a.card span { color: var(--muted); font-size: 14px; }
+a.card:hover, div.card:hover { border-color: var(--accent); }
+.card b { display:block; font-size:17px; margin-bottom:4px; }
+.card span { color: var(--muted); font-size: 14px; }
+/* cards with several links can't be one link (a link inside a link breaks the layout) */
+div.card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px; }
+div.card b a { color:inherit; text-decoration:none; }
+.card ul.steps { margin:8px 0 0; padding-left:18px; font-size:14px; } .card ul.steps li { margin:2px 0; }
+.card ul.steps a { color: var(--accent); }
 h2 { font-size: 18px; margin: 36px 0 8px; }
 ul { padding-left: 20px; } li { margin: 4px 0; } li b { margin-right: 6px; }
 code { background: var(--card); border:1px solid var(--line); border-radius:6px; padding: 1px 6px; font-size: 13px; }
@@ -138,10 +143,10 @@ footer { color: var(--muted); font-size: 13px; margin-top: 40px; }
 <p class="sub">Procedural FPS level blockouts, generated fresh from the latest code on every push.
 Version __VERSION__ · commit __COMMIT__ · built __WHEN__</p>
 <div class="cards">
-  <a class="card" href="showcase/index.html"><b>Architectural showcase</b><span>Design review: 12 levels (fortress, industrial, underground, compound) with player-height screenshots and an honest verdict. A frozen snapshot, not rebuilt. Then <a href="showcase/step1/index.html">step 1: hall cross-sections</a> and <a href="showcase/step2/index.html">step 2: smooth vaults, small rooms, walls</a> and <a href="showcase/step3/index.html">step 3: portals and framed reveals</a>, before and after.</span></a>
+  <div class="card"><b><a href="showcase/index.html">Architectural showcase</a></b><span>Design review: 12 levels (fortress, industrial, underground, compound) with player-height screenshots and an honest verdict. Frozen snapshots, not rebuilt, each step before and after:</span><ul class="steps"><li><a href="showcase/index.html">the first review</a></li><li><a href="showcase/step1/index.html">step 1: hall cross-sections</a></li><li><a href="showcase/step2/index.html">step 2: smooth vaults, small rooms, walls</a></li><li><a href="showcase/step3/index.html">step 3: portals and framed reveals</a></li><li><a href="showcase/step4/index.html">step 4: underground</a></li></ul></div>
   <a class="card" href="recipes/index.html"><b>Recipes side by side</b><span>Every preset, two seeds each: compact, classic, bunker, fortress, industrial, compound, explore.</span></a>
   <a class="card" href="compositions/index.html"><b>Compositions side by side</b><span>The four macro structures from above: tree, hub, central, linear, with their measured silhouette.</span></a>
-  <a class="card" href="evaluation/index.html"><b>Evaluation: are they distinct?</b><span>Measured: how recognisable each preset is, which ones get confused, how varied each one stays. Also <a href="evaluation/compositions/index.html">for compositions</a>.</span></a>
+  <div class="card"><b><a href="evaluation/index.html">Evaluation: are they distinct?</a></b><span>Measured: how recognisable each preset is, which ones get confused, how varied each one stays.</span><ul class="steps"><li><a href="evaluation/index.html">presets</a></li><li><a href="evaluation/compositions/index.html">compositions</a></li></ul></div>
   <a class="card" href="classic/index.html"><b>Single-storey gallery</b><span>Six classic levels: shaped rooms, loops, keys, secrets, merged halls, corridor beats.</span></a>
   <a class="card" href="multistorey/index.html"><b>Multi-storey gallery</b><span>Three storeys: stairwells, lifts, ladders, drops, galleries and windows.</span></a>
 </div>
