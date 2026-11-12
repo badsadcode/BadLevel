@@ -133,6 +133,9 @@ class Level:
     glass: set = field(default_factory=set)
     # open to the sky: the top of these columns is sky, not a ceiling
     sky: set = field(default_factory=set)
+    # sloped ceilings (smooth vaults and roofs): cell -> corner heights (x0y0, x1y0, x1y1, x0y1) of
+    # the top span's ceiling; the span itself keeps the lowest point, so gameplay stays conservative
+    ceil_slope: Dict[Cell, Tuple[int, int, int, int]] = field(default_factory=dict)
     # traversal links that are not plain walking: lifts, ladders (two-way, with an interaction)
     links: List[dict] = field(default_factory=list)
     # merged halls: each a list of room ids that form one continuous space (semantic regions)

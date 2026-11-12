@@ -65,6 +65,22 @@ def brush_text(mins, maxs, top: str, bottom: str, side: str) -> str:
     return faces_text(faces, inside)
 
 
+def sloped_text(b: Brush, top: str, bottom: str, side: str) -> str:
+    """A box whose bottom is a sloped plane through its corner heights (a smooth vault cell)."""
+    (x1, y1, _), (x2, y2, z2) = b.mins, b.maxs
+    z00, z10, z11, _ = b.slope
+    faces = [
+        ((x1, y1, z2), (x1, y1 + 1, z2), (x1, y1, z2 + 1), side),     # -X
+        ((x1, y1, z2), (x1, y1, z2 + 1), (x1 + 1, y1, z2), side),     # -Y
+        ((x2, y2, z2), (x2, y2 + 1, z2), (x2 + 1, y2, z2), top),      # +Z
+        ((x2, y2, z2), (x2 + 1, y2, z2), (x2, y2, z2 + 1), side),     # +Y
+        ((x2, y2, z2), (x2, y2, z2 + 1), (x2, y2 + 1, z2), side),     # +X
+        ((x1, y1, z00), (x2, y1, z10), (x2, y2, z11), bottom),   # the bottom: three of the four
+    ]                                                           # (coplanar) corners
+    inside = ((x1 + x2) / 2, (y1 + y2) / 2, (max(b.slope) + z2) / 2)
+    return faces_text(faces, inside)
+
+
 def prism_text(b: Brush, tex: str) -> str:
     """Triangular prism for a 45-degree wall cell."""
     (x1, y1, z1), (x2, y2, z2) = b.mins, b.maxs
@@ -94,6 +110,7 @@ def _ibox(bounds):
 def to_map(level: Level) -> str:
     brushes: List[Brush] = build_brushes(level)
     world = [prism_text(b, TEXTURES[b.side]) if b.corner else
+             sloped_text(b, TEXTURES[b.top], TEXTURES[b.bottom], TEXTURES[b.side]) if b.slope else
              brush_text(b.mins, b.maxs, TEXTURES[b.top], TEXTURES[b.bottom], TEXTURES[b.side])
              for b in brushes]
     out = [

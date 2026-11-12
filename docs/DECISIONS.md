@@ -328,3 +328,37 @@ the set changed). The validator remains mandatory.
 smooth slopes would need sloped brushes in the exporter. Rooms on a multi-storey level
 are often 6 m high, which leaves 64 units to shape: there the effect is subtle. Shaped
 rooms (rings, octagons) take the profile of their bounding box.
+
+## D19. Smooth vaults, and character for small rooms
+
+**Smooth vaults.** Stepped vaults read as arches from across a hall but as an upside-down
+staircase from below. Profiles that vary along one axis (vault, barrel, basilica,
+gable, shed, multispan, sawtooth, haunches, tray) now also give a continuous surface;
+at a cell's four corners it yields a plane, kept in `level.ceil_slope`. The column span
+keeps the **lowest corner**, so validation, LOS and analysis stay conservative and
+unchanged. Exporters draw the true surface:
+- `.map`: the solid above a sloped cell is a box with a sloped bottom plane (convex, so
+  qbsp-safe); cells with the same corners merge along the axis the slope doesn't change
+  on, so the brush count barely moves.
+- mesh / glTF / preview: a sloped ceiling quad, and side faces between cells whose
+  bounds are lines along the edge: the edge is split where bounds cross and each piece
+  becomes a quad. Checked with a magenta-background render (no pixel of background
+  shows through from inside) and a unit test that the side faces exactly fill a gap.
+- IR: `ceiling_slopes` and per-brush `slope`.
+Ribs, trusses, drop panels, coffers and groin vaults stay crisp steps: they are
+members, not surfaces. A slope is only used where nothing is stacked above the room in
+that column. `arch_smooth: false` restores the strict 16-unit grid.
+
+**Small rooms.** On multi-storey levels most rooms are 6 m high, and with 128 units of
+headroom there was almost nothing left to shape: 28 of 64 fortress rooms and ~45 of 78
+industrial rooms stayed plain boxes. Changes:
+- HEAD is now 112, the height of the low pacing corridors the generator already makes,
+  so no structure is lower than a corridor a player already walks through. Profile
+  thresholds are relative to HEAD.
+- With smooth surfaces a 48-64 unit vault or gable reads, so low vaults and gables are
+  allowed; new low-room profiles **tray** (raised middle, coved edges) and **coffered**
+  (a waffle slab in a bunker).
+- "plain" is weighted lower in the minor tier and damped like any other profile.
+Result over seeds 1-5: plain rooms (secrets excluded) fortress 6/64, industrial 13/78,
+compound 10/63, bunker 21/54. The bunker's remaining plain rooms are 128 units high
+(corridor height): nothing fits under them, and their character has to come from walls.

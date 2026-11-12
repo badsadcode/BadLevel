@@ -301,9 +301,13 @@ halves its weight for the rest of the level. `arch_weights` biases the choice
 (`{"basilica": 2, "sawtooth": 0}`). The chosen section is recorded in
 `room.meta["arch"]` (in the IR) so artists can see the intent and replace it.
 
+Vaults and roofs are **smooth** (sloped planes in the `.map`, the `.glb` and the IR's
+`ceiling_slopes`); beams, ribs and coffers stay crisp. `arch_smooth: false` keeps a strict
+16-unit grid. Low rooms get low vaults, gables, **tray** or **coffered** ceilings.
+
 Safety: piers go in before a room's features, keep 2 cells from doorways and a walkable
 ring, and are undone if they would split the floor. Ceilings are applied after the
-features and only lowered: never below a walkable surface plus 128 units, never below an
+features and only lowered: never below a walkable surface plus 112 units (the lowest corridor), never below an
 opening next to the cell, never over a gallery or the sky. The validator still has the
 last word. Levels without a style are byte-identical to before.
 

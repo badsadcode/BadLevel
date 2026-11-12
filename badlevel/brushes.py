@@ -30,6 +30,9 @@ class Brush:
     # set for triangular prisms (45-degree walls): corner the solid triangle points at;
     # mins/maxs are then the cell's bounding box
     corner: Optional[str] = None
+    # set for a sloped bottom (smooth vaults and roofs): heights of the bottom face at the
+    # rectangle's corners (x0y0, x1y0, x1y1, x0y1); mins z is their lowest
+    slope: Optional[Tuple[int, int, int, int]] = None
 
 
 def solid_intervals(spans, zmin, zmax):
@@ -54,12 +57,17 @@ def build_brushes(level: Level) -> List[Brush]:
                 cols.add((x + dx, y + dy))
 
     groups: Dict[Tuple[int, int, str, str], Set[Cell]] = {}
+    sloped: Dict[tuple, Set[Cell]] = {}
     for c in cols:
         spans = level.spans.get(c, [])
         sky = c in level.sky and spans
+        slope = level.ceil_slope.get(c) if spans else None
         for (z0, z1, top, bottom) in solid_intervals(spans, zmin, zmax):
             if sky and z0 == spans[-1][1]:
                 bottom = SKY                  # the solid above an open area is sky
+            if slope and z0 == spans[-1][1] and min(slope) >= z0:
+                sloped.setdefault((slope, z1, top), set()).add(c)   # the roof above a sloped ceiling
+                continue
             groups.setdefault((z0, z1, top, bottom), set()).add(c)
 
     s = level.cell
@@ -67,11 +75,39 @@ def build_brushes(level: Level) -> List[Brush]:
     for (z0, z1, top, bottom), cells in sorted(groups.items()):
         for (x0, y0, x1, y1) in greedy_rects(cells):
             brushes.append(Brush((x0 * s, y0 * s, z0), (x1 * s, y1 * s, z1), top, bottom))
+    # sloped roofs: cells with the same corners merge along the axis the slope doesn't change on
+    for (slope, z1, top), cells in sorted(sloped.items()):
+        z00, z10, z11, z01 = slope
+        for (x0, y0, x1, y1) in _runs(cells, along_x=(z00 == z10 and z01 == z11),
+                                      along_y=(z00 == z01 and z10 == z11)):
+            brushes.append(Brush((x0 * s, y0 * s, min(slope)), (x1 * s, y1 * s, z1), top, CEIL, WALL,
+                                 slope=slope))
     # half-solid diagonal cells: one triangular prism filling the solid half of the open span
     for (x, y), corner in sorted(level.diag.items()):
         f, c = level.spans[(x, y)][0]
         brushes.append(Brush((x * s, y * s, f), ((x + 1) * s, (y + 1) * s, c), WALL, WALL, WALL, corner))
     return brushes
+
+
+def _runs(cells: Set[Cell], along_x: bool, along_y: bool) -> List[Tuple[int, int, int, int]]:
+    """Merge cells into 1-wide runs along an axis where the slope is constant (or keep them single)."""
+    left = set(cells)
+    out = []
+    for (x, y) in sorted(cells, key=lambda c: (c[1], c[0]) if along_x else (c[0], c[1])):
+        if (x, y) not in left:
+            continue
+        left.discard((x, y))
+        x1, y1 = x + 1, y + 1
+        if along_x:
+            while (x1, y) in left:
+                left.discard((x1, y))
+                x1 += 1
+        elif along_y:
+            while (x, y1) in left:
+                left.discard((x, y1))
+                y1 += 1
+        out.append((x, y, x1, y1))
+    return out
 
 
 def greedy_rects(cells: Set[Cell]) -> List[Tuple[int, int, int, int]]:

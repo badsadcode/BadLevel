@@ -25,10 +25,12 @@ class MeshBuilder:
     def quad(self, mat: str, corners: List[Vec3], normal: Vec3, uvs):
         g = self._g(mat)
         # make winding counter-clockwise when seen from the normal side
-        a, b, c = corners[0], corners[1], corners[2]
-        ux, uy, uz = b[0] - a[0], b[1] - a[1], b[2] - a[2]
-        vx, vy, vz = c[0] - a[0], c[1] - a[1], c[2] - a[2]
-        cx, cy, cz = uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx
+        for (a, b, c) in ((corners[0], corners[1], corners[2]), (corners[0], corners[2], corners[3])):
+            ux, uy, uz = b[0] - a[0], b[1] - a[1], b[2] - a[2]
+            vx, vy, vz = c[0] - a[0], c[1] - a[1], c[2] - a[2]
+            cx, cy, cz = uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx
+            if abs(cx) + abs(cy) + abs(cz) > 1e-9:    # (a degenerate trapezoid end: try the other half)
+                break
         if cx * normal[0] + cy * normal[1] + cz * normal[2] < 0:
             corners = corners[::-1]
             uvs = uvs[::-1]
@@ -93,15 +95,19 @@ def build_mesh(level: Level) -> MeshBuilder:
     walls: Dict[Tuple[int, int, int, int, int], List[int]] = {}
     diag = level.diag
     u = UV_SCALE
+    slopes = level.ceil_slope
     for (x, y), spans in level.spans.items():
         corner = diag.get((x, y))
         if corner:
             _diag_faces(mb, level, x, y, corner, spans[0])
+        if (x, y) in slopes:
+            _sloped_ceiling(mb, level, x, y)
         for (f, c) in spans:
             if not corner:
                 flats.setdefault(("floor", f), set()).add((x, y))
                 top = (x, y) in level.sky and (f, c) == spans[-1]
-                flats.setdefault(("sky" if top else "ceiling", c), set()).add((x, y))
+                if not ((x, y) in slopes and (f, c) == spans[-1]):
+                    flats.setdefault(("sky" if top else "ceiling", c), set()).add((x, y))
             for d, (dx, dy) in enumerate(((1, 0), (-1, 0), (0, 1), (0, -1))):
                 if corner and (dx, dy) in SOLID_SIDES[corner]:
                     continue  # covered by this cell's own diagonal wall
@@ -109,6 +115,9 @@ def build_mesh(level: Level) -> MeshBuilder:
                 nspans = level.spans.get(n, [])
                 if n in diag and (-dx, -dy) in SOLID_SIDES[diag[n]]:
                     nspans = []  # neighbour's solid half faces us
+                if (x, y) in slopes or n in slopes:
+                    _sloped_edge(mb, level, (x, y), (f, c), spans, d, (dx, dy), nspans)
+                    continue
                 for (a, b) in _subtract((f, c), nspans):
                     # line coordinate: x boundary for X dirs, y boundary for Y dirs
                     if dx:
@@ -147,6 +156,95 @@ def build_mesh(level: Level) -> MeshBuilder:
             uvs = [(P0 / u, a / u), (P1 / u, a / u), (P1 / u, b / u), (P0 / u, b / u)]
             mb.quad("ceiling" if is_ceil else "wall", corners, normal, uvs)
     return mb
+
+
+# ----------------------------------------------------------------------
+# sloped ceilings (smooth vaults): the ceiling quad, and side faces whose bounds are lines
+# ----------------------------------------------------------------------
+def _sloped_ceiling(mb: MeshBuilder, level: Level, x: int, y: int):
+    s, u = level.cell, UV_SCALE
+    z00, z10, z11, z01 = level.ceil_slope[(x, y)]
+    X0, Y0, X1, Y1 = x * s, y * s, (x + 1) * s, (y + 1) * s
+    pts = [(X0, Y0, z00), (X1, Y0, z10), (X1, Y1, z11), (X0, Y1, z01)]
+    # downward normal of the plane
+    ax, ay, az = X1 - X0, 0.0, z10 - z00
+    bx, by, bz = 0.0, Y1 - Y0, z01 - z00
+    nx, ny, nz = ay * bz - az * by, az * bx - ax * bz, ax * by - ay * bx
+    if nz > 0:
+        nx, ny, nz = -nx, -ny, -nz
+    ln = (nx * nx + ny * ny + nz * nz) ** 0.5
+    mb.quad("ceiling", pts, (nx / ln, ny / ln, nz / ln), [(p[0] / u, p[1] / u) for p in pts])
+
+
+def _edge_line(level: Level, c, span, spans, d: int):
+    """The top of ``span`` along the cell edge in direction d, as (z at along=0, z at along=1)."""
+    sl = level.ceil_slope.get(c)
+    if sl is None or span != spans[-1]:
+        return (span[1], span[1])
+    z00, z10, z11, z01 = sl
+    return [(z10, z11), (z00, z01), (z01, z11), (z00, z10)][d]
+
+
+def _sloped_edge(mb: MeshBuilder, level: Level, c, span, spans, d: int, dxy, nspans):
+    """Side faces of one span of cell c towards neighbour n, where either has a sloped ceiling.
+    Every bound is linear along the edge; the edge is split where bounds cross, and in each
+    piece the open part of c minus the open parts of n becomes quads."""
+    s, uvs = level.cell, UV_SCALE
+    x, y = c
+    dx, dy = dxy
+    n = (x + dx, y + dy)
+    nd = {0: 1, 1: 0, 2: 3, 3: 2}[d]
+    lo_c = (span[0], span[0])
+    hi_c = _edge_line(level, c, span, spans, d)
+    others = [((nf, nf), _edge_line(level, n, (nf, nc), nspans, nd)) for (nf, nc) in nspans]
+    lines = [lo_c, hi_c] + [l for o in others for l in o]
+
+    def at(l, t):
+        return l[0] + (l[1] - l[0]) * t
+    ts = {0.0, 1.0}
+    for i in range(len(lines)):
+        for j in range(i + 1, len(lines)):
+            a, b = lines[i], lines[j]
+            den = (a[0] - b[0]) - (a[1] - b[1])
+            if den:
+                tt = (a[0] - b[0]) / den
+                if 0.0 < tt < 1.0:
+                    ts.add(tt)
+    ts = sorted(ts)
+    if dx:
+        line = x + (1 if dx > 0 else 0)
+        pos = lambda t: (line * s, (y + t) * s)    # noqa: E731
+    else:
+        line = y + (1 if dy > 0 else 0)
+        pos = lambda t: ((x + t) * s, line * s)    # noqa: E731
+    normal = [(-1, 0, 0), (1, 0, 0), (0, -1, 0), (0, 1, 0)][d]
+    for t0, t1 in zip(ts, ts[1:]):
+        tm = (t0 + t1) / 2
+        # pieces of [lo_c, hi_c] not covered by any neighbour interval, with the lines bounding them
+        pieces = [(lo_c, hi_c)]
+        for (nlo, nhi) in sorted(others, key=lambda o: at(o[0], tm)):
+            out = []
+            for (plo, phi) in pieces:
+                a, b, na, nb = at(plo, tm), at(phi, tm), at(nlo, tm), at(nhi, tm)
+                if nb <= a or na >= b:
+                    out.append((plo, phi))
+                    continue
+                if na > a:
+                    out.append((plo, nlo))
+                if nb < b:
+                    out.append((nhi, phi))
+            pieces = out
+        for (plo, phi) in pieces:
+            z = [at(plo, t0), at(plo, t1), at(phi, t1), at(phi, t0)]
+            if z[3] - z[0] < 0.01 and z[2] - z[1] < 0.01:
+                continue
+            ceil = phi is hi_c and any(at(nhi, tm) <= at(plo, tm) + 0.01 and at(nlo, tm) < at(plo, tm)
+                                       for (nlo, nhi) in others)
+            p0, p1 = pos(t0), pos(t1)
+            corners = [(p0[0], p0[1], z[0]), (p1[0], p1[1], z[1]), (p1[0], p1[1], z[2]), (p0[0], p0[1], z[3])]
+            a0, a1 = (p0[1], p1[1]) if dx else (p0[0], p1[0])
+            mb.quad("ceiling" if ceil else "wall", corners, normal,
+                    [(a0 / uvs, z[0] / uvs), (a1 / uvs, z[1] / uvs), (a1 / uvs, z[2] / uvs), (a0 / uvs, z[3] / uvs)])
 
 
 def _diag_faces(mb: MeshBuilder, level: Level, x: int, y: int, corner: str, span):

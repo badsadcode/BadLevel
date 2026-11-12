@@ -114,3 +114,64 @@ def test_weights_steer_the_palette():
     mega = next(r for r in lv.rooms if r.kind == "megaroom")
     assert mega.meta["arch"]["profile"] == "basilica"
     assert not any(r.meta["arch"]["profile"] == "vault" for r in shaped(lv))
+
+
+# ----------------------------------------------------------------------
+# smooth vaults and roofs
+# ----------------------------------------------------------------------
+def test_smooth_vaults_are_planar_and_conservative(styled):
+    """Sloped ceilings: four corners in one plane, never below the span gameplay sees,
+    never above the room."""
+    n = 0
+    for levels in styled.values():
+        for lv in levels:
+            for c, zs in lv.ceil_slope.items():
+                f, top = lv.spans[c][-1]
+                assert abs((zs[0] + zs[2]) - (zs[1] + zs[3])) <= 2, (c, zs)
+                assert min(zs) >= top and top - f >= A.HEAD
+                n += 1
+    assert n > 1000          # fortress and compound vault and roof their big halls
+
+
+def test_stepped_option():
+    cfg = compile_recipe(PRESETS["fortress"], 1)
+    cfg.arch_smooth = False
+    lv = generate(cfg)
+    assert not lv.ceil_slope and shaped(lv) and validate(lv)["ok"]
+
+
+def test_sloped_brushes_in_the_map(styled):
+    from badlevel.brushes import build_brushes
+    lv = styled["fortress"][0]
+    bs = [b for b in build_brushes(lv) if b.slope]
+    assert bs
+    for b in bs:   # convex: the sloped bottom stays below the flat top everywhere
+        assert max(b.slope) < b.maxs[2] and b.mins[2] == min(b.slope)
+    text = to_map(lv)
+    # a sloped plane has three points at different heights on its face line
+    assert any(len({int(p.split()[2]) for p in line.split(") (")}) == 3
+               for line in text.splitlines() if line.startswith("(") and "ceiling" in line)
+
+
+def test_sloped_side_faces_close_the_gap():
+    """A sloped cell beside a lower flat one: the side faces exactly fill the gap between them."""
+    from badlevel.export.mesh import build_mesh
+    from badlevel.level import Level
+    lv = Level(seed=0, cell=32, width=8, height=8, config=GenConfig())
+    lv.add_span((3, 3), (0, 200))
+    lv.add_span((4, 3), (0, 160))
+    lv.ceil_slope[(3, 3)] = (200, 240, 240, 200)     # rises towards +x, where the lower cell is
+    mb = build_mesh(lv)
+
+    def area(mat, x_plane):
+        g = mb.groups.get(mat, {"pos": [], "idx": []})
+        tot = 0.0
+        for i in range(0, len(g["idx"]), 3):
+            a, b, c = (g["pos"][g["idx"][i + k]] for k in range(3))
+            if all(abs(p[0] - x_plane) < 1e-6 for p in (a, b, c)):
+                u = (b[1] - a[1], b[2] - a[2])
+                v = (c[1] - a[1], c[2] - a[2])
+                tot += abs(u[0] * v[1] - u[1] * v[0]) / 2
+        return tot
+    # on the shared face x = 128: from the low cell's ceiling (160) up to the slope's edge (240), 32 wide
+    assert abs(area("ceiling", 128) + area("wall", 128) - 32 * (240 - 160)) < 1e-6

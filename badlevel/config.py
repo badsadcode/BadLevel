@@ -46,6 +46,7 @@ class GenConfig:
     # --- architecture ----------------------------------------------------------
     arch_style: str = ""         # "" (plain boxes) | gothic | industrial | bunker | compound: hall cross-sections
     arch_weights: dict = field(default_factory=dict)  # bias the profiles: {"basilica": 2.0, "sawtooth": 0.0}
+    arch_smooth: bool = True     # vaults and roofs as sloped planes (False: 16-unit steps, a strict grid)
 
     # --- merged halls -------------------------------------------------------
     merge_chance: float = 0.3    # neighbouring rooms joined into one hall instead of a corridor
