@@ -1,0 +1,129 @@
+{
+ "format": "badlevel-recipe",
+ "version": 1,
+ "name": "compound",
+ "description": "Open and spread out: large merged halls, wide connections, many windows, one level. A precursor of real open areas.",
+ "dials": {
+  "scale": 0.7,
+  "openness": 0.95,
+  "verticality": 0.2,
+  "claustrophobia": 0.0,
+  "combat": 0.6,
+  "exploration": 0.6,
+  "loopiness": 0.8,
+  "regularity": 0.55
+ },
+ "overrides": {
+  "merge_chance": 0.65,
+  "max_hall_rooms": 4,
+  "windows": 10,
+  "glazed_chance": 0.5,
+  "height_scale": 1.4,
+  "crate_scale": 1.8,
+  "room_scale": 1.45,
+  "size_bias": {
+   "small": 0.4,
+   "medium": 1.0,
+   "large": 2.5
+  },
+  "corridor_width_bias": {
+   "1": 0.3,
+   "2": 1.0,
+   "3": 3.0
+  }
+ },
+ "compiled": {
+  "seed": 101,
+  "variant": 0,
+  "main_rooms": 9,
+  "side_rooms": 4,
+  "loops": 4,
+  "long_loop_chance": 0.3400000000000001,
+  "corridor_beats": true,
+  "beat_spacing": 16,
+  "keys": 1,
+  "secret": true,
+  "storeys": 1,
+  "storey_height": 256,
+  "storey_change": 0.5,
+  "connector_weights": {
+   "stairs": 0.3,
+   "stairwell": 0.35,
+   "lift": 0.2,
+   "ladder": 0.15
+  },
+  "drop_chance": 0.6,
+  "max_drop": 288,
+  "tall_room_chance": 0.13999999999999999,
+  "merge_chance": 0.65,
+  "max_hall_rooms": 4,
+  "windows": 10,
+  "glazed_chance": 0.5,
+  "galleries": false,
+  "cell": 32,
+  "step_height": 16,
+  "level_step": 64,
+  "max_level": 1,
+  "corridor_radius": 1,
+  "corridor_height": 128,
+  "max_corridor_radius": 3,
+  "diagonal_chance": 0.36,
+  "room_gap": 4,
+  "player_height": 56,
+  "max_step": 18,
+  "max_attempts": 60,
+  "size_bias": {
+   "small": 0.4,
+   "medium": 1.0,
+   "large": 2.5
+  },
+  "shape_weights": {
+   "rect": 3.5250000000000004,
+   "chamfer": 1.225,
+   "octagon": 1.2074999999999998,
+   "ring": 0.9550000000000001,
+   "plus": 1.005,
+   "L": 0.98,
+   "T": 0.8699999999999999,
+   "U": 0.815
+  },
+  "feature_weights": {
+   "platform": 0.6599999999999999,
+   "pit": 0.6599999999999999,
+   "balcony": 0.6599999999999999,
+   "pillars": 1.2,
+   "none": 0.96
+  },
+  "corridor_width_bias": {
+   "1": 0.3,
+   "2": 1.0,
+   "3": 3.0
+  },
+  "crate_scale": 1.8,
+  "enemy_density": 0.96,
+  "pickup_density": 1.2,
+  "height_scale": 1.4,
+  "room_scale": 1.45,
+  "recipe": "compound",
+  "room_sizes": {
+   "small": [
+    6,
+    8,
+    128,
+    160
+   ],
+   "medium": [
+    9,
+    12,
+    160,
+    224
+   ],
+   "large": [
+    14,
+    18,
+    256,
+    320
+   ]
+  }
+ }
+}

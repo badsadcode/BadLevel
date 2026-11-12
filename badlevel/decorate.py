@@ -342,9 +342,18 @@ def decorate(level: Level, rng: random.Random):
         ctx = RoomCtx(level, room)
         ctxs[room.id] = ctx
         options = FEATURES_BY_KIND.get(room.kind, [[]])
-        for feat in rng.choice(options):
+        fw = level.config.feature_weights
+
+        def option_weight(opt):
+            w = 1.0
+            for f in opt:
+                w *= float(fw.get(f.__name__[2:], 1.0))
+            return w if opt else float(fw.get("none", 1.0))
+        ws = [option_weight(o) for o in options]
+        chosen = rng.choices(options, ws)[0] if sum(ws) > 0 else []
+        for feat in chosen:
             feat(ctx, rng)
-        if rng.random() < CRATE_CHANCE.get(room.kind, 0.0):
+        if rng.random() < min(1.0, CRATE_CHANCE.get(room.kind, 0.0) * level.config.crate_scale):
             f_crates(ctx, rng)
 
     ents = level.entities
@@ -405,14 +414,16 @@ def decorate(level: Level, rng: random.Random):
         # enemies
         per = {"combat": 28, "arena": 20, "hub": 40, "key": 45, "supply": 80, "exit": 60}.get(room.kind)
         if per:
-            for _ in range(max(1, area // per)):
+            dens = level.config.enemy_density
+            count = int(round(max(1, area // per) * dens)) if dens > 0 else 0
+            for _ in range(max(1, count) if dens > 0 else 0):
                 c = _pick_free(ctx, rng, taken)
                 if c:
                     ents.append(Entity("enemy", _at(level, room, c), {"tier": tier}))
         # high ground gets a sniper and a reward
         for attr in ("deck_cells", "top_cells"):
             cells = [c for c in getattr(ctx, attr, []) if c not in taken]
-            if cells:
+            if cells and rng.random() < min(1.0, level.config.enemy_density):
                 c = rng.choice(cells)
                 taken.add(c)
                 ents.append(Entity("enemy", _at(level, room, c, top=True), {"tier": tier}))
@@ -425,6 +436,7 @@ def decorate(level: Level, rng: random.Random):
 
         # pickups
         n_items = {"supply": 3, "combat": 1, "arena": 2, "hub": 1, "secret": 2, "key": 1}.get(room.kind, 0)
+        n_items = int(round(n_items * level.config.pickup_density))
         for k in range(n_items):
             c = _pick_free(ctx, rng, taken)
             if not c:
@@ -454,7 +466,7 @@ def decorate(level: Level, rng: random.Random):
             side = [c for c in cells if c not in path_cells]
             at = lambda c, z: ((c[0] + 0.5) * s, (c[1] + 0.5) * s, z)
             ents.append(Entity("light", (beat["pos"][0], beat["pos"][1], top - 24), {"intensity": 260}))
-            if beat["type"] == "chamber" and side:
+            if beat["type"] == "chamber" and side and rng.random() < min(1.0, level.config.enemy_density):
                 for c in rng.sample(side, min(len(side), rng.randint(1, 2))):
                     ents.append(Entity("enemy", at(c, f + 24), {"tier": tier}))
             elif beat["type"] == "alcoves" and side:

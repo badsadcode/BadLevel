@@ -285,6 +285,9 @@ def analyze(level: Level, cfg: AnalysisConfig = None) -> dict:
         "version": 1,
         "seed": level.seed,
         "storeys": len({r.storey for r in level.rooms}),
+        # no enemies anywhere -> exploration / architecture: diagnostics skip combat-only rules
+        "purpose": "combat" if any(e.kind == "enemy" for e in level.entities) else "exploration",
+        "recipe": getattr(level.config, "recipe", ""),
         "config": asdict(cfg),
         "samples": {"fields": FIELDS, "area_per_sample_m2": aps, "count": int(n),
                     "data": [[round(float(v), 3) for v in row] for row in data]},
@@ -305,7 +308,7 @@ def analyze(level: Level, cfg: AnalysisConfig = None) -> dict:
             "vertical_sightline_share": round(float((vertical > 0).sum() / total), 3),
             "height_levels": len({float(z) for z in zs}),
             # independent cycles in the room graph (edges - nodes + 1)
-            "loops": max(0, len(level.corridors) - len(level.rooms) + 1),
+            "loops": max(0, len(edges) - len(level.rooms) + 1),   # corridors + hall seams
             "corridors_on_loops": sum(1 for c in level.corridors if c.id not in bridges),
             "mandatory_chokepoints": sum(1 for c in chokepoints if c["mandatory"]),
             "pacing": pacing,

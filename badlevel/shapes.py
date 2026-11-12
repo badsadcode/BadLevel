@@ -168,10 +168,13 @@ SHAPES_BY_KIND = {
 }
 
 
-def pick_shape(w: int, h: int, size: str, kind: str, rng: random.Random) -> Shape:
-    options = SHAPES_BY_KIND.get(kind, SHAPES_BY_SIZE.get(size, ["rect"]))
+def pick_shape(w: int, h: int, size: str, kind: str, rng: random.Random, weights: dict = None) -> Shape:
+    from .weights import weighted
+    options = list(SHAPES_BY_KIND.get(kind, SHAPES_BY_SIZE.get(size, ["rect"])))
+    if weights and "rect" in weights and "rect" not in options:
+        options.append("rect")      # a regular recipe may square off any room
     for _ in range(8):
-        s = make_shape(w, h, rng.choice(options), rng)
+        s = make_shape(w, h, weighted(rng, options, weights), rng)
         if s.ok():
             return s
     return Shape(w, h)

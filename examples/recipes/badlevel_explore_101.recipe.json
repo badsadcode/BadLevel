@@ -1,0 +1,111 @@
+{
+ "format": "badlevel-recipe",
+ "version": 1,
+ "name": "explore",
+ "description": "No combat. Vertical, open, full of side rooms, secrets, views ahead and loops: for exploration, walking sims and architectural blockouts.",
+ "dials": {
+  "scale": 0.6,
+  "openness": 0.6,
+  "verticality": 0.7,
+  "claustrophobia": 0.2,
+  "combat": 0.0,
+  "exploration": 1.0,
+  "loopiness": 0.6,
+  "regularity": 0.35
+ },
+ "overrides": {},
+ "compiled": {
+  "seed": 101,
+  "variant": 0,
+  "main_rooms": 8,
+  "side_rooms": 5,
+  "loops": 3,
+  "long_loop_chance": 0.28,
+  "corridor_beats": true,
+  "beat_spacing": 16,
+  "keys": 1,
+  "secret": true,
+  "storeys": 3,
+  "storey_height": 256,
+  "storey_change": 0.5,
+  "connector_weights": {
+   "stairs": 0.3,
+   "stairwell": 0.35,
+   "lift": 0.2,
+   "ladder": 0.15
+  },
+  "drop_chance": 0.6,
+  "max_drop": 288,
+  "tall_room_chance": 0.48999999999999994,
+  "merge_chance": 0.288,
+  "max_hall_rooms": 3,
+  "windows": 7,
+  "glazed_chance": 0.368,
+  "galleries": true,
+  "cell": 32,
+  "step_height": 16,
+  "level_step": 64,
+  "max_level": 4,
+  "corridor_radius": 1,
+  "corridor_height": 128,
+  "max_corridor_radius": 3,
+  "diagonal_chance": 0.52,
+  "room_gap": 4,
+  "player_height": 56,
+  "max_step": 18,
+  "max_attempts": 60,
+  "size_bias": {
+   "small": 1.24,
+   "medium": 1.0,
+   "large": 1.62
+  },
+  "shape_weights": {
+   "rect": 2.425,
+   "chamfer": 1.325,
+   "octagon": 1.6775,
+   "ring": 1.335,
+   "plus": 1.185,
+   "L": 1.06,
+   "T": 0.99,
+   "U": 0.955
+  },
+  "feature_weights": {
+   "platform": 1.8099999999999998,
+   "pit": 1.8099999999999998,
+   "balcony": 1.8099999999999998,
+   "pillars": 0.6,
+   "none": 1.5
+  },
+  "corridor_width_bias": {
+   "1": 2.0999999999999996,
+   "2": 1.0,
+   "3": 1.5415999999999999
+  },
+  "crate_scale": 0.3,
+  "enemy_density": 0.0,
+  "pickup_density": 1.2,
+  "height_scale": 1.144,
+  "room_scale": 1.2129519999999998,
+  "recipe": "explore",
+  "room_sizes": {
+   "small": [
+    6,
+    8,
+    128,
+    160
+   ],
+   "medium": [
+    9,
+    12,
+    160,
+    224
+   ],
+   "large": [
+    14,
+    18,
+    256,
+    320
+   ]
+  }
+ }
+}

@@ -40,7 +40,15 @@ def _flag(severity, code, message, room=None, pos=None):
 def diagnose(report: dict, rules: dict = None) -> list:
     R = dict(RULES, **(rules or {}))
     flags = []
+    combat = report.get("purpose", "combat") == "combat"
     for r in report["rooms"]:
+        if not combat:
+            # exploration: rooms are judged as places to move through and look at, not fights
+            if r["entrances"] == 1 and r["kind"] not in ("start", "exit", "key", "secret") and \
+                    r["pickups"] == 0 and not r["high_ground"]:
+                flags.append(_flag("info", "empty_dead_end", f'{r["kind"]} room {r["id"]}: dead end with nothing '
+                                                             "to find or see.", room=r["id"]))
+            continue
         name = f'{r["kind"]} room {r["id"]}'
         fight = r["kind"] in R["fight_kinds"] or r["enemies"] >= R["single_approach_min_enemies"]
         if fight and r["entrances"] == 1 and r["enemies"] >= R["single_approach_min_enemies"]:
@@ -72,7 +80,7 @@ def diagnose(report: dict, rules: dict = None) -> list:
         if r["entrances"] == 1 and r["enemies"] == 0 and r["pickups"] == 0 and r["kind"] not in ("start", "exit", "key"):
             flags.append(_flag("info", "empty_dead_end", f"{name}: dead end with nothing in it.", room=r["id"]))
 
-    snipers = [l for l in report["lanes"] if l["length"] >= R["sniper_lane"]]
+    snipers = [l for l in report["lanes"] if l["length"] >= R["sniper_lane"]] if combat else []
     for lane in snipers[:3]:
         flags.append(_flag("info", "sniper_lane",
                            f"{lane['length'] / 32:.0f} m uninterrupted firing lane ({', '.join(lane['areas'])}).",
@@ -126,7 +134,7 @@ def diagnose(report: dict, rules: dict = None) -> list:
             flags.append(_flag("info", "preview", f"{best['room']} can be seen {best['steps_ahead']} rooms before "
                                                   "you reach it."))
         elif len(vis["previews"]) > 3:
-            flags.append(_flag("info", "no_previews", "No room on the critical path can be seen before you are "
+            flags.append(_flag("info" if combat else "warn", "no_previews", "No room on the critical path can be seen before you are "
                                                       "next to it."))
     order = {"problem": 0, "warn": 1, "info": 2}
     flags.sort(key=lambda f: order[f["severity"]])

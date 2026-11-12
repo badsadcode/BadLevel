@@ -60,6 +60,18 @@ class GenConfig:
 
     max_attempts: int = 60
 
+    # --- style levers (set by recipes; 1.0 / empty = the built-in defaults) ----------
+    size_bias: dict = field(default_factory=dict)        # {"small": 2.0, "large": 0.5}
+    shape_weights: dict = field(default_factory=dict)    # {"rect": 3.0, "ring": 0.0}
+    feature_weights: dict = field(default_factory=dict)  # {"pillars": 2.0, "balcony": 0.0, "none": 1.0}
+    corridor_width_bias: dict = field(default_factory=dict)  # {1: 3.0, 3: 0.0} by half width
+    crate_scale: float = 1.0     # crates / low walls (cover, clutter)
+    enemy_density: float = 1.0   # 0 = no combat at all (exploration, architecture, survival...)
+    pickup_density: float = 1.0
+    height_scale: float = 1.0    # room ceiling heights (low = claustrophobic, high = monumental)
+    room_scale: float = 1.0      # room footprints (cells): small and tight vs vast halls
+    recipe: str = ""             # the recipe this config was compiled from (for the record)
+
     # free-form room size table: kind -> (min_cells, max_cells, min_h, max_h)
     room_sizes: dict = field(default_factory=lambda: {
         "small": (6, 8, 128, 160),

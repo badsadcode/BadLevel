@@ -38,9 +38,12 @@ class LayoutError(Exception):
 # ----------------------------------------------------------------------
 def _room_size(cfg: GenConfig, size: str, rng: random.Random):
     lo, hi, hmin, hmax = cfg.room_sizes[size]
+    lo = max(6, int(round(lo * cfg.room_scale)))
+    hi = max(lo, int(round(hi * cfg.room_scale)))
     w = rng.randint(lo, hi)
     h = rng.randint(lo, hi)
     height = rng.randrange(hmin, hmax + 1, 16)
+    height = max(128, int(round(height * cfg.height_scale / 16)) * 16)
     return w, h, height
 
 
@@ -231,7 +234,7 @@ def place_rooms(g: MissionGraph, cfg: GenConfig, rng: random.Random) -> List[Roo
         if r.is_connector or r.node in merged_nodes:
             continue                         # merged rooms stay rectangular so their seams line up
         node = g.nodes[r.node]
-        shape = pick_shape(r.w, r.h, node.size, node.kind, rng)
+        shape = pick_shape(r.w, r.h, node.size, node.kind, rng, cfg.shape_weights)
         r.shape = shape.name
         if shape.name != "rect" or shape.diag:
             r.mask, r.diag = shape.cells, shape.diag
@@ -594,14 +597,17 @@ def _corridor_style(g: MissionGraph, e, a: Room, b: Room, cfg: GenConfig, rng: r
         return 1, False                  # connector ports are 3 cells wide
     if e.kind == "secret":
         r, diag = 1, False
-    elif not e.tree:
-        r, diag = rng.choice([1, 1, 2]), rng.random() < cfg.diagonal_chance
-    elif kinds & {"arena", "hub"}:
-        r, diag = rng.choice([1, 2, 2, 3]), rng.random() < cfg.diagonal_chance
-    elif kinds & {"supply", "secret", "key"}:
-        r, diag = rng.choice([1, 1, 2]), rng.random() < cfg.diagonal_chance
     else:
-        r, diag = rng.choice([1, 2, 2]), rng.random() < cfg.diagonal_chance
+        from .weights import weighted
+        if not e.tree:
+            opts = [1, 1, 2]
+        elif kinds & {"arena", "hub"}:
+            opts = [1, 2, 2, 3]
+        elif kinds & {"supply", "secret", "key"}:
+            opts = [1, 1, 2]
+        else:
+            opts = [1, 2, 2]
+        r, diag = weighted(rng, opts, cfg.corridor_width_bias), rng.random() < cfg.diagonal_chance
     # the opening must fit the smaller room
     smallest = min(a.w, a.h, b.w, b.h)
     r = max(1, min(r, cfg.max_corridor_radius, (smallest - 3) // 2))
@@ -823,6 +829,15 @@ def carve_corridor(level: Level, router: "Router", edge_id: int, a: Room, b: Roo
             continue
         level.add_span(c, (f, top), f"corridor:{cid}")
         carved.append(c)
+    # a junction opening against another corridor's 45-degree half cell: make that cell fully open
+    from .shapes import SOLID_SIDES
+    for (x, y) in carved:
+        for dx, dy in DIRS:
+            n = (x + dx, y + dy)
+            if n in level.diag and (-dx, -dy) in SOLID_SIDES[level.diag[n]] and \
+                    (level.owner_of(n, level.spans[n][0]) or "").startswith("corridor:"):
+                del level.diag[n]
+                level.diag_span.pop(n, None)
     carved += add_half_cells(level, cid, carved)
     env = env or (min(floors), max(ceils))
     for c in carved:

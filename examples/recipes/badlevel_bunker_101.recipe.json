@@ -1,0 +1,132 @@
+{
+ "format": "badlevel-recipe",
+ "version": 1,
+ "name": "bunker",
+ "description": "Low, narrow, orthogonal. Small concrete rooms, firing slits, ladders and lifts between underground levels. Tense and close.",
+ "dials": {
+  "scale": 0.45,
+  "openness": 0.1,
+  "verticality": 0.55,
+  "claustrophobia": 0.9,
+  "combat": 0.8,
+  "exploration": 0.3,
+  "loopiness": 0.3,
+  "regularity": 0.95
+ },
+ "overrides": {
+  "storeys": 2,
+  "glazed_chance": 0.0,
+  "windows": 4,
+  "tall_room_chance": 0.0,
+  "room_scale": 0.75,
+  "size_bias": {
+   "small": 2.5,
+   "medium": 1.0,
+   "large": 0.15
+  },
+  "connector_weights": {
+   "stairs": 0.15,
+   "stairwell": 0.25,
+   "lift": 0.3,
+   "ladder": 0.3
+  },
+  "feature_weights": {
+   "balcony": 0.0
+  },
+  "merge_chance": 0.05
+ },
+ "compiled": {
+  "seed": 101,
+  "variant": 0,
+  "main_rooms": 7,
+  "side_rooms": 2,
+  "loops": 2,
+  "long_loop_chance": 0.19,
+  "corridor_beats": true,
+  "beat_spacing": 16,
+  "keys": 1,
+  "secret": true,
+  "storeys": 2,
+  "storey_height": 256,
+  "storey_change": 0.5,
+  "connector_weights": {
+   "stairs": 0.15,
+   "stairwell": 0.25,
+   "lift": 0.3,
+   "ladder": 0.3
+  },
+  "drop_chance": 0.6,
+  "max_drop": 288,
+  "tall_room_chance": 0.0,
+  "merge_chance": 0.05,
+  "max_hall_rooms": 3,
+  "windows": 4,
+  "glazed_chance": 0.0,
+  "galleries": true,
+  "cell": 32,
+  "step_height": 16,
+  "level_step": 64,
+  "max_level": 3,
+  "corridor_radius": 1,
+  "corridor_height": 128,
+  "max_corridor_radius": 3,
+  "diagonal_chance": 0.040000000000000036,
+  "room_gap": 4,
+  "player_height": 56,
+  "max_step": 18,
+  "max_attempts": 60,
+  "size_bias": {
+   "small": 2.5,
+   "medium": 1.0,
+   "large": 0.15
+  },
+  "shape_weights": {
+   "rect": 5.725,
+   "chamfer": 1.025,
+   "octagon": 0.26750000000000007,
+   "ring": 0.19500000000000006,
+   "plus": 0.645,
+   "L": 0.8200000000000001,
+   "T": 0.63,
+   "U": 0.535
+  },
+  "feature_weights": {
+   "platform": 1.4649999999999999,
+   "pit": 1.4649999999999999,
+   "balcony": 0.0,
+   "pillars": 1.4,
+   "none": 0.7799999999999999
+  },
+  "corridor_width_bias": {
+   "1": 7.699999999999999,
+   "2": 1.0,
+   "3": 0.09119999999999998
+  },
+  "crate_scale": 1.5000000000000002,
+  "enemy_density": 1.2800000000000002,
+  "pickup_density": 1.1,
+  "height_scale": 0.7729999999999999,
+  "room_scale": 0.75,
+  "recipe": "bunker",
+  "room_sizes": {
+   "small": [
+    6,
+    8,
+    128,
+    160
+   ],
+   "medium": [
+    9,
+    12,
+    160,
+    224
+   ],
+   "large": [
+    14,
+    18,
+    256,
+    320
+   ]
+  }
+ }
+}

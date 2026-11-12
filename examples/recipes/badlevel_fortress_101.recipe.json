@@ -1,0 +1,131 @@
+{
+ "format": "badlevel-recipe",
+ "version": 1,
+ "name": "fortress",
+ "description": "Tall, ordered, defensive. Several storeys climbed by stairwells, great halls, galleries and arrow slits.",
+ "dials": {
+  "scale": 0.7,
+  "openness": 0.35,
+  "verticality": 0.92,
+  "claustrophobia": 0.25,
+  "combat": 0.8,
+  "exploration": 0.4,
+  "loopiness": 0.45,
+  "regularity": 0.9
+ },
+ "overrides": {
+  "glazed_chance": 0.0,
+  "windows": 8,
+  "height_scale": 1.15,
+  "merge_chance": 0.4,
+  "connector_weights": {
+   "stairs": 0.25,
+   "stairwell": 0.65,
+   "lift": 0.05,
+   "ladder": 0.05
+  },
+  "feature_weights": {
+   "balcony": 2.5,
+   "pillars": 1.5
+  },
+  "corridor_width_bias": {
+   "1": 0.5,
+   "2": 2.0,
+   "3": 1.5
+  }
+ },
+ "compiled": {
+  "seed": 101,
+  "variant": 0,
+  "main_rooms": 9,
+  "side_rooms": 3,
+  "loops": 2,
+  "long_loop_chance": 0.23500000000000004,
+  "corridor_beats": true,
+  "beat_spacing": 16,
+  "keys": 1,
+  "secret": true,
+  "storeys": 4,
+  "storey_height": 256,
+  "storey_change": 0.5,
+  "connector_weights": {
+   "stairs": 0.25,
+   "stairwell": 0.65,
+   "lift": 0.05,
+   "ladder": 0.05
+  },
+  "drop_chance": 0.6,
+  "max_drop": 288,
+  "tall_room_chance": 0.644,
+  "merge_chance": 0.4,
+  "max_hall_rooms": 3,
+  "windows": 8,
+  "glazed_chance": 0.0,
+  "galleries": true,
+  "cell": 32,
+  "step_height": 16,
+  "level_step": 64,
+  "max_level": 6,
+  "corridor_radius": 1,
+  "corridor_height": 128,
+  "max_corridor_radius": 3,
+  "diagonal_chance": 0.07999999999999996,
+  "room_gap": 4,
+  "player_height": 56,
+  "max_step": 18,
+  "max_attempts": 60,
+  "size_bias": {
+   "small": 1.03,
+   "medium": 1.0,
+   "large": 1.84
+  },
+  "shape_weights": {
+   "rect": 5.45,
+   "chamfer": 1.05,
+   "octagon": 0.3849999999999998,
+   "ring": 0.29000000000000004,
+   "plus": 0.69,
+   "L": 0.8400000000000001,
+   "T": 0.6599999999999999,
+   "U": 0.57
+  },
+  "feature_weights": {
+   "platform": 2.3160000000000003,
+   "pit": 2.3160000000000003,
+   "balcony": 2.5,
+   "pillars": 1.5,
+   "none": 0.7799999999999999
+  },
+  "corridor_width_bias": {
+   "1": 0.5,
+   "2": 2.0,
+   "3": 1.5
+  },
+  "crate_scale": 1.5000000000000002,
+  "enemy_density": 1.2800000000000002,
+  "pickup_density": 1.1600000000000001,
+  "height_scale": 1.15,
+  "room_scale": 1.181415,
+  "recipe": "fortress",
+  "room_sizes": {
+   "small": [
+    6,
+    8,
+    128,
+    160
+   ],
+   "medium": [
+    9,
+    12,
+    160,
+    224
+   ],
+   "large": [
+    14,
+    18,
+    256,
+    320
+   ]
+  }
+ }
+}

@@ -17,6 +17,7 @@ from dataclasses import dataclass, field
 from typing import List, Optional
 
 from .config import GenConfig
+from .weights import weighted
 
 KEY_COLORS = ["red", "blue"]
 
@@ -102,8 +103,8 @@ def build_graph(cfg: GenConfig, rng: random.Random) -> MissionGraph:
             main.append(g.add_node("arena", "large", depth=i))
         else:
             kind = rng.choice(["combat", "combat", "hub"])
-            size = rng.choice(["medium", "medium", "large"]) if kind == "hub" else \
-                rng.choice(["small", "medium", "medium"])
+            size = weighted(rng, ["medium", "medium", "large"] if kind == "hub" else ["small", "medium", "medium"],
+                            cfg.size_bias)
             main.append(g.add_node(kind, size, depth=i))
     main.append(g.add_node("exit", "medium", depth=n_main - 1))
     for a, b in zip(main, main[1:]):
@@ -142,7 +143,7 @@ def build_graph(cfg: GenConfig, rng: random.Random) -> MissionGraph:
         parent = rng.choice(candidates[1:] or candidates)
         prev = parent
         if rng.random() < 0.6:
-            mid = g.add_node(rng.choice(["combat", "supply"]), rng.choice(["small", "medium"]),
+            mid = g.add_node(rng.choice(["combat", "supply"]), weighted(rng, ["small", "medium"], cfg.size_bias),
                              zone=parent.zone, depth=parent.depth)
             g.add_edge(prev.id, mid.id)
             prev = mid
@@ -153,7 +154,7 @@ def build_graph(cfg: GenConfig, rng: random.Random) -> MissionGraph:
     for _ in range(cfg.side_rooms):
         parents = [n for n in g.nodes if n.kind not in ("exit", "key", "secret")]
         parent = rng.choice(parents)
-        n = g.add_node(rng.choice(["supply", "combat"]), rng.choice(["small", "medium"]),
+        n = g.add_node(rng.choice(["supply", "combat"]), weighted(rng, ["small", "medium"], cfg.size_bias),
                        zone=parent.zone, depth=parent.depth)
         g.add_edge(parent.id, n.id)
 

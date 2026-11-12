@@ -56,6 +56,44 @@ level = generate(GenConfig(seed=7, main_rooms=8, keys=2))
 open("e1m1.map", "w").write(to_map(level))
 ```
 
+## Recipes and presets
+
+Say what kind of place you want in design terms; BadLevel compiles it into its
+settings. A recipe is eight dials from 0 to 1 plus optional raw overrides:
+
+| dial | turns up |
+|---|---|
+| `scale` | room count and room sizes |
+| `openness` | merged halls, windows and glass, wide corridors |
+| `verticality` | height variation, storeys, platforms, pits, balconies, tall rooms |
+| `claustrophobia` | low ceilings, narrow corridors, few openings |
+| `combat` | enemies and cover (0 = no combat at all) |
+| `exploration` | side rooms, secrets, views ahead, pickups |
+| `loopiness` | loops and alternative routes |
+| `regularity` | rectangles and right angles (vs octagons, rings, 45° corridors) |
+
+Presets: `compact`, `classic`, `bunker`, `fortress`, `industrial`, `compound`, `explore`.
+
+```bash
+python3 -m badlevel presets
+```
+
+```bash
+python3 -m badlevel generate --seed 7 --recipe bunker
+```
+
+```bash
+python3 -m badlevel compare --recipes all --seeds 1-3 --out out/compare
+```
+
+A recipe can also be a JSON file (`{"name", "dials": {...}, "overrides": {...}}`).
+The recipe used is saved beside every export as `<name>.recipe.json`. Without
+`--recipe`, BadLevel generates exactly what it did before recipes existed.
+
+Presets are checked for **identity**: `fingerprint.py` describes a level as ~17
+features, and a test requires each preset to be recognisable from its fingerprint
+alone. Why things are built this way: [docs/DECISIONS.md](docs/DECISIONS.md).
+
 ## Outputs
 
 | File | Use it for |
@@ -250,6 +288,9 @@ ericw-tools. Export working is not the same as import working.
 ## Roadmap ideas
 
 - Verify in TrenchBroom + compile with ericw-tools (qbsp/vis/light)
+- Space-type modules (rooms, connectors, halls, corridors behind one interface), then
+  open areas (courtyards, plazas), mega-rooms via sub-generation, and composition
+  (macro structures, compression/release pacing). See docs/DECISIONS.md D12.
 - Multi-storey compositions: halls spanning storeys, interlocking structures
 - TrenchBroom groups per room/region in the `.map`
 - Placing windows and galleries *for* previews along the critical path (now they

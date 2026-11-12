@@ -1,0 +1,187 @@
+"""Recipes: what kind of place to generate, said in design terms.
+
+A recipe is a few *dials* (0..1) plus optional *overrides*. The dials describe
+intent; ``compile_recipe`` translates them into the generator's low-level
+settings (GenConfig). Overrides are raw GenConfig fields and always win, so a
+preset can pin down what makes it recognisable (a bunker has firing slits and
+no glass, a fortress climbs by stairwells, an industrial complex uses lifts).
+
+Dials:
+  scale           how much level: room count and room sizes
+  openness        merged halls, windows and glass, wide corridors
+  verticality     height variation, storeys, platforms / pits / balconies, tall rooms
+  claustrophobia  low ceilings, narrow corridors, few openings
+  combat          enemies and cover. 0 = no combat at all (exploration, architecture, survival)
+  exploration     side rooms, secrets, windows that preview what's ahead, pickups
+  loopiness       loops and alternative routes
+  regularity      architectural order: rectangles and right angles (1) vs octagons,
+                  rings and 45-degree corridors (0)
+
+Recipes are JSON files (see ``save_recipe``), kept beside the exported level.
+"""
+from __future__ import annotations
+
+import json
+from dataclasses import asdict, dataclass, field
+from typing import Dict
+
+from .config import GenConfig
+
+DIALS = ("scale", "openness", "verticality", "claustrophobia", "combat", "exploration", "loopiness", "regularity")
+
+
+@dataclass
+class Recipe:
+    name: str = "classic"
+    description: str = ""
+    scale: float = 0.5
+    openness: float = 0.45
+    verticality: float = 0.4
+    claustrophobia: float = 0.3
+    combat: float = 0.6
+    exploration: float = 0.5
+    loopiness: float = 0.5
+    regularity: float = 0.35
+    overrides: Dict[str, object] = field(default_factory=dict)
+
+    def dials(self) -> Dict[str, float]:
+        return {d: getattr(self, d) for d in DIALS}
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "Recipe":
+        dials = d.get("dials", {})
+        kw = {k: v for k, v in d.items() if k in cls.__dataclass_fields__}
+        kw.update({k: v for k, v in dials.items() if k in DIALS})
+        return cls(**kw)
+
+
+def _lerp(a: float, b: float, t: float) -> float:
+    return a + (b - a) * t
+
+
+def compile_recipe(recipe: Recipe, seed: int = 1) -> GenConfig:
+    """Dials -> GenConfig. Every mapping is monotonic and documented in docs/DECISIONS.md."""
+    t = {d: max(0.0, min(1.0, float(getattr(recipe, d)))) for d in DIALS}
+    sc, op, ve, cl, co, ex, lo, rg = (t[d] for d in DIALS)
+    cfg = GenConfig(seed=seed, recipe=recipe.name)
+
+    # scale
+    cfg.main_rooms = int(round(_lerp(3, 11, sc)))
+    cfg.side_rooms = int(round(_lerp(0, 6, 0.6 * sc + 0.4 * ex)))
+    cfg.keys = 0 if sc < 0.2 else (2 if sc > 0.75 else 1)
+    cfg.size_bias = {"small": _lerp(2.5, 0.4, sc), "medium": 1.0, "large": _lerp(0.3, 2.5, sc)}
+    cfg.room_scale = _lerp(0.85, 1.25, sc) * _lerp(1.1, 0.8, cl) * _lerp(0.95, 1.15, op)
+
+    # verticality
+    cfg.storeys = 1 if ve < 0.5 else 2 if ve < 0.7 else 3 if ve < 0.9 else 4
+    cfg.max_level = int(round(_lerp(0, 6, ve)))
+    cfg.tall_room_chance = _lerp(0.0, 0.7, ve)
+    cfg.galleries = ve >= 0.5
+    vert_features = _lerp(0.2, 2.5, ve)
+
+    # openness and claustrophobia (they pull against each other)
+    cfg.merge_chance = _lerp(0.0, 0.6, op) * (1 - cl)
+    cfg.windows = int(round(_lerp(0, 9, op) * (1 - 0.8 * cl) + 3 * ex * (1 - cl)))
+    cfg.glazed_chance = _lerp(0.1, 0.7, op) * (1 - cl)
+    cfg.height_scale = _lerp(1.25, 0.72, cl)
+    cfg.corridor_width_bias = {1: _lerp(3.0, 0.5, op) * _lerp(1, 3, cl), 2: 1.0,
+                               3: _lerp(0.2, 3.0, op) * _lerp(1, 0.1, cl)}
+
+    # combat (0 = none) and exploration
+    cfg.enemy_density = _lerp(0.0, 1.6, co)
+    cfg.crate_scale = _lerp(0.3, 1.8, co)
+    cfg.pickup_density = _lerp(0.6, 1.0, co) + 0.6 * ex
+    cfg.secret = ex >= 0.25
+
+    # loops
+    cfg.loops = int(round(_lerp(0, 5, lo)))
+    cfg.long_loop_chance = _lerp(0.1, 0.4, lo)
+
+    # regularity
+    cfg.shape_weights = {"rect": _lerp(0.5, 6.0, rg), "chamfer": _lerp(1.5, 1.0, rg),
+                         "octagon": _lerp(2.5, 0.15, rg), "ring": _lerp(2.0, 0.1, rg),
+                         "plus": _lerp(1.5, 0.6, rg), "L": _lerp(1.2, 0.8, rg),
+                         "T": _lerp(1.2, 0.6, rg), "U": _lerp(1.2, 0.5, rg)}
+    cfg.diagonal_chance = _lerp(0.8, 0.0, rg)
+
+    cfg.feature_weights = {"platform": vert_features, "pit": vert_features, "balcony": vert_features,
+                           "pillars": _lerp(0.6, 1.6, co), "none": _lerp(1.5, 0.6, co)}
+
+    for k, v in recipe.overrides.items():
+        if k not in GenConfig.__dataclass_fields__:
+            raise ValueError(f"recipe {recipe.name}: unknown override {k!r}")
+        if isinstance(v, dict) and isinstance(getattr(cfg, k), dict):
+            merged = dict(getattr(cfg, k))
+            merged.update(v)
+            v = merged
+        setattr(cfg, k, v)
+    return cfg
+
+
+# ----------------------------------------------------------------------
+# presets: each must be recognisable at a glance (tests/test_recipes.py checks it)
+# ----------------------------------------------------------------------
+PRESETS: Dict[str, Recipe] = {r.name: r for r in [
+    Recipe("compact", "A few small rooms and short corridors. Restrained, believable, quick to play.",
+           scale=0.1, openness=0.3, verticality=0.2, claustrophobia=0.4, combat=0.5, exploration=0.2,
+           loopiness=0.2, regularity=0.6, overrides={"windows": 1, "max_level": 1}),
+    Recipe("classic", "Quake-style: varied rooms, height changes, loops, a key and a secret.",
+           scale=0.5, openness=0.45, verticality=0.45, claustrophobia=0.3, combat=0.6, exploration=0.5,
+           loopiness=0.5, regularity=0.35),
+    Recipe("bunker", "Low, narrow, orthogonal. Small concrete rooms, firing slits, ladders and lifts "
+                     "between underground levels. Tense and close.",
+           scale=0.45, openness=0.1, verticality=0.55, claustrophobia=0.9, combat=0.8, exploration=0.3,
+           loopiness=0.3, regularity=0.95,
+           overrides={"storeys": 2, "glazed_chance": 0.0, "windows": 4, "tall_room_chance": 0.0, "room_scale": 0.75,
+                      "size_bias": {"small": 2.5, "medium": 1.0, "large": 0.15},
+                      "connector_weights": {"stairs": 0.15, "stairwell": 0.25, "lift": 0.3, "ladder": 0.3},
+                      "feature_weights": {"balcony": 0.0}, "merge_chance": 0.05}),
+    Recipe("fortress", "Tall, ordered, defensive. Several storeys climbed by stairwells, great halls, "
+                       "galleries and arrow slits.",
+           scale=0.7, openness=0.35, verticality=0.92, claustrophobia=0.25, combat=0.8, exploration=0.4,
+           loopiness=0.45, regularity=0.9,
+           overrides={"glazed_chance": 0.0, "windows": 8, "height_scale": 1.15, "merge_chance": 0.4,
+                      "connector_weights": {"stairs": 0.25, "stairwell": 0.65, "lift": 0.05, "ladder": 0.05},
+                      "feature_weights": {"balcony": 2.5, "pillars": 1.5},
+                      "corridor_width_bias": {1: 0.5, 2: 2.0, 3: 1.5}}),
+    Recipe("industrial", "Big tall halls with platforms and catwalk balconies, lifts and ladders, "
+                         "wide service corridors, control-room glass, lots of clutter.",
+           scale=0.8, openness=0.6, verticality=0.75, claustrophobia=0.15, combat=0.6, exploration=0.5,
+           loopiness=0.6, regularity=0.7,
+           overrides={"height_scale": 1.35, "glazed_chance": 0.65, "windows": 8, "crate_scale": 2.0, "room_scale": 1.4,
+                      "size_bias": {"small": 0.5, "medium": 1.0, "large": 3.0},
+                      "connector_weights": {"stairs": 0.1, "stairwell": 0.25, "lift": 0.35, "ladder": 0.3},
+                      "feature_weights": {"platform": 2.5, "balcony": 2.5, "pillars": 2.0},
+                      "corridor_width_bias": {1: 0.4, 2: 1.0, 3: 2.5}, "diagonal_chance": 0.2}),
+    Recipe("compound", "Open and spread out: large merged halls, wide connections, many windows, "
+                       "one level. A precursor of real open areas.",
+           scale=0.7, openness=0.95, verticality=0.2, claustrophobia=0.0, combat=0.6, exploration=0.6,
+           loopiness=0.8, regularity=0.55,
+           overrides={"merge_chance": 0.65, "max_hall_rooms": 4, "windows": 10, "glazed_chance": 0.5,
+                      "height_scale": 1.4, "crate_scale": 1.8, "room_scale": 1.45,
+                      "size_bias": {"small": 0.4, "medium": 1.0, "large": 2.5},
+                      "corridor_width_bias": {1: 0.3, 2: 1.0, 3: 3.0}}),
+    Recipe("explore", "No combat. Vertical, open, full of side rooms, secrets, views ahead and loops: "
+                      "for exploration, walking sims and architectural blockouts.",
+           scale=0.6, openness=0.6, verticality=0.7, claustrophobia=0.2, combat=0.0, exploration=1.0,
+           loopiness=0.6, regularity=0.35),
+]}
+
+
+def get_recipe(name_or_path: str) -> Recipe:
+    if name_or_path in PRESETS:
+        return PRESETS[name_or_path]
+    with open(name_or_path) as fh:
+        return Recipe.from_dict(json.load(fh))
+
+
+def save_recipe(recipe: Recipe, path: str, config: GenConfig = None):
+    data = {"format": "badlevel-recipe", "version": 1, "name": recipe.name, "description": recipe.description,
+            "dials": recipe.dials(), "overrides": recipe.overrides}
+    if config is not None:
+        data["compiled"] = config.to_dict()
+    with open(path, "w") as fh:
+        json.dump(data, fh, indent=1, default=str)

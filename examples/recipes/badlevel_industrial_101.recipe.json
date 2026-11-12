@@ -1,0 +1,139 @@
+{
+ "format": "badlevel-recipe",
+ "version": 1,
+ "name": "industrial",
+ "description": "Big tall halls with platforms and catwalk balconies, lifts and ladders, wide service corridors, control-room glass, lots of clutter.",
+ "dials": {
+  "scale": 0.8,
+  "openness": 0.6,
+  "verticality": 0.75,
+  "claustrophobia": 0.15,
+  "combat": 0.6,
+  "exploration": 0.5,
+  "loopiness": 0.6,
+  "regularity": 0.7
+ },
+ "overrides": {
+  "height_scale": 1.35,
+  "glazed_chance": 0.65,
+  "windows": 8,
+  "crate_scale": 2.0,
+  "room_scale": 1.4,
+  "size_bias": {
+   "small": 0.5,
+   "medium": 1.0,
+   "large": 3.0
+  },
+  "connector_weights": {
+   "stairs": 0.1,
+   "stairwell": 0.25,
+   "lift": 0.35,
+   "ladder": 0.3
+  },
+  "feature_weights": {
+   "platform": 2.5,
+   "balcony": 2.5,
+   "pillars": 2.0
+  },
+  "corridor_width_bias": {
+   "1": 0.4,
+   "2": 1.0,
+   "3": 2.5
+  },
+  "diagonal_chance": 0.2
+ },
+ "compiled": {
+  "seed": 101,
+  "variant": 0,
+  "main_rooms": 9,
+  "side_rooms": 4,
+  "loops": 3,
+  "long_loop_chance": 0.28,
+  "corridor_beats": true,
+  "beat_spacing": 16,
+  "keys": 2,
+  "secret": true,
+  "storeys": 3,
+  "storey_height": 256,
+  "storey_change": 0.5,
+  "connector_weights": {
+   "stairs": 0.1,
+   "stairwell": 0.25,
+   "lift": 0.35,
+   "ladder": 0.3
+  },
+  "drop_chance": 0.6,
+  "max_drop": 288,
+  "tall_room_chance": 0.5249999999999999,
+  "merge_chance": 0.306,
+  "max_hall_rooms": 3,
+  "windows": 8,
+  "glazed_chance": 0.65,
+  "galleries": true,
+  "cell": 32,
+  "step_height": 16,
+  "level_step": 64,
+  "max_level": 4,
+  "corridor_radius": 1,
+  "corridor_height": 128,
+  "max_corridor_radius": 3,
+  "diagonal_chance": 0.2,
+  "room_gap": 4,
+  "player_height": 56,
+  "max_step": 18,
+  "max_attempts": 60,
+  "size_bias": {
+   "small": 0.5,
+   "medium": 1.0,
+   "large": 3.0
+  },
+  "shape_weights": {
+   "rect": 4.35,
+   "chamfer": 1.15,
+   "octagon": 0.855,
+   "ring": 0.6700000000000002,
+   "plus": 0.87,
+   "L": 0.92,
+   "T": 0.78,
+   "U": 0.71
+  },
+  "feature_weights": {
+   "platform": 2.5,
+   "pit": 1.9249999999999998,
+   "balcony": 2.5,
+   "pillars": 2.0,
+   "none": 0.96
+  },
+  "corridor_width_bias": {
+   "1": 0.4,
+   "2": 1.0,
+   "3": 2.5
+  },
+  "crate_scale": 2.0,
+  "enemy_density": 0.96,
+  "pickup_density": 1.14,
+  "height_scale": 1.35,
+  "room_scale": 1.4,
+  "recipe": "industrial",
+  "room_sizes": {
+   "small": [
+    6,
+    8,
+    128,
+    160
+   ],
+   "medium": [
+    9,
+    12,
+    160,
+    224
+   ],
+   "large": [
+    14,
+    18,
+    256,
+    320
+   ]
+  }
+ }
+}

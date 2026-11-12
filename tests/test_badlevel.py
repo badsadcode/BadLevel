@@ -312,7 +312,8 @@ def test_long_corridors_get_beats(levels):
 
 def test_corridor_monotony_is_reported():
     from badlevel.analysis import analyze
-    rep = analyze(generate(seed=2))
+    lv = next(lv for lv in (generate(seed=s) for s in range(30)) if any(c.beats for c in lv.corridors))
+    rep = analyze(lv)
     assert rep["corridors"] and all(c["monotone_run"] <= c["length"] for c in rep["corridors"])
     assert rep["level"]["corridor_beats"] > 0
 
