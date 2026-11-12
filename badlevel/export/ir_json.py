@@ -22,16 +22,18 @@ def to_dict(level: Level, include_spans: bool = True) -> dict:
         "config": level.config.to_dict() if level.config else {},
         "stats": level.stats(),
         "graph": level.graph.to_dict() if level.graph else None,
-        "rooms": [vars(r) for r in level.rooms],
+        "rooms": [r.to_dict() for r in level.rooms],
         "corridors": [vars(c) for c in level.corridors],
         "entities": [e.to_dict() for e in level.entities],
-        "brushes": [{"min": list(b.mins), "max": list(b.maxs), "top": b.top,
-                     "bottom": b.bottom, "side": b.side} for b in build_brushes(level)],
+        "brushes": [dict({"min": list(b.mins), "max": list(b.maxs), "top": b.top,
+                          "bottom": b.bottom, "side": b.side}, **({"corner": b.corner} if b.corner else {}))
+                    for b in build_brushes(level)],
         "notes": level.notes,
     }
     if include_spans:
         d["grid"] = {"width": level.width, "height": level.height}
         d["spans"] = [[x, y, spans] for (x, y), spans in sorted(level.spans.items())]
+        d["diagonal"] = [[x, y, c] for (x, y), c in sorted(level.diag.items())]
     return d
 
 

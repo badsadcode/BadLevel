@@ -10,8 +10,9 @@ seed + config
    ▼
 1. mission graph     start → fights → arena → exit, key branches, locked doors,
                      loops (only inside the same lock zone), secret room
-2. spatial layout    rooms on several floor levels, A* corridors with real
-                     stairs (16-unit steps on straight runs only)
+2. spatial layout    rooms on several floor levels, shaped footprints (rect,
+                     chamfer, octagon, L, T, U, plus, ring) with real 45° walls,
+                     A* corridors with real stairs (16-unit steps on straight runs)
 3. room features     pillars · raised platforms · pits · balconies with space
                      underneath (room-over-room) · key pedestals
 4. gameplay markup   player start, enemies (difficulty ramps with depth),
@@ -64,6 +65,23 @@ Entity kinds → Quake classnames: `player_start` → `info_player_start`,
 `enemy` tier 1/2/3 → `monster_army`/`monster_knight`/`monster_ogre`,
 `key` red/blue → `item_key2`/`item_key1`, `door` → `func_door` (key-locked),
 `secret_door` → `func_door_secret`, `exit` → `trigger_changelevel`, plus items and lights.
+
+## Room shapes
+
+Rooms are not just boxes. Each one gets a footprint picked by its size and role
+(arenas like octagons, rings and crosses; secret rooms stay simple):
+
+| shape | what it is |
+|-------|------------|
+| `rect` / `chamfer` | box, optionally with 45° cut corners |
+| `octagon` | all four corners cut at 45° |
+| `L`, `T`, `U`, `plus` | notched footprints, more corners for cover and flanking |
+| `ring` | courtyard around a solid central block with 45° corners (circle-strafe heaven) |
+
+45° walls are *half cells*: the cell is split corner to corner into a solid and
+an open triangle. In the `.map` they become **triangular prism brushes** (still
+convex, so qbsp is happy), in the `.glb` real diagonal faces, in the JSON
+`"diagonal": [[x, y, corner], ...]`.
 
 ## How the geometry works
 

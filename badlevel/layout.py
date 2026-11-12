@@ -19,6 +19,7 @@ from typing import Dict, List, Optional, Set, Tuple
 from .config import GenConfig
 from .graph import MissionGraph
 from .level import Cell, Corridor, Level, Room
+from .shapes import pick_shape
 
 DIRS = [(1, 0), (0, 1), (-1, 0), (0, -1)]
 PAD = 4  # solid cells around the whole layout
@@ -98,6 +99,12 @@ def place_rooms(g: MissionGraph, cfg: GenConfig, rng: random.Random) -> List[Roo
 
     # normalise so the layout starts at (PAD, PAD); room ids == node ids
     result = [rooms[n.id] for n in g.nodes]
+    for r in result:
+        node = g.nodes[r.node]
+        shape = pick_shape(r.w, r.h, node.size, node.kind, rng)
+        r.shape = shape.name
+        if shape.name != "rect" or shape.diag:
+            r.mask, r.diag = shape.cells, shape.diag
     minx = min(r.x for r in result)
     miny = min(r.y for r in result)
     for idx, r in enumerate(result):
@@ -148,7 +155,9 @@ class Router:
             return None
         rid = self.room_at.get(c)
         if rid is not None:
-            return 0.0 if rid in (a.id, b.id) else None
+            if rid not in (a.id, b.id) or self.rooms[rid].is_diag(x, y):
+                return None
+            return 0.0
         if c in self._near_corr:
             return None
         cost = 0.0
@@ -170,6 +179,8 @@ class Router:
         # perimeter cells of a, away from its corners so a 3-wide opening fits
         start_cells = []
         for c in a.cells():
+            if a.is_diag(*c):
+                continue
             on_x_edge = c[0] in (a.x, a.x + a.w - 1)
             on_y_edge = c[1] in (a.y, a.y + a.h - 1)
             ok_x = a.x + self.r <= c[0] <= a.x + a.w - 1 - self.r
@@ -199,7 +210,7 @@ class Router:
                 break
             if best.get((c, d), 1e18) < gcost:
                 continue
-            if b.contains(*c):
+            if b.contains(*c) and not b.is_diag(*c):
                 goal = (c, d)
                 break
             for nd, (dx, dy) in enumerate(DIRS):
@@ -281,6 +292,7 @@ def build_layout(g: MissionGraph, cfg: GenConfig, rng: random.Random, seed: int)
         for c in room.cells():
             level.spans[c] = [(room.floor, room.ceil)]
             level.owner[c] = f"room:{room.id}"
+        level.diag.update(room.world_diag())
 
     router = Router(rooms, width, height, cfg)
     r = cfg.corridor_radius

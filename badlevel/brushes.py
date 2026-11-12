@@ -12,7 +12,7 @@ no leaks for qbsp-style compilers.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 
 from .level import Cell, Level
 
@@ -27,6 +27,9 @@ class Brush:
     top: str = WALL      # texture role of the +Z face
     bottom: str = WALL   # texture role of the -Z face
     side: str = WALL
+    # set for triangular prisms (45-degree walls): corner the solid triangle points at;
+    # mins/maxs are then the cell's bounding box
+    corner: Optional[str] = None
 
 
 def solid_intervals(spans, zmin, zmax):
@@ -61,6 +64,10 @@ def build_brushes(level: Level) -> List[Brush]:
     for (z0, z1, top, bottom), cells in sorted(groups.items()):
         for (x0, y0, x1, y1) in greedy_rects(cells):
             brushes.append(Brush((x0 * s, y0 * s, z0), (x1 * s, y1 * s, z1), top, bottom))
+    # half-solid diagonal cells: one triangular prism filling the solid half of the open span
+    for (x, y), corner in sorted(level.diag.items()):
+        f, c = level.spans[(x, y)][0]
+        brushes.append(Brush((x * s, y * s, f), ((x + 1) * s, (y + 1) * s, c), WALL, WALL, WALL, corner))
     return brushes
 
 

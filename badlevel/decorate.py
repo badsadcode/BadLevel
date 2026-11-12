@@ -26,7 +26,7 @@ class RoomCtx:
     def __init__(self, level: Level, room: Room):
         self.level = level
         self.room = room
-        self.used: Set[Cell] = set()
+        self.used: Set[Cell] = set(room.world_diag())
         self.doors = self._door_cells()
         self.clear: Set[Cell] = set()
         for (dx0, dy0) in self.doors:
@@ -39,6 +39,8 @@ class RoomCtx:
     def _door_cells(self) -> List[Cell]:
         out = []
         for c in self.room.cells():
+            if self.room.is_diag(*c):
+                continue
             for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
                 n = (c[0] + dx, c[1] + dy)
                 if not self.room.contains(*n) and n in self.level.spans:
@@ -157,15 +159,29 @@ def f_balcony(ctx: RoomCtx, rng: random.Random) -> bool:
                     return (r.x + v, r.y + u)
                 return (r.x + r.w - 1 - v, r.y + u)
 
-            deck_cells = [to_cell(u, v) for u in range(ulen) for v in range(3)]
-            u0 = 0 if stair_on_low_end else ulen - 2
+            # longest straight stretch of wall where a 3-deep deck fits the room shape
+            ok_u = [all(r.contains(*to_cell(u, v)) and to_cell(u, v) not in ctx.used for v in range(3))
+                    for u in range(ulen)]
+            best, run = (0, 0), None
+            for u, ok in enumerate(ok_u + [False]):
+                if ok and run is None:
+                    run = u
+                elif not ok and run is not None:
+                    if u - run > best[1] - best[0]:
+                        best = (run, u)
+                    run = None
+            ua, ub = best
+            if ub - ua < 6:
+                continue
+            deck_cells = [to_cell(u, v) for u in range(ua, ub) for v in range(3)]
+            u0 = ua if stair_on_low_end else ub - 2
             stairs = {}
             for k in range(n_steps):
                 for du in range(2):
                     stairs[to_cell(u0 + du, 3 + k)] = r.floor + under - k * cfg.step_height
             # deck cells may sit over doorways (corridors pass underneath),
             # stairs may not
-            if not ctx.free(list(stairs)) or any(c in ctx.used for c in deck_cells):
+            if not ctx.free(list(stairs)) or any(c in ctx.used or not r.contains(*c) for c in deck_cells):
                 continue
             for c in deck_cells:
                 ctx.level.spans[c] = [(r.floor, r.floor + under), (r.floor + deck, r.ceil)]
@@ -180,10 +196,10 @@ def f_balcony(ctx: RoomCtx, rng: random.Random) -> bool:
 
 def f_pedestal(ctx: RoomCtx, rng: random.Random) -> bool:
     r = ctx.room
-    cx, cy = r.x + r.w // 2 - 1, r.y + r.h // 2 - 1
-    cells = [(cx, cy), (cx + 1, cy), (cx, cy + 1), (cx + 1, cy + 1)]
-    if not ctx.free(cells):
+    block = _flat_block(ctx, r.x + r.w / 2.0, r.y + r.h / 2.0, avoid=ctx.clear | ctx.used)
+    if block is None:
         return False
+    cells = block
     for c in cells:
         ctx.set_floor(c, r.floor + ctx.level.config.step_height)
     r.features.append("pedestal")
@@ -211,7 +227,7 @@ def _pick_free(ctx: RoomCtx, rng: random.Random, taken: Set[Cell], floor_only=Tr
     cands = []
     for c in r.cells():
         spans = ctx.level.spans.get(c)
-        if not spans or len(spans) != 1 or c in taken or c in ctx.clear:
+        if not spans or len(spans) != 1 or c in taken or c in ctx.clear or c in ctx.level.diag:
             continue
         if floor_only and spans[0][0] != r.floor:
             continue
@@ -224,6 +240,29 @@ def _pick_free(ctx: RoomCtx, rng: random.Random, taken: Set[Cell], floor_only=Tr
     c = rng.choice(cands)
     taken.add(c)
     return c
+
+
+def _flat_cell(level: Level, room: Room, c) -> bool:
+    spans = level.spans.get(c)
+    return bool(spans) and len(spans) == 1 and spans[0][0] == room.floor and c not in level.diag \
+        and room.contains(*c)
+
+
+def _flat_block(ctx: RoomCtx, fx: float, fy: float, avoid=()):
+    """2x2 block of flat floor cells nearest to the (fractional) cell point fx, fy."""
+    best = None
+    for (x, y) in ctx.room.cells():
+        cells = [(x, y), (x + 1, y), (x, y + 1), (x + 1, y + 1)]
+        if all(_flat_cell(ctx.level, ctx.room, c) and c not in avoid for c in cells):
+            d = (x + 1 - fx) ** 2 + (y + 1 - fy) ** 2
+            if best is None or d < best[0]:
+                best = (d, cells)
+    return best[1] if best else None
+
+
+def _nearest_open(level: Level, room: Room, fx: float, fy: float):
+    cands = [c for c in room.cells() if c not in level.diag and level.spans.get(c)]
+    return min(cands, key=lambda c: (c[0] + 0.5 - fx) ** 2 + (c[1] + 0.5 - fy) ** 2)
 
 
 def _at(level: Level, c: Cell, top=False, z_off=24.0):
@@ -282,19 +321,19 @@ def decorate(level: Level, rng: random.Random):
 
         # lights
         cx, cy = room.x + room.w / 2.0, room.y + room.h / 2.0
-        top = room.ceil - 24
-        if area >= 140:
-            for fx in (0.25, 0.75):
-                for fy in (0.25, 0.75):
-                    ents.append(Entity("light", ((room.x + room.w * fx) * level.cell,
-                                                 (room.y + room.h * fy) * level.cell, top),
-                                       {"intensity": 250}))
-        else:
-            ents.append(Entity("light", (cx * level.cell, cy * level.cell, top), {"intensity": 300}))
+        spots = [(0.25, 0.25), (0.75, 0.25), (0.25, 0.75), (0.75, 0.75)] if area >= 140 else [(0.5, 0.5)]
+        lit = set()
+        for fx, fy in spots:
+            c = _nearest_open(level, room, room.x + room.w * fx, room.y + room.h * fy)
+            if c in lit:
+                continue
+            lit.add(c)
+            ents.append(Entity("light", ((c[0] + 0.5) * level.cell, (c[1] + 0.5) * level.cell,
+                                         level.spans[c][-1][1] - 24),
+                               {"intensity": 250 if len(spots) > 1 else 300}))
 
         if room.kind == "start":
-            c = min((c for c in room.cells() if level.spans.get(c) and level.spans[c][0][0] == room.floor
-                     and len(level.spans[c]) == 1),
+            c = min((c for c in room.cells() if _flat_cell(level, room, c)),
                     key=lambda c: (c[0] + 0.5 - cx) ** 2 + (c[1] + 0.5 - cy) ** 2)
             taken.add(c)
             angle = 0
@@ -307,8 +346,10 @@ def decorate(level: Level, rng: random.Random):
             if c2:
                 ents.append(Entity("weapon", _at(level, c2, z_off=0), {"type": "shotgun"}))
         elif room.kind == "exit":
-            ex = int(cx) - 1
-            ey = int(cy) - 1
+            block = _flat_block(ctx, cx, cy)
+            if block is None:
+                raise LayoutError("no spot for the exit")
+            ex, ey = block[0]
             s = level.cell
             lo = (ex * s, ey * s, room.floor)
             hi = ((ex + 2) * s, (ey + 2) * s, room.floor + 64)

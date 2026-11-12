@@ -29,14 +29,33 @@ class Room:
     floor: int
     ceil: int
     features: List[str] = field(default_factory=list)
+    shape: str = "rect"
+    # local open cells (None = full rectangle) and local diagonal half-cells
+    mask: Optional[set] = None
+    diag: Dict[Cell, str] = field(default_factory=dict)
 
     def contains(self, cx: int, cy: int) -> bool:
-        return self.x <= cx < self.x + self.w and self.y <= cy < self.y + self.h
+        if not (self.x <= cx < self.x + self.w and self.y <= cy < self.y + self.h):
+            return False
+        return self.mask is None or (cx - self.x, cy - self.y) in self.mask
+
+    def is_diag(self, cx: int, cy: int) -> bool:
+        return (cx - self.x, cy - self.y) in self.diag
+
+    def world_diag(self) -> Dict[Cell, str]:
+        return {(lx + self.x, ly + self.y): c for (lx, ly), c in self.diag.items()}
 
     def cells(self):
         for cy in range(self.y, self.y + self.h):
             for cx in range(self.x, self.x + self.w):
-                yield (cx, cy)
+                if self.mask is None or (cx - self.x, cy - self.y) in self.mask:
+                    yield (cx, cy)
+
+    def to_dict(self) -> dict:
+        d = {k: v for k, v in vars(self).items() if k not in ("mask", "diag")}
+        d["cells"] = len(list(self.cells()))
+        d["diag"] = [[x, y, c] for (x, y), c in sorted(self.world_diag().items())]
+        return d
 
     def center(self) -> Tuple[float, float]:
         return (self.x + self.w / 2.0, self.y + self.h / 2.0)
@@ -86,6 +105,8 @@ class Level:
     rooms: List[Room] = field(default_factory=list)
     corridors: List[Corridor] = field(default_factory=list)
     entities: List[Entity] = field(default_factory=list)
+    # half-solid cells with a 45-degree wall: cell -> corner of the solid triangle
+    diag: Dict[Cell, str] = field(default_factory=dict)
     graph: object = None
     config: object = None
     notes: List[str] = field(default_factory=list)
@@ -119,5 +140,7 @@ class Level:
             "entities": len(self.entities),
             "open_cells": len(self.spans),
             "multi_span_cells": sum(1 for s in self.spans.values() if len(s) > 1),
+            "diagonal_cells": len(self.diag),
+            "shapes": sorted({r.shape for r in self.rooms}),
             "z_range": list(self.z_range()),
         }

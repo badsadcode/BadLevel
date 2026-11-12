@@ -12,6 +12,7 @@ from __future__ import annotations
 from typing import List
 
 from ..brushes import Brush, build_brushes
+from ..shapes import corner_vertices
 from ..level import Level
 
 TEXTURES = {"floor": "bl_floor", "wall": "bl_wall", "ceiling": "bl_ceiling",
@@ -30,20 +31,54 @@ def _fmt(v: float) -> str:
     return str(int(v)) if float(v).is_integer() else f"{v:.2f}"
 
 
+def _qbsp_normal(p0, p1, p2):
+    # qbsp: normal = (p0 - p1) x (p2 - p1); it must point out of the brush
+    t1 = [p0[i] - p1[i] for i in range(3)]
+    t2 = [p2[i] - p1[i] for i in range(3)]
+    return (t1[1] * t2[2] - t1[2] * t2[1], t1[2] * t2[0] - t1[0] * t2[2], t1[0] * t2[1] - t1[1] * t2[0])
+
+
+def faces_text(faces, inside) -> str:
+    """faces: [(p0, p1, p2, texture)] on each plane; orders points so normals face away from inside."""
+    lines = []
+    for p0, p1, p2, tex in faces:
+        n = _qbsp_normal(p0, p1, p2)
+        if sum(n[i] * (p0[i] - inside[i]) for i in range(3)) < 0:
+            p1, p2 = p2, p1
+        pts = " ".join("( %d %d %d )" % tuple(p) for p in (p0, p1, p2))
+        lines.append(f"{pts} {tex} 0 0 0 1 1")
+    return "{\n" + "\n".join(lines) + "\n}"
+
+
 def brush_text(mins, maxs, top: str, bottom: str, side: str) -> str:
     x1, y1, z1 = mins
     x2, y2, z2 = maxs
-    t = lambda name: f"{name} 0 0 0 1 1"
     faces = [
-        (f"( {x1} {y1} {z1} ) ( {x1} {y1 + 1} {z1} ) ( {x1} {y1} {z1 + 1} )", side),    # -X
-        (f"( {x1} {y1} {z1} ) ( {x1} {y1} {z1 + 1} ) ( {x1 + 1} {y1} {z1} )", side),    # -Y
-        (f"( {x1} {y1} {z1} ) ( {x1 + 1} {y1} {z1} ) ( {x1} {y1 + 1} {z1} )", bottom),  # -Z
-        (f"( {x2} {y2} {z2} ) ( {x2} {y2 + 1} {z2} ) ( {x2 + 1} {y2} {z2} )", top),     # +Z
-        (f"( {x2} {y2} {z2} ) ( {x2 + 1} {y2} {z2} ) ( {x2} {y2} {z2 + 1} )", side),    # +Y
-        (f"( {x2} {y2} {z2} ) ( {x2} {y2} {z2 + 1} ) ( {x2} {y2 + 1} {z2} )", side),    # +X
+        ((x1, y1, z1), (x1, y1 + 1, z1), (x1, y1, z1 + 1), side),    # -X
+        ((x1, y1, z1), (x1, y1, z1 + 1), (x1 + 1, y1, z1), side),    # -Y
+        ((x1, y1, z1), (x1 + 1, y1, z1), (x1, y1 + 1, z1), bottom),  # -Z
+        ((x2, y2, z2), (x2, y2 + 1, z2), (x2 + 1, y2, z2), top),     # +Z
+        ((x2, y2, z2), (x2 + 1, y2, z2), (x2, y2, z2 + 1), side),    # +Y
+        ((x2, y2, z2), (x2, y2, z2 + 1), (x2, y2 + 1, z2), side),    # +X
     ]
-    body = "\n".join(f"{pts} {t(tex)}" for pts, tex in faces)
-    return "{\n" + body + "\n}"
+    inside = ((x1 + x2) / 2, (y1 + y2) / 2, (z1 + z2) / 2)
+    return faces_text(faces, inside)
+
+
+def prism_text(b: Brush, tex: str) -> str:
+    """Triangular prism for a 45-degree wall cell."""
+    (x1, y1, z1), (x2, y2, z2) = b.mins, b.maxs
+    s = x2 - x1
+    tri = [(x1 + u * s, y1 + v * s) for (u, v) in corner_vertices(b.corner)[0]]
+    cx, cy = sum(p[0] for p in tri) / 3, sum(p[1] for p in tri) / 3
+    faces = [
+        ((tri[0][0], tri[0][1], z1), (tri[1][0], tri[1][1], z1), (tri[2][0], tri[2][1], z1), tex),
+        ((tri[0][0], tri[0][1], z2), (tri[1][0], tri[1][1], z2), (tri[2][0], tri[2][1], z2), tex),
+    ]
+    for i in range(3):
+        a, c = tri[i], tri[(i + 1) % 3]
+        faces.append(((a[0], a[1], z1), (c[0], c[1], z1), (a[0], a[1], z2), tex))
+    return faces_text(faces, (cx, cy, (z1 + z2) / 2))
 
 
 def _entity(props: dict, brushes: List[str] = ()) -> str:
@@ -58,7 +93,8 @@ def _ibox(bounds):
 
 def to_map(level: Level) -> str:
     brushes: List[Brush] = build_brushes(level)
-    world = [brush_text(b.mins, b.maxs, TEXTURES[b.top], TEXTURES[b.bottom], TEXTURES[b.side])
+    world = [prism_text(b, TEXTURES[b.side]) if b.corner else
+             brush_text(b.mins, b.maxs, TEXTURES[b.top], TEXTURES[b.bottom], TEXTURES[b.side])
              for b in brushes]
     out = [
         "// Game: Quake",

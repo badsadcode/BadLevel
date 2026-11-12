@@ -41,15 +41,23 @@ def test_level_has_quake_like_ingredients(levels):
     assert {"pillars", "platform", "pit", "balcony"} <= features
     assert len(heights) >= 4, "rooms should sit on several floor levels"
     assert over_under > 0, "some levels should have room-over-room spaces"
+    shapes = {r.shape for lv in levels.values() for r in lv.rooms}
+    assert {"octagon", "L", "ring", "plus"} <= shapes, shapes
+    assert sum(len(lv.diag) for lv in levels.values()) > 100, "45-degree walls expected"
 
 
 def test_brushes_exactly_fill_the_solid_space(levels):
     """Brush columns + empty spans tile [zmin, zmax] with no gaps or overlaps -> sealed."""
-    level = levels[3]
+    level = max(levels.values(), key=lambda lv: len(lv.diag))
+    assert level.diag
     zmin, zmax = level.z_range()
     s = level.cell
     per_cell = {}
+    prisms = {}
     for b in build_brushes(level):
+        if b.corner:
+            prisms[(b.mins[0] // s, b.mins[1] // s)] = b
+            continue
         for x in range(b.mins[0] // s, b.maxs[0] // s):
             for y in range(b.mins[1] // s, b.maxs[1] // s):
                 per_cell.setdefault((x, y), []).append((b.mins[2], b.maxs[2]))
@@ -61,6 +69,10 @@ def test_brushes_exactly_fill_the_solid_space(levels):
                 assert a == z, f"gap/overlap at {c} z={z}"
                 z = b
             assert z == zmax, c
+    # every 45-degree cell has exactly one prism, filling its open span height
+    assert set(prisms) == set(level.diag)
+    for c, b in prisms.items():
+        assert (b.mins[2], b.maxs[2]) == level.spans[c][0] and b.corner == level.diag[c]
 
 
 def _qbsp_normal(p0, p1, p2):
@@ -70,7 +82,8 @@ def _qbsp_normal(p0, p1, p2):
 
 
 def test_map_file_is_well_formed(levels):
-    text = to_map(levels[5])
+    text = to_map(max(levels.values(), key=lambda lv: len(lv.diag)))
+    assert text.count("{\n(") > 50
     assert text.count("{") == text.count("}")
     assert '"classname" "worldspawn"' in text
     assert text.count('"classname" "info_player_start"') == 1
@@ -82,14 +95,13 @@ def test_map_file_is_well_formed(levels):
             nums = [int(v) for v in re.findall(r"-?\d+", line.split(")")[0] + line.split(")")[1] + line.split(")")[2])]
             pts = [nums[0:3], nums[3:6], nums[6:9]]
             planes.append((pts[0], _qbsp_normal(*pts)))
-        assert len(planes) == 6
-        xs = [p[0][0] for p in planes]
-        ys = [p[0][1] for p in planes]
-        zs = [p[0][2] for p in planes]
-        centre = [(min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2, (min(zs) + max(zs)) / 2]
+        assert len(planes) in (5, 6)  # boxes and 45-degree prisms
+        verts = [p for p, _ in planes]
         for point, n in planes:
-            # every face normal must point away from the brush centre
-            assert sum(n[i] * (point[i] - centre[i]) for i in range(3)) > 0
+            # convex + outward normals: every brush vertex lies behind (or on) every plane
+            assert any(n)
+            for q in verts:
+                assert sum(n[i] * (q[i] - point[i]) for i in range(3)) <= 0
 
 
 def test_glb_is_valid(levels):

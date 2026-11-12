@@ -6,6 +6,7 @@ import html
 import json
 
 from ..level import Level
+from ..shapes import corner_vertices
 from .gltf import to_glb
 
 ENT_COLORS = {
@@ -39,6 +40,11 @@ def map_svg(level: Level) -> str:
     fy = lambda y: (level.height - 1 - y) * s
     for (x, y), spans in level.spans.items():
         col = _height_color(spans[-1][0], lo, hi)
+        if (x, y) in level.diag:
+            _, tri = corner_vertices(level.diag[(x, y)])
+            pts = " ".join(f"{(x + a) * s},{(level.height - y - b) * s}" for a, b in tri)
+            parts.append(f'<polygon points="{pts}" fill="{col}"/>')
+            continue
         parts.append(f'<rect x="{x * s}" y="{fy(y)}" width="{s}" height="{s}" fill="{col}"/>')
         if len(spans) > 1:
             parts.append(f'<rect x="{x * s + 1}" y="{fy(y) + 1}" width="{s - 2}" height="{s - 2}" '
@@ -185,7 +191,7 @@ new GLTFLoader().parse(bytes.buffer, '', (gltf) => {
   window.__startPos = start ? start.getWorldPosition(new THREE.Vector3()) : ctr.clone();
   const a = ((start && start.userData.angle) || 0) * Math.PI / 180;
   window.__startYaw = Math.atan2(-Math.cos(a), Math.sin(a));
-  window.__ready = true;
+  window.__view = { camera, controls, root }; window.__ready = true;
 });
 
 // --- fly mode -----------------------------------------------------------
@@ -240,7 +246,9 @@ def to_html(level: Level) -> str:
         ("Rooms", stats["rooms"]), ("Corridors", stats["corridors"]),
         ("Loops", sum(1 for e in level.graph.edges if not e.tree)),
         ("Keys", ", ".join(e.key for e in level.graph.edges if e.kind == "locked") or "none"),
+        ("Room shapes", ", ".join(stats["shapes"])),
         ("Room features", ", ".join(feats) or "-"),
+        ("45° wall cells", stats["diagonal_cells"]),
         ("Height range", f'{stats["z_range"][0] + 32} .. {stats["z_range"][1] - 32} units'),
         ("Room-over-room cells", stats["multi_span_cells"]),
         ("Enemies", counts.get("enemy", 0)),

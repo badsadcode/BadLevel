@@ -45,7 +45,7 @@ def flood(level: Level, start: Node, blocked: Set[Cell]) -> Set[Node]:
         f0, c0 = level.spans[(x, y)][i]
         for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
             n = (x + dx, y + dy)
-            if n in blocked or n not in level.spans:
+            if n in blocked or n not in level.spans or n in level.diag:
                 continue
             for j, (f1, c1) in enumerate(level.spans[n]):
                 if abs(f1 - f0) > step:
@@ -84,6 +84,8 @@ def validate(level: Level) -> Dict[str, object]:
         if e.bounds is None:
             try:
                 _node_at(level, e.pos)
+                if _cell_of(level, e.pos) in level.diag:
+                    raise ValueError("diagonal cell")
             except (KeyError, ValueError):
                 errors.append(f"{e.kind} at {e.pos} is inside solid")
 
@@ -122,7 +124,7 @@ def validate(level: Level) -> Dict[str, object]:
             unreached.append(room.id)
     if unreached:
         errors.append(f"rooms unreachable: {unreached}")
-    open_nodes = sum(len(s) for s in level.spans.values())
+    open_nodes = sum(len(s) for c, s in level.spans.items() if c not in level.diag)
     return {
         "ok": not errors,
         "errors": errors,
