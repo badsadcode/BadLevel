@@ -213,6 +213,7 @@ new GLTFLoader().parse(bytes.buffer, '', (gltf) => {
       const m = o.material;
       if (/bl_(floor|wall|ceiling)/.test(m.name)) { m.map = tex; m.needsUpdate = true; }
       if (m.name === 'bl_ceiling' || m.name === 'bl_sky') { ceilings.push(o); }
+      if (m.name === 'bl_sky') { m.map = null; m.emissive = m.color.clone(); m.emissiveIntensity = 1; m.needsUpdate = true; }  // sky is unlit, like a Quake sky
     }
     const kind = o.userData && o.userData.kind;
     if (kind && !o.isMesh && kind !== 'light') {

@@ -92,6 +92,12 @@ def main(out: str = "site") -> int:
     run_evaluation("presets", range(1, 7), f"{out}/evaluation", link_levels=True)
     run_evaluation("compositions", range(1, 7), f"{out}/evaluation/compositions", link_levels=True)
 
+    # the architectural showcase is a frozen design review (committed output + screenshots), copied as-is
+    src = os.path.join(os.path.dirname(__file__), "..", "showcase")
+    if os.path.isfile(os.path.join(src, "index.html")):
+        import shutil
+        shutil.copytree(src, os.path.join(out, "showcase"), dirs_exist_ok=True)
+
     presets = "".join(f"<li><b>{html.escape(r.name)}</b> {html.escape(r.description)}</li>" for r in PRESETS.values())
     when = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     page = INDEX.replace("__VERSION__", __version__).replace("__COMMIT__", commit()) \
@@ -132,6 +138,7 @@ footer { color: var(--muted); font-size: 13px; margin-top: 40px; }
 <p class="sub">Procedural FPS level blockouts, generated fresh from the latest code on every push.
 Version __VERSION__ · commit __COMMIT__ · built __WHEN__</p>
 <div class="cards">
+  <a class="card" href="showcase/index.html"><b>Architectural showcase</b><span>Design review: 12 levels (fortress, industrial, underground, compound) with player-height screenshots and an honest verdict. A frozen snapshot, not rebuilt.</span></a>
   <a class="card" href="recipes/index.html"><b>Recipes side by side</b><span>Every preset, two seeds each: compact, classic, bunker, fortress, industrial, compound, explore.</span></a>
   <a class="card" href="compositions/index.html"><b>Compositions side by side</b><span>The four macro structures from above: tree, hub, central, linear, with their measured silhouette.</span></a>
   <a class="card" href="evaluation/index.html"><b>Evaluation: are they distinct?</b><span>Measured: how recognisable each preset is, which ones get confused, how varied each one stays. Also <a href="evaluation/compositions/index.html">for compositions</a>.</span></a>

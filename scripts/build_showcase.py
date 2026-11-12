@@ -1,0 +1,301 @@
+"""Architectural showcase: a design review of what the current generator makes.
+
+    python scripts/build_showcase.py showcase        # levels, previews, analysis, viewpoints
+    node scripts/showcase_shots.js showcase          # screenshots (needs Playwright + Chromium)
+    python scripts/build_showcase.py showcase --page # the page, once the screenshots exist
+
+Rules (so the review stays honest):
+  * existing presets only, seeds 1, 2, 3 for every category: no cherry-picking
+  * player-height viewpoints are chosen by fixed rules from the level and its analysis,
+    never placed by hand: the biggest space from a corner, the highest walkable point
+    looking down, the strongest corridor-to-hall reveal, the most interesting sight link
+"""
+from __future__ import annotations
+
+import html
+import json
+import os
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+from badlevel.analysis import analyze  # noqa: E402
+from badlevel.cli import write_level  # noqa: E402
+from badlevel.export.preview import map_svg  # noqa: E402
+from badlevel.generator import generate  # noqa: E402
+from badlevel.recipes import PRESETS, compile_recipe  # noqa: E402
+from badlevel.validate import _node_at, flood  # noqa: E402
+
+CATEGORIES = [
+    ("fortress", "Gothic fortress", "fortress",
+     "The generator has no Gothic vocabulary (no arches, vaults, buttresses or tracery). What it can "
+     "offer is the fortress preset: ordered, tall, several storeys climbed by stairwells, an inner "
+     "courtyard, a terraced great hall, galleries and arrow slits."),
+    ("industrial", "Industrial complex", "industrial",
+     "The industrial preset: big tall halls, a 'works' mega-room with decks and catwalks, a loading yard, "
+     "lifts and ladders, wide service corridors, control-room glass, clutter. Hub composition."),
+    ("underground", "Underground facility", "bunker",
+     "There is no notion of 'below ground' (no terrain, no depth). 'Underground' can only come from the "
+     "bunker preset's character: low ceilings, narrow orthogonal corridors, no sky, firing slits, ladders "
+     "and lifts between levels. Spine composition."),
+    ("compound", "Open compound", "compound",
+     "The compound preset: courtyards under the sky, a hangar mega-room, large merged halls, wide "
+     "connections, many windows, one storey, organised around its big spaces. There is no terrain or "
+     "real exterior yet: yards are walled open areas."),
+]
+SEEDS = (1, 2, 3)
+EYE = 46
+
+
+def gl(x, y, z):
+    """map units (Z up) -> glTF/three.js (Y up, metres)."""
+    return [round(x / 32, 3), round(z / 32, 3), round(-y / 32, 3)]
+
+
+def _room_center(level, room, frac=0.35):
+    cx, cy = room.center()
+    return gl(cx * level.cell, cy * level.cell, room.floor + (room.ceil - room.floor) * frac)
+
+
+def _corner_eye(level, occ, room, cells, target_z):
+    """Farthest cell from the room centre that has a free cell on every side (so the camera isn't
+    pressed into a wall or a nook) and actually sees the centre. Falls back to the farthest cell."""
+    import numpy as np
+    s = level.cell
+    cx, cy = room.center()
+    cs = set(cells)
+    order = sorted(cells, key=lambda c: -((c[0] + 0.5 - cx) ** 2 + (c[1] + 0.5 - cy) ** 2))
+    for c in order:
+        if not all((c[0] + dx, c[1] + dy) in cs for dx in (-1, 0, 1) for dy in (-1, 0, 1)):
+            continue
+        a = np.array([[(c[0] + 0.5) * s, (c[1] + 0.5) * s, room.floor + EYE]])
+        b = np.array([[cx * s, cy * s, target_z]])
+        if occ.visible(a, b)[0]:
+            return c
+    return order[0] if order else None
+
+
+def viewpoints(level, report):
+    """Rule-based player-height shots. Returns [{name, caption, eye, target}] (glTF coords)."""
+    s = level.cell
+    start = _node_at(level, next(e for e in level.entities if e.kind == "player_start").pos)
+    reach = flood(level, start, set())
+    shots = []
+    rooms = [r for r in level.rooms if not r.is_connector]
+    import numpy as np
+    from badlevel.analysis.occupancy import Occupancy
+    occ = Occupancy(level)
+
+    # 1. the biggest space, from its farthest walkable corner on the base floor
+    big = max(rooms, key=lambda r: len(list(r.cells())) * (r.ceil - r.floor))
+    cx, cy = big.center()
+    base = [c for c in big.cells() if c not in level.diag
+            and any((c[0], c[1], i) in reach and sp[0] == big.floor
+                    for i, sp in enumerate(level.spans.get(c, [])))]
+    if base:
+        c = _corner_eye(level, occ, big, base, big.floor + 0.35 * (big.ceil - big.floor))
+        shots.append({"name": "biggest", "caption": f"The biggest space: a {big.kind}"
+                      + (f" ({big.meta.get('style')})" if big.meta.get("style") else "")
+                      + f", {big.w}×{big.h} m, {(big.ceil - big.floor) / 32:.0f} m high, seen from a corner",
+                      "eye": gl((c[0] + 0.5) * s, (c[1] + 0.5) * s, big.floor + EYE),
+                      "target": _room_center(level, big)})
+
+    # 2. the highest walkable point inside a room (not a stair/lift shaft) that actually SEES the
+    #    room's middle from at least 6 m away, looking down into it
+    cands = []
+    for (x, y, i) in reach:
+        f = level.spans[(x, y)][i][0]
+        owner = level.owner_at((x, y), f) or ""
+        if not owner.startswith("room:"):
+            continue
+        room = level.rooms[int(owner[5:])]
+        if room.is_connector or f - room.floor < 96:
+            continue
+        cands.append((f - room.floor, (x, y), f, room))
+    best = None
+    for rise, c, f, room in sorted(cands, key=lambda t: -t[0])[:400]:
+        tx, ty = room.center()
+        if (c[0] + 0.5 - tx) ** 2 + (c[1] + 0.5 - ty) ** 2 < 36:
+            continue
+        a = np.array([[(c[0] + 0.5) * s, (c[1] + 0.5) * s, f + EYE]])
+        b = np.array([[tx * s, ty * s, room.floor + EYE]])
+        if occ.visible(a, b)[0]:
+            best = (rise, c, f, room)
+            break
+    if best:
+        rise, c, f, room = best
+        tx, ty = room.center()
+        shots.append({"name": "overlook", "caption": f"Highest walkable point: {rise / 32:.1f} m up in the "
+                      f"{room.kind}, looking down into it",
+                      "eye": gl((c[0] + 0.5) * s, (c[1] + 0.5) * s, f + EYE),
+                      "target": gl(tx * s, ty * s, room.floor)})
+
+    # 3. the strongest reveal: from inside the approach corridor into the big space
+    for t in report.get("transitions", [])[:1]:
+        corr = level.corridors[t["corridor"]]
+        room = level.rooms[t["room"]]
+        path = corr.path if corr.b == room.id else corr.path[::-1]
+        floors = corr.floors if corr.b == room.id else corr.floors[::-1]
+        # stand between any door and the hall (doors open in the game; in a screenshot they're a wall)
+        k = max(0, len(path) - 5)
+        for d in level.entities:
+            if d.kind in ("door", "secret_door") and d.props.get("corridor") == corr.id:
+                dc = (int(d.pos[0] // s), int(d.pos[1] // s))
+                near = min(range(len(path)), key=lambda j: abs(path[j][0] - dc[0]) + abs(path[j][1] - dc[1]))
+                k = max(k, near + 2)
+        k = min(k, len(path) - 2)
+        (x, y), f = path[k], floors[k]
+        shots.append({"name": "reveal", "caption": f"The strongest reveal: a {t['corridor_m'][0]:.0f} m wide, "
+                      f"{t['corridor_m'][1]:.1f} m high corridor opening into the {room.kind} "
+                      f"({t['contrast']:.0f}× its cross-section)",
+                      "eye": gl((x + 0.5) * s, (y + 0.5) * s, f + EYE), "target": _room_center(level, room, 0.25)})
+
+    # 5 (listed before 4). a courtyard, if the level has one: open sky is a focus of the review
+    yards = [r for r in rooms if r.kind == "courtyard"]
+    if yards:
+        yard = max(yards, key=lambda r: len(list(r.cells())))
+        ycx, ycy = yard.center()
+        ybase = [c for c in yard.cells() if c not in level.diag and any(
+            (c[0], c[1], i) in reach and sp[0] == yard.floor for i, sp in enumerate(level.spans.get(c, [])))]
+        if ybase:
+            c = _corner_eye(level, occ, yard, ybase, yard.floor + 0.45 * (yard.ceil - yard.floor))
+            shots.append({"name": "yard", "caption": f"The largest courtyard: {yard.w}×{yard.h} m, open to the sky "
+                          f"at {(yard.ceil - yard.floor) / 32:.0f} m ({', '.join(yard.features) or 'nothing in it'})",
+                          "eye": gl((c[0] + 0.5) * s, (c[1] + 0.5) * s, yard.floor + EYE),
+                          "target": _room_center(level, yard, 0.45)})
+
+    # 4. the most interesting sight link: across storeys first, then the longest
+    links = report.get("visual", {}).get("links", [])
+    if links:
+        lk = max(links, key=lambda l: (l["cross_storey"], l["through_glass"],
+                                       sum((a - b) ** 2 for a, b in zip(l["from"], l["to"]))))
+        shots.append({"name": "view", "caption": f"A view between areas you can't walk between directly: "
+                      f"{lk['a']} → {lk['b']}" + (" (across storeys)" if lk["cross_storey"] else "")
+                      + (" (through glass)" if lk["through_glass"] else ""),
+                      "eye": gl(*lk["from"]), "target": gl(*lk["to"])})
+    return shots
+
+
+def summary(level, report):
+    st = level.stats()
+    lv = report["level"]
+    megas = [r for r in level.rooms if r.kind == "megaroom"]
+    return {
+        "rooms": st["rooms"], "storeys": st["storeys"], "composition": level.config.composition,
+        "mega": ", ".join(f"{r.meta.get('style')} ({r.w}×{r.h} m, {len(r.meta.get('regions', []))} regions)"
+                          for r in megas) or "none",
+        "open_areas": st["open_areas"], "halls": st["halls"], "windows": st["windows"],
+        "galleries": st["galleries"], "connectors": ", ".join(f"{v} {k}" for k, v in st["connectors"].items() if v) or "none",
+        "drops": st["drops"], "loops": lv["loops"], "landmarks": len(report["visual"]["landmarks"]),
+        "cross_storey_views": lv["cross_storey_views"], "previewed": lv["previewed_share"],
+        "longest_monotone": lv["longest_monotone_corridor"], "strongest_release": lv["strongest_release"],
+        "exposure": lv["exposure_share"], "height_range_m": round((st["z_range"][1] - st["z_range"][0] - 64) / 32, 1),
+        "flags": [f"{f['severity']}: {f['message']}" for f in report["flags"]],
+    }
+
+
+def build(out: str):
+    os.makedirs(out, exist_ok=True)
+    index = []
+    for key, title, preset, note in CATEGORIES:
+        for seed in SEEDS:
+            cfg = compile_recipe(PRESETS[preset], seed)
+            level = generate(cfg)
+            report = analyze(level)
+            stem = f"{key}_{seed}"
+            write_level(level, out, ["html", "map", "glb", "analysis"], stem=stem, analysis=report)
+            entry = {"key": key, "title": title, "preset": preset, "seed": seed, "stem": stem,
+                     "shots": viewpoints(level, report), "summary": summary(level, report),
+                     "map_svg": map_svg(level)}
+            index.append(entry)
+            print(f"{stem}: {len(entry['shots'])} viewpoints, {entry['summary']['rooms']} rooms", flush=True)
+    with open(os.path.join(out, "showcase.json"), "w") as fh:
+        json.dump(index, fh)
+
+
+def _stamp() -> str:
+    import datetime
+    import subprocess
+    from badlevel import __version__
+    try:
+        sha = subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], text=True).strip()
+    except Exception:
+        sha = "local"
+    return f"{datetime.date.today().isoformat()} by BadLevel {__version__} (generator at commit {sha})"
+
+
+def page(out: str, review_md: str = ""):
+    index = json.load(open(os.path.join(out, "showcase.json")))
+    esc = html.escape
+    sections = []
+    for key, title, preset, note in CATEGORIES:
+        cards = []
+        for e in [e for e in index if e["key"] == key]:
+            sm = e["summary"]
+            shots = "".join(
+                f'<figure><img loading="lazy" src="{e["stem"]}_{sh["name"]}.jpg" alt="{esc(sh["caption"])}">'
+                f'<figcaption>{esc(sh["caption"])}</figcaption></figure>' for sh in e["shots"])
+            rows = [("composition", sm["composition"]), ("storeys / height range", f'{sm["storeys"]} / {sm["height_range_m"]} m'),
+                    ("rooms", sm["rooms"]), ("mega-room", sm["mega"]), ("open areas / merged halls", f'{sm["open_areas"]} / {sm["halls"]}'),
+                    ("windows / galleries", f'{sm["windows"]} / {sm["galleries"]}'), ("vertical connectors / drops", f'{sm["connectors"]} / {sm["drops"]}'),
+                    ("loops", sm["loops"]), ("landmarks / cross-storey views", f'{sm["landmarks"]} / {sm["cross_storey_views"]}'),
+                    ("critical path seen 2+ rooms ahead", f'{sm["previewed"]:.0%}'),
+                    ("longest stretch where nothing changes", f'{sm["longest_monotone"]} m'),
+                    ("strongest reveal", f'{sm["strongest_release"]:.0f}×' if sm["strongest_release"] else "–"),
+                    ("exposure protected / moderate / exposed", " / ".join(f'{v:.0%}' for v in sm["exposure"].values()))]
+            table = "".join(f"<tr><td>{esc(str(k))}</td><td>{esc(str(v))}</td></tr>" for k, v in rows)
+            flags = "".join(f"<li>{esc(f)}</li>" for f in sm["flags"][:8])
+            cards.append(f'''<article class="level"><h3>{esc(title)} · seed {e["seed"]} <span>({esc(preset)} preset)</span></h3>
+<div class="top"><figure><img loading="lazy" src="{e["stem"]}_overview.jpg" alt="overview"><figcaption>Overview from above</figcaption></figure>
+<div class="map">{e["map_svg"]}<p class="muted">Top-down plan: colour = floor height</p></div></div>
+<div class="shots">{shots}</div>
+<div class="facts"><table>{table}</table><div><b>Analysis flags</b><ul>{flags}</ul></div></div>
+<p class="links"><a href="{e["stem"]}.html">Open the interactive 3D preview</a> · <a href="{e["stem"]}.map" download>.map</a> · <a href="{e["stem"]}.glb" download>.glb</a> · <a href="{e["stem"]}.analysis.json" download>analysis</a></p>
+</article>''')
+        sections.append(f'<section><h2>{esc(title)}</h2><p class="note">{esc(note)}</p>{"".join(cards)}</section>')
+    with open(os.path.join(out, "index.html"), "w") as fh:
+        fh.write(PAGE.replace("__STAMP__", _stamp()).replace("__REVIEW__", review_md).replace("__SECTIONS__", "".join(sections)))
+    print(f"showcase page -> {out}/index.html")
+
+
+PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1"><title>BadLevel Showcase</title>
+<style>
+:root { --bg:#f6f7f9; --card:#fff; --text:#1d2330; --muted:#5b6475; --line:#d8dce3; --accent:#f97316; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#0f1115; --card:#171a21; --text:#e6e6e6; --muted:#9aa3b2; --line:#2a2f3a; } }
+:root[data-theme="dark"] { --bg:#0f1115; --card:#171a21; --text:#e6e6e6; --muted:#9aa3b2; --line:#2a2f3a; }
+* { box-sizing:border-box; } body { margin:0; background:var(--bg); color:var(--text); font:15px/1.55 system-ui, -apple-system, Segoe UI, sans-serif; }
+main { max-width:1200px; margin:0 auto; padding:28px 16px 60px; }
+h1 { font-size:28px; margin:0; } h1 span { color:var(--accent); } h2 { font-size:22px; margin:44px 0 4px; } h3 { font-size:17px; margin:0 0 10px; } h3 span { color:var(--muted); font-weight:500; }
+.muted, .note { color:var(--muted); } .note { max-width:900px; }
+.review { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:6px 20px; margin:20px 0; }
+.level { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; margin:18px 0; }
+.top { display:grid; grid-template-columns:2fr 1fr; gap:12px; } .map { background:#0b0d11; border-radius:8px; padding:6px; }
+.map svg { width:100%; height:auto; max-height:420px; } .map .bg { fill:#0b0d11; } .map .lbl { font-size:7px; } .map p { margin:4px; font-size:12px; }
+figure { margin:0; } img { width:100%; display:block; border-radius:8px; background:#1a1d24; } figcaption { font-size:12.5px; color:var(--muted); margin:4px 2px 0; }
+.shots { display:grid; grid-template-columns:repeat(auto-fit, minmax(260px,1fr)); gap:12px; margin:12px 0; }
+.facts { display:grid; grid-template-columns:1fr 1fr; gap:16px; font-size:13px; } .facts td { padding:3px 8px 3px 0; border-bottom:1px solid var(--line); vertical-align:top; }
+.facts td:first-child { color:var(--muted); } .facts ul { margin:6px 0; padding-left:18px; } .links a { color:var(--accent); }
+@media (max-width: 800px) { .top, .facts { grid-template-columns:1fr; } }
+</style></head><body><main>
+<h1>Bad<span>Level</span> architectural showcase</h1>
+<p class="muted"><b>Frozen snapshot</b> generated __STAMP__; the rest of the site rebuilds on every push, this page does not. A design review of what the generator makes. Existing presets only, seeds 1, 2 and 3 for every
+category (no cherry-picking). Player-height viewpoints are chosen by fixed rules from each level and its analysis, not
+placed by hand: the biggest space from a corner, the highest walkable point looking down, the strongest
+corridor-to-hall reveal, and the most interesting sight link. Screenshots use the preview's flat lighting; the
+textures are the blockout grid.</p>
+<div class="review">__REVIEW__</div>
+__SECTIONS__
+</main></body></html>"""
+
+
+if __name__ == "__main__":
+    out = sys.argv[1] if len(sys.argv) > 1 else "showcase"
+    if "--page" in sys.argv:
+        review = ""
+        path = os.path.join(out, "review.html")
+        if os.path.exists(path):
+            review = open(path).read()
+        page(out, review)
+    else:
+        build(out)

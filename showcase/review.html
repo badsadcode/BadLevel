@@ -1,0 +1,92 @@
+<h2>Sage's review: what the generator can and can't do yet</h2>
+
+<p><b>Short version:</b> BadLevel makes big spaces and real verticality. It does not yet make <i>architecture</i>.
+The mega-rooms and courtyards are large and readable, and the fortress and industrial levels go 25–36 m up across
+3–4 storeys. But all four categories are built from the same parts: orthogonal grey boxes with flat ceilings and
+sheer walls. At player height a fortress, a factory and a compound are mostly told apart by layout, not by look.
+Two of the four requested categories, <b>Gothic</b> and <b>Underground</b>, can't be produced convincingly at all.
+I've written that down plainly instead of hiding it.</p>
+
+<h3>How the examples were made</h3>
+<ul>
+<li>Existing presets only, seeds 1, 2 and 3 for every category, with no cherry-picking and no hand edits. Mapping:
+Gothic fortress = <code>fortress</code>, Industrial complex = <code>industrial</code>,
+Underground facility = <code>bunker</code>, Open compound = <code>compound</code>.</li>
+<li>Camera positions come from fixed rules (biggest space, highest overlook, strongest reveal, largest courtyard,
+best sight link). I didn't pick them by eye. When a level has nothing a rule needs, the shot is missing, and that
+gap is part of the result: the bunker levels get only 2 shots each.</li>
+<li>Only the review tooling was touched, never the generator. The camera rules were fixed so shots don't stare
+at a locked door, a lift shaft or a wall. The preview's sky now renders light blue instead of black (the same fix
+applies in every 3D preview on the site).</li>
+</ul>
+
+<h3>Per focus area</h3>
+<table class="facts">
+<tr><th>Mega-rooms</th><td><b>Works.</b> Every fortress, industrial and compound level has one, 29–40 m across.
+<i>Works</i> (industrial) is the best interior in the set, with catwalks, stair runs and platforms at several heights.
+<i>Terraces</i> (fortress) give stepped tiers you climb. <i>Hangar</i> is a huge, nearly empty box with a few crates.
+<b>Weak:</b> every ceiling is flat and dark. There are no columns in a rhythm, no roof trusses, no skylights and no
+change in ceiling height. Size is there, but the space has no structure you'd remember.</td></tr>
+<tr><th>Large open spaces</th><td><b>Partly works.</b> Courtyards open to the sky and are the biggest-feeling places
+in the set. Compound has two per level. <b>Weak:</b> they read as roofless rooms. They're enclosed by sheer
+9–14 m walls on every side, with flat ground and a few blocks or low columns inside. There's no terrain, no
+buildings standing <i>inside</i> the open area, no skyline variation and no view out past the wall.</td></tr>
+<tr><th>Architectural identity</th><td><b>Doesn't work yet.</b> The analysis can tell the presets apart from their
+plans with 100% accuracy (see Evaluation), but that's a measurement, not what a player sees. In the screenshots,
+all four use the same material and shape language. The differences come from layout, mega style and storey count.</td></tr>
+<tr><th>Visual landmarks</th><td><b>Overstated by the metric.</b> The analysis reports 3–5 landmarks per level, even
+in the bunkers. Those are simply the most visible rooms, measured relative to the rest of the level. Nothing in the
+generator places a unique, nameable object such as a tower, a crane, a statue or a big window. In practice the only
+real landmark is the mega-room itself.</td></tr>
+<tr><th>Verticality</th><td><b>Works in fortress and industrial.</b> They have 3–4 storeys, 24–36 m height range,
+stairwells, lifts and ladders, drops, galleries, and 3–9 sight lines across storeys (industrial_2 has none).
+The overlook shots show genuine height. <b>Weak:</b> you rarely see the vertical structure ahead of time. Only
+0–38% of the critical path is previewed 2+ rooms ahead in fortress and industrial. Compound is single-storey
+by design, and the bunker is a flat 15–16 m.</td></tr>
+<tr><th>Exploration</th><td><b>Good in compound, mixed elsewhere.</b> Compound has 5–6 loops and previews 50–88% of
+its route, so you see where you're going. Fortress has 4–6 loops. Industrial has 1–4 loops (its hub composition
+makes it spoke-heavy). Bunker has 0–2 loops and is a corridor chain. Corridor-to-hall releases are strong (44–67×
+the corridor's cross-section) everywhere except the bunker, which has none. Long uniform corridor runs reach
+15–46 m, with the longest in fortress_1.</td></tr>
+</table>
+
+<h3>Per category</h3>
+<ul>
+<li><b>Gothic fortress: not convincing.</b> What it does well: 4 storeys, terraces, a courtyard, the most height
+in the set. What's missing is everything that would make it read as Gothic. There are no pointed arches, vaults,
+buttresses, naves with aisles, towers or crenellations. There's no tall narrow window rhythm and no symmetry
+around an axis. The generator has no vocabulary for any of these. This is the clearest gap in the set.</li>
+<li><b>Industrial complex: the most plausible.</b> The <i>works</i> mega-room, lifts and catwalks fit the theme.
+It's still clean boxes, though: no pipes, tanks, machinery silhouettes, conveyor lines or gantries. One seed
+(industrial_2) rolled a hangar instead, which feels like a warehouse rather than a plant.</li>
+<li><b>Underground facility: not convincing.</b> The <code>bunker</code> preset is a compact 2-storey linear chain
+with no mega-room, no courtyard, no reveal and no high point. Nothing says "below ground". Storeys only stack
+<i>upward</i>, and there's no descent from an entrance, no access shaft, no tunnels with a rock feel and no deep
+chamber. It reads as an office corridor. That's also why these levels have only 2 shots each.</li>
+<li><b>Open compound: closest to the brief, but it's a compound of rooms, not buildings.</b> It has two sky yards
+and a hangar or works mega-room, plenty of loops and good sight lines. But the yards are enclosed boxes, and the
+"buildings" are just rooms with roofs sharing walls with the yards. There's no perimeter wall with free-standing
+structures inside, and no varied ground.</li>
+</ul>
+
+<h3>Things worth knowing when you look</h3>
+<ul>
+<li>The screenshots use the preview's flat lighting, and ceilings render dark from below. That makes interiors look
+gloomier and more boxy than a lit map in an engine would. The <code>.map</code> files are ready for TrenchBroom,
+but they haven't been compiled or lit, because running the downloaded tools still needs your OK.</li>
+<li>The "view" shots (sight links) mostly look down corridors or through slits. Sight links exist, but they're
+rarely dramatic.</li>
+<li>Markers: red = enemy, pink = health, blue = armour, yellow = key or ammo, green = player start, orange box = locked door. Overviews have the ceilings removed.</li>
+</ul>
+
+<h3>Candidates for what to improve (to decide together, nothing implemented)</h3>
+<ol>
+<li><b>Architectural vocabulary as a module:</b> arches, column rhythms, buttresses, crenellations, varied ceilings
+(vaults, trusses, skylights), set per style. This helps every category and is what Gothic needs most.</li>
+<li><b>A real underground mode:</b> storeys going <i>down</i> from a surface entrance, shafts, tunnels, deep caverns.</li>
+<li><b>Open areas as places:</b> ground height variation, free-standing structures inside yards, lower perimeter walls with views out.</li>
+<li><b>Authored landmarks:</b> one unique, tall, visible object per level, placed where many routes can see it.
+The landmark metric would then also stop calling the largest room a landmark.</li>
+<li><b>Showing the verticality earlier:</b> more sight lines from the approach into tall spaces, so height is
+previewed before you reach it.</li>
+</ol>
