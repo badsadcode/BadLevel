@@ -51,10 +51,14 @@ def _cfg_from_args(args, seed: int, recipe=None) -> GenConfig:
     return cfg
 
 
-def write_level(level, out_dir: str, formats, stem: str = None, analysis: dict = None):
+def write_level(level, out_dir: str, formats, stem: str = None, analysis: dict = None, recipe_file: str = None):
     os.makedirs(out_dir, exist_ok=True)
     stem = stem or f"badlevel_{level.seed}"
     written = []
+    ext = {"analysis": ".analysis.json"}
+    downloads = [stem + ext.get(f, "." + f) for f in formats if f != "html" and (f != "analysis" or analysis)]
+    if recipe_file:
+        downloads.append(os.path.basename(recipe_file))
     for fmt in formats:
         path = os.path.join(out_dir, f"{stem}.analysis.json" if fmt == "analysis" else f"{stem}.{fmt}")
         if fmt == "map":
@@ -64,7 +68,7 @@ def write_level(level, out_dir: str, formats, stem: str = None, analysis: dict =
         elif fmt == "json":
             data = to_json(level).encode()
         elif fmt == "html":
-            data = to_html(level, analysis).encode()
+            data = to_html(level, analysis, downloads).encode()
         elif fmt == "analysis":
             if analysis is None:
                 continue
@@ -143,11 +147,11 @@ def main(argv=None):
         except GenerationError as e:
             print(f"seed {seed}: FAILED {e}", file=sys.stderr)
             continue
-        files = write_level(level, args.out, formats, stem=stem, analysis=analysis)
+        rpath = os.path.join(args.out, f"{stem}.recipe.json") if recipe is not None else None
+        files = write_level(level, args.out, formats, stem=stem, analysis=analysis, recipe_file=rpath)
         if recipe is not None:
-            path = os.path.join(args.out, f"{stem}.recipe.json")
-            save_recipe(recipe, path, level.config)      # the recipe travels with the level
-            files.append(path)
+            save_recipe(recipe, rpath, level.config)      # the recipe travels with the level
+            files.append(rpath)
         st = level.stats()
         extra = ""
         if analysis:

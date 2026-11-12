@@ -111,6 +111,7 @@ html, body { margin:0; height:100%; background:var(--bg); color:var(--text); fon
 aside { background:var(--panel); border-left:1px solid var(--line); overflow:auto; padding:16px; }
 h1 { font-size:18px; margin:0 0 2px; } h1 span { color:var(--accent); }
 .muted { color:var(--muted); font-size:12px; }
+.dl { font-size:12px; margin-top:10px; color:var(--muted); } .dl a { color: var(--accent); }
 .map { width:100%; height:auto; border-radius:8px; margin:12px 0; background:#0b0d11; }
 .map .bg { fill:#0b0d11; } .map .lbl { fill:#fff; font:bold 9px system-ui; text-anchor:middle; paint-order:stroke; stroke:#000; stroke-width:2.5px; }
 .map .sub { fill:#cbd5e1; font:7px system-ui; text-anchor:middle; paint-order:stroke; stroke:#000; stroke-width:2px; }
@@ -413,6 +414,17 @@ renderer.setAnimationLoop(() => {
 """
 
 
+def _downloads(files: list) -> str:
+    labels = {".map": ".map (TrenchBroom)", ".glb": ".glb (engines)", ".json": "IR .json",
+              ".analysis.json": "analysis", ".recipe.json": "recipe"}
+    links = []
+    for f in files:
+        ext = next((e for e in (".analysis.json", ".recipe.json", ".map", ".glb", ".json") if f.endswith(e)), None)
+        if ext:
+            links.append(f'<a href="{html.escape(f)}" download>{labels[ext]}</a>')
+    return '<div class="dl">Download: ' + " · ".join(links) + "</div>" if links else ""
+
+
 def _analysis_embed(level: Level, analysis: dict) -> dict:
     """Shape the analysis report for drawing: map every walkable cell to its sample."""
     from ..validate import _node_at, flood
@@ -452,7 +464,7 @@ def _analysis_embed(level: Level, analysis: dict) -> dict:
             "visual": analysis.get("visual")}
 
 
-def to_html(level: Level, analysis: dict = None) -> str:
+def to_html(level: Level, analysis: dict = None, downloads: list = None) -> str:
     glb = base64.b64encode(to_glb(level)).decode()
     stats = level.stats()
     report = getattr(level, "report", {}) or {}
@@ -483,7 +495,7 @@ def to_html(level: Level, analysis: dict = None) -> str:
                      for k, c in ENT_COLORS.items() if k != "light")
     return (TEMPLATE.replace("__GLB__", glb)
             .replace("__SEED__", str(level.seed))
-            .replace("__SVG__", map_svg(level))
+            .replace("__SVG__", (_downloads(downloads) if downloads else "") + map_svg(level))
             .replace("__LEGEND__", legend)
             .replace("__STATS__", stats_html)
             .replace("__COLORS__", json.dumps(ENT_COLORS))

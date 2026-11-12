@@ -28,6 +28,14 @@ seed + config
  Level IR (JSON) ──► .map (Quake/TrenchBroom) · .glb · .html preview · .analysis.json
 ```
 
+## Live preview
+
+Every push runs the tests, generates fresh levels with the current code and publishes
+them to GitHub Pages (`.github/workflows/preview.yml`, built by `scripts/build_site.py`):
+all presets side by side, a single-storey and a multi-storey gallery, each level with
+its 3D preview and `.map` / `.glb` downloads. Build the same site locally with
+`python scripts/build_site.py site`.
+
 ## Quick start
 
 The generator has no dependencies, just Python 3.9+. Combat analysis needs `numpy`.
