@@ -179,6 +179,9 @@ def analyze(level: Level, cfg: AnalysisConfig = None) -> dict:
 
     # --- room graph: bridges, cycles, chokepoints -------------------------
     edges = {c.id: (c.a, c.b) for c in level.corridors}
+    for k, e in enumerate(level.graph.edges):
+        if getattr(e, "merged", False):        # rooms of one hall touch: an edge without a corridor
+            edges[-1 - k] = (level.room_by_node(e.a).id, level.room_by_node(e.b).id)
     bridges, splits = _bridges(len(level.rooms), edges)
     main = _main_path(level)
     start_room = level.room_by_node(main[0]).id
@@ -322,6 +325,11 @@ def analyze(level: Level, cfg: AnalysisConfig = None) -> dict:
 def _area_graph(level: Level):
     """Physical connections between areas (rooms and corridors), for counting hops."""
     adj = defaultdict(set)
+    for h in level.halls:
+        for a in h:
+            for b in h:
+                if a != b:
+                    adj[f"room:{a}"].add(f"room:{b}")
     for c in level.corridors:
         ca = f"corridor:{c.id}"
         for rid in (c.a, c.b):

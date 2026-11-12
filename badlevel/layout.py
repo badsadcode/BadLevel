@@ -117,6 +117,7 @@ def place_rooms(g: MissionGraph, cfg: GenConfig, rng: random.Random) -> List[Roo
     rooms[0] = r0
 
     max_floor = cfg.max_level * cfg.level_step
+    halls: List[List[int]] = []          # node ids per merged hall
     order = [0]
     tree_edges = [e for e in g.edges if e.tree]
     i = 0
@@ -132,7 +133,13 @@ def place_rooms(g: MissionGraph, cfg: GenConfig, rng: random.Random) -> List[Roo
                 continue
             node = g.nodes[cid]
             placed = None
+            # merged hall: some neighbours are placed touching the parent, one space, no corridor
+            hall_of = {r: h for h in halls for r in h}
+            merge = (_mergeable(e, parent, node, g) and rng.random() < cfg.merge_chance
+                     and len(hall_of.get(pid, [pid])) < cfg.max_hall_rooms)
             for _try in range(60):
+                if merge and _try >= 25:
+                    merge = False                    # couldn't fit: fall back to a corridor
                 if multi:
                     floor = preset[cid]
                 elif node.kind == "secret":
@@ -149,7 +156,35 @@ def place_rooms(g: MissionGraph, cfg: GenConfig, rng: random.Random) -> List[Roo
                 cf = _port_floor(cand, parent.floor, parent.top_floor)
                 climb = abs(pf - cf) // cfg.step_height
                 gap = max(cfg.room_gap + 4, climb + 2 * cfg.corridor_radius + 8) + rng.randint(0, 5)
-                stack = multi and _try % 3 == 2
+                stack = multi and _try % 3 == 2 and not merge
+                if merge:
+                    if not multi and node.kind != "secret":
+                        floor = parent.floor + rng.choice([0, 0, 0, 16, 32, 48, 64, -32, -64])
+                        floor = min(max(floor, 0), max_floor)
+                        cand.floor, cand.ceil = floor, floor + (cand.ceil - cand.floor)
+                    if abs(cand.floor - parent.floor) > 64:
+                        continue
+                    dx, dy = rng.choice(DIRS)
+                    lap = 6
+                    if dx:
+                        if min(h, parent.h) < lap + 2:
+                            continue
+                        x = parent.x + parent.w if dx > 0 else parent.x - w
+                        y = parent.y + rng.randint(-(h - lap), parent.h - lap)
+                    else:
+                        if min(w, parent.w) < lap + 2:
+                            continue
+                        y = parent.y + parent.h if dy > 0 else parent.y - h
+                        x = parent.x + rng.randint(-(w - lap), parent.w - lap)
+                    cand.x, cand.y = x, y
+                    others = [o for o in rooms.values() if o is not parent]
+                    if _overlaps(cand, others, cfg.room_gap + 2 * cfg.corridor_radius + 2) or \
+                            _overlaps(cand, [parent], 0):
+                        continue
+                    if not _seam_ok(cand, parent):
+                        continue
+                    placed = cand
+                    break
                 if stack:
                     # try to sit over / under an existing room on another storey, near the parent
                     others = [o for o in rooms.values() if not vertical_conflict(cand.slot, o.slot)
@@ -178,15 +213,23 @@ def place_rooms(g: MissionGraph, cfg: GenConfig, rng: random.Random) -> List[Roo
                 raise LayoutError(f"could not place room for node {cid}")
             rooms[cid] = placed
             order.append(cid)
+            if merge:
+                e.merged = True
+                h0 = hall_of.get(pid)
+                if h0 is None:
+                    h0 = [pid]
+                    halls.append(h0)
+                h0.append(cid)
 
     if len(rooms) != len(g.nodes):
         raise LayoutError("graph spanning tree did not reach every node")
 
     # normalise so the layout starts at (PAD, PAD); room ids == node ids
     result = [rooms[n.id] for n in g.nodes]
+    merged_nodes = {n for h in halls for n in h}
     for r in result:
-        if r.is_connector:
-            continue
+        if r.is_connector or r.node in merged_nodes:
+            continue                         # merged rooms stay rectangular so their seams line up
         node = g.nodes[r.node]
         shape = pick_shape(r.w, r.h, node.size, node.kind, rng)
         r.shape = shape.name
@@ -198,7 +241,36 @@ def place_rooms(g: MissionGraph, cfg: GenConfig, rng: random.Random) -> List[Roo
         r.id = idx
         r.x += PAD - minx
         r.y += PAD - miny
+    for h in halls:
+        for n in h:
+            rooms[n].meta["hall"] = sorted(h)
     return result
+
+
+def _mergeable(e, parent: Room, node, g: MissionGraph) -> bool:
+    """Can this tree edge become a seam inside one hall instead of a corridor?"""
+    from .graph import CONNECTOR_KINDS
+    if not e.tree or e.kind != "open" or e.connector:
+        return False
+    kinds = {parent.kind, node.kind}
+    if kinds & set(CONNECTOR_KINDS) or kinds & {"secret", "key"}:
+        return False
+    return parent.storey == node.storey
+
+
+def _seam_cells(a: Room, b: Room):
+    """Pairs of touching cells (one in a, one in b) along the shared edge of two rectangles."""
+    out = []
+    for c in a.cells():
+        for dx, dy in DIRS:
+            n = (c[0] + dx, c[1] + dy)
+            if b.contains(*n):
+                out.append((c, n, (dx, dy)))
+    return out
+
+
+def _seam_ok(a: Room, b: Room) -> bool:
+    return len(_seam_cells(a, b)) >= 6
 
 
 def _port_floor(room: Room, other_floor: int, other_top: Optional[int] = None) -> int:
@@ -543,6 +615,36 @@ def _gap(a: Room, b: Room) -> int:
     return dx + dy
 
 
+def build_halls(level: Level, g: MissionGraph, cfg: GenConfig):
+    """Record merged halls, and turn seams between rooms at different heights into terrace
+    steps across the whole seam (16-unit steps in the higher room, down towards the seam)."""
+    seen = set()
+    for r in level.rooms:
+        h = tuple(r.meta.get("hall", ()))
+        if h and h not in seen:
+            seen.add(h)
+            level.halls.append(list(h))
+    for e in g.edges:
+        if not e.merged:
+            continue
+        a, b = level.rooms[e.a], level.rooms[e.b]
+        hi, lo = (a, b) if a.floor > b.floor else (b, a)
+        d = hi.floor - lo.floor
+        rows = d // cfg.step_height - 1
+        if rows <= 0:
+            continue                          # within one step: seamless
+        terrace = []
+        for c_hi, _, (dx, dy) in _seam_cells(hi, lo):
+            for j in range(rows):
+                c = (c_hi[0] - dx * j, c_hi[1] - dy * j)
+                if not hi.contains(*c):
+                    break
+                level.replace_in(c, *hi.slot, [(lo.floor + cfg.step_height * (j + 1), hi.ceil)])
+                terrace.append(list(c))
+        hi.meta.setdefault("terrace", []).extend(terrace)
+        hi.features.append("terrace")
+
+
 def choose_loops(g: MissionGraph, rooms: List[Room], cfg: GenConfig, rng: random.Random):
     """Loops make circuits: pick rooms apart in the graph (2+ hops: a triangle that bypasses a room,
     3+ preferred) but close in space, so the loop corridor is short. Now and then a long one on purpose."""
@@ -630,11 +732,14 @@ def build_layout(g: MissionGraph, cfg: GenConfig, rng: random.Random, seed: int)
             level.diag[c] = corner
             level.diag_span[c] = (room.floor, room.ceil)
 
+    build_halls(level, g, cfg)
     choose_loops(g, rooms, cfg, rng)
     router = Router(rooms, width, height, cfg)
     # route tree edges first (they must succeed), then loops (optional)
     edges = sorted(g.edges, key=lambda e: (not e.tree, e.id))
     for e in edges:
+        if e.merged:
+            continue                          # one hall: the rooms touch, no corridor
         a, b = rooms[e.a], rooms[e.b]
         drop = False
         if e.connector == "drop":
@@ -789,7 +894,8 @@ def add_beats(level: Level, router: "Router", corr: Corridor, rng: random.Random
         for c in zone:
             spans = level.spans.get(c, [])
             mine = [s_ for s_ in spans if level.owner_of(c, s_) == own]
-            if c in level.diag or any(s_ not in mine and s_[0] < top + SLAB and f - SLAB < s_[1] for s_ in spans):
+            near_diag = any((c[0] + dx, c[1] + dy) in level.diag for dx in (-1, 0, 1) for dy in (-1, 0, 1))
+            if near_diag or any(s_ not in mine and s_[0] < top + SLAB and f - SLAB < s_[1] for s_ in spans):
                 ok = False
                 break
             if any(m[0] != f for m in mine) or _others_near(level, c, f, top, own):

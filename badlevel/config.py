@@ -34,6 +34,10 @@ class GenConfig:
     max_drop: int = 288          # highest intentional drop (units)
     tall_room_chance: float = 0.4  # arenas / hubs reaching up into the next storey
 
+    # --- merged halls -------------------------------------------------------
+    merge_chance: float = 0.3    # neighbouring rooms joined into one hall instead of a corridor
+    max_hall_rooms: int = 3      # rooms (semantic regions) per merged hall
+
     # --- openings ----------------------------------------------------------
     windows: int = 5             # most windows per level (0 = none)
     glazed_chance: float = 0.4   # tall glass panes vs firing slits

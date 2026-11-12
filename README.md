@@ -186,6 +186,19 @@ Each corridor gets its own width and may run diagonally:
 - If a wide or diagonal route doesn't fit, the corridor falls back to a plain
   3-wide one instead of failing the level.
 
+## Merged halls
+
+Not everything is rooms joined by corridors. About 30% of eligible neighbours (open
+tree links on the same storey, not keys, secrets or connectors) are placed
+**touching** along a wide seam (6+ cells) and become one continuous **hall**: an
+L- or T-shaped space, an arena with an antechamber, up to 3 rooms. If their floors
+differ by more than a step, the seam becomes **terrace steps** across its full width.
+
+Every original room stays a **semantic region** (`room.meta["hall"]`, `level.halls`,
+`"halls"` in the IR): encounters, pickups, pacing, diagnostics and the per-room
+analysis still treat "the arena part" and "the antechamber" separately, and
+editors can select them separately. On the map, green links mean "merged".
+
 ## Long corridors: shorter loops, and beats
 
 Long corridors aren't boring because they're long; they're boring when nothing
@@ -237,7 +250,8 @@ ericw-tools. Export working is not the same as import working.
 ## Roadmap ideas
 
 - Verify in TrenchBroom + compile with ericw-tools (qbsp/vis/light)
-- Merged halls and multi-storey compositions with semantic regions
+- Multi-storey compositions: halls spanning storeys, interlocking structures
+- TrenchBroom groups per room/region in the `.map`
 - Placing windows and galleries *for* previews along the critical path (now they
   are opportunistic: multi-storey levels preview far less than single-storey ones)
 - Open archways between adjacent rooms

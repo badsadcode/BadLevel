@@ -132,6 +132,8 @@ class Level:
     glass: set = field(default_factory=set)
     # traversal links that are not plain walking: lifts, ladders (two-way, with an interaction)
     links: List[dict] = field(default_factory=list)
+    # merged halls: each a list of room ids that form one continuous space (semantic regions)
+    halls: List[List[int]] = field(default_factory=list)
     graph: object = None
     config: object = None
     notes: List[str] = field(default_factory=list)
@@ -214,5 +216,7 @@ class Level:
             "drops": sum(1 for c in self.corridors if getattr(c, "connector", None) == "drop"),
             "windows": sum(1 for e in self.entities if e.kind == "window"),
             "galleries": sum(1 for r in self.rooms if r.meta.get("gallery")),
+            "halls": len(self.halls),
+            "hall_rooms": sum(len(h) for h in self.halls),
             "z_range": list(self.z_range()),
         }

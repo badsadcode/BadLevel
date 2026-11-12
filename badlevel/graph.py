@@ -41,6 +41,7 @@ class Edge:
     key: Optional[str] = None
     tree: bool = True    # False for loop edges
     connector: Optional[str] = None  # stairs / drop for edges that change storey
+    merged: bool = False             # rooms placed touching: one hall, no corridor
 
 
 @dataclass

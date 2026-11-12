@@ -56,10 +56,13 @@ def map_svg(level: Level) -> str:
         a, b = level.rooms[e.a], level.rooms[e.b]
         (ax, ay), (bx, by) = a.center(), b.center()
         cls = "loop" if not e.tree else e.kind
+        if getattr(e, "merged", False):
+            cls = "merged"
         drop = any(c.edge == e.id and c.connector == "drop" for c in level.corridors)
         if drop:
             cls = "drop"
-        color = {"locked": "#f97316", "secret": "#a855f7", "loop": "#93c5fd", "drop": "#f472b6"}.get(cls, "#ffffff")
+        color = {"locked": "#f97316", "secret": "#a855f7", "loop": "#93c5fd", "drop": "#f472b6",
+                 "merged": "#4ade80"}.get(cls, "#ffffff")
         dash = {"loop": "6 4", "secret": "2 3", "drop": "1 3"}.get(cls, "")
         parts.append(f'<line x1="{ax * s}" y1="{(level.height - ay) * s}" x2="{bx * s}" y2="{(level.height - by) * s}" '
                      f'stroke="{color}" stroke-width="1.6" stroke-opacity=".8" stroke-dasharray="{dash}"/>')
@@ -156,7 +159,7 @@ table { width:100%; border-collapse:collapse; font-size:13px; } td { padding:3px
     <h1>Bad<span>Level</span> · seed __SEED__</h1>
     <div class="muted">Procedural Quake-style blockout · 1 cell = 32 units = 1 m in glTF</div>
     __SVG__
-    <div class="muted">Top-down: colour = floor height, outlined cells = room-over-room. White lines = critical/tree links, orange = locked, dashed blue = loops, dotted purple = secret.</div>
+    <div class="muted">Top-down: colour = floor height, outlined cells = room-over-room. White lines = critical/tree links, green = merged into one hall, orange = locked, dashed blue = loops, dotted purple = secret.</div>
     <div class="legend">__LEGEND__</div>
     <table>__STATS__</table>
     <section class="an" id="analysis"></section>
@@ -465,6 +468,7 @@ def to_html(level: Level, analysis: dict = None) -> str:
         ("Vertical connectors", ", ".join(f"{v} {k}" for k, v in stats["connectors"].items() if v) or "-"),
         ("One-way drops", stats["drops"]),
         ("Windows / galleries", f'{stats["windows"]} / {stats["galleries"]}'),
+        ("Merged halls (rooms)", f'{stats["halls"]} ({stats["hall_rooms"]})'),
         ("Room shapes", ", ".join(stats["shapes"])),
         ("Room features", ", ".join(feats) or "-"),
         ("45° wall cells", stats["diagonal_cells"]),

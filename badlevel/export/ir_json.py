@@ -24,6 +24,8 @@ def to_dict(level: Level, include_spans: bool = True) -> dict:
         "graph": level.graph.to_dict() if level.graph else None,
         "rooms": [r.to_dict() for r in level.rooms],
         "corridors": [vars(c) for c in level.corridors],
+        "halls": [{"rooms": h, "regions": [{"room": r, "kind": level.rooms[r].kind} for r in h]}
+                  for h in level.halls],
         "entities": [e.to_dict() for e in level.entities],
         "brushes": [dict({"min": list(b.mins), "max": list(b.maxs), "top": b.top,
                           "bottom": b.bottom, "side": b.side}, **({"corner": b.corner} if b.corner else {}))

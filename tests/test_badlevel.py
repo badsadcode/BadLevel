@@ -315,3 +315,34 @@ def test_corridor_monotony_is_reported():
     rep = analyze(generate(seed=2))
     assert rep["corridors"] and all(c["monotone_run"] <= c["length"] for c in rep["corridors"])
     assert rep["level"]["corridor_beats"] > 0
+
+
+# ---------------------------------------------------------------- merged halls
+def test_merged_halls_keep_their_regions(levels):
+    from badlevel.validate import _node_at
+    halls = terraces = 0
+    for lv in levels.values():
+        for hall in lv.halls:
+            halls += 1
+            assert 2 <= len(hall) <= lv.config.max_hall_rooms
+            rooms = [lv.rooms[i] for i in hall]
+            assert all(r.meta["hall"] == sorted(hall) for r in rooms), "every region knows its hall"
+            # rooms of a hall touch along a wide seam and are not joined by a corridor
+            for e in lv.graph.edges:
+                if e.merged and e.a in hall:
+                    a, b = lv.rooms[e.a], lv.rooms[e.b]
+                    assert sum(1 for c in a.cells() for d in ((1, 0), (-1, 0), (0, 1), (0, -1))
+                               if b.contains(c[0] + d[0], c[1] + d[1])) >= 6
+                    assert not any({c.a, c.b} == {a.id, b.id} for c in lv.corridors)
+                    terraces += "terrace" in a.features + b.features
+    assert halls > 5 and terraces > 0
+
+
+def test_halls_are_in_the_ir_and_analysis(levels):
+    from badlevel.analysis import analyze
+    lv = next(lv for lv in levels.values() if lv.halls)
+    d = json.loads(to_json(lv))
+    assert d["halls"] and all(len(h["regions"]) >= 2 for h in d["halls"])
+    rep = analyze(lv)
+    ids = {r["id"] for r in rep["rooms"]}
+    assert all(r in ids for h in lv.halls for r in h), "each region is still analysed as its own room"
