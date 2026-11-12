@@ -279,6 +279,34 @@ mega-room isn't necessarily an arena: **hangar** (vast and mostly empty), **work
 (an industrial hall of decks and catwalks) and **terraces** (an amphitheatre or great
 hall). Every region is reachable by construction and checked by a test.
 
+## Architecture: hall cross-sections
+
+With `arch_style` (gothic, industrial, bunker, compound; the fortress, industrial,
+bunker and compound presets set it) roofed rooms stop being boxes. Each gets a
+**cross-section**: a profile swept along its long axis, made of varied ceiling heights
+plus structure standing in the room, so the silhouette changes even as plain greybox.
+
+| Style | Profiles |
+|---|---|
+| gothic | **basilica** (pointed nave, low aisles, arcade piers, transverse ribs), **single-aisle**, **vault** (one ribbed pointed vault, no piers), **undercroft** (piers under groin vaults, low rooms only), **gable** |
+| industrial | **portal** (pilaster frames, deep trusses, maybe a raised monitor), **sawtooth**, **multispan** (gabled spans on column rows), **clearspan** |
+| bunker | **ribbed** (downstand ribs, haunches), **barrel** (low segmental vault), **mushroom** (squat piers with drop panels) |
+| compound | **gable**, **shed**, **portal**, **multispan**, **clearspan** |
+
+Rooms are ranked by volume: the biggest space (and any mega-room) is *grand*, the next
+third *major*, the rest *minor*, each with its own palette. Small rooms get something
+subtle (haunches) or nothing. Bay spacing, pier thickness and rib depth follow the room's
+proportions. Every palette keeps an option without piers, and each use of a profile
+halves its weight for the rest of the level. `arch_weights` biases the choice
+(`{"basilica": 2, "sawtooth": 0}`). The chosen section is recorded in
+`room.meta["arch"]` (in the IR) so artists can see the intent and replace it.
+
+Safety: piers go in before a room's features, keep 2 cells from doorways and a walkable
+ring, and are undone if they would split the floor. Ceilings are applied after the
+features and only lowered: never below a walkable surface plus 128 units, never below an
+opening next to the cell, never over a gallery or the sky. The validator still has the
+last word. Levels without a style are byte-identical to before.
+
 ## Merged halls
 
 Not everything is rooms joined by corridors. About 30% of eligible neighbours (open

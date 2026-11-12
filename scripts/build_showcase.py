@@ -191,7 +191,23 @@ def summary(level, report):
         "longest_monotone": lv["longest_monotone_corridor"], "strongest_release": lv["strongest_release"],
         "exposure": lv["exposure_share"], "height_range_m": round((st["z_range"][1] - st["z_range"][0] - 64) / 32, 1),
         "flags": [f"{f['severity']}: {f['message']}" for f in report["flags"]],
+        "architecture": arch_summary(level),
     }
+
+
+def arch_summary(level) -> str:
+    """Which cross-sections the level got (architecture.py), grand space first."""
+    from collections import Counter
+    shaped = [r for r in level.rooms if "arch" in r.meta]
+    if not shaped:
+        return "none (plain boxes)"
+    grand = [r for r in shaped if r.meta["arch"]["tier"] == "grand"]
+    parts = [f'{r.meta["arch"]["profile"]} {r.kind} ({r.meta["arch"]["piers"]} piers)' for r in grand]
+    rest = Counter(r.meta["arch"]["profile"] for r in shaped if r not in grand)
+    if rest:
+        parts.append(", ".join(f"{k} ×{v}" for k, v in rest.most_common()))
+    plain = sum(1 for r in level.rooms if not r.is_connector and r.kind not in ("courtyard",) and "arch" not in r.meta)
+    return "; ".join(parts) + (f"; {plain} plain" if plain else "")
 
 
 def build(out: str):
@@ -224,18 +240,29 @@ def _stamp() -> str:
     return f"{datetime.date.today().isoformat()} by BadLevel {__version__} (generator at commit {sha})"
 
 
-def page(out: str, review_md: str = ""):
+def page(out: str, review_md: str = "", before: str = None):
+    """The showcase page. With ``before`` (an earlier showcase directory with the same levels),
+    every screenshot is shown next to its predecessor, from the same camera rule."""
     index = json.load(open(os.path.join(out, "showcase.json")))
+    rel = os.path.relpath(before, out) if before else None
+    old = {e["stem"]: e for e in json.load(open(os.path.join(before, "showcase.json")))} if before else {}
+
+    def fig(e, sh):
+        cap = html.escape(sh["caption"])
+        img = f'<img loading="lazy" src="{e["stem"]}_{sh["name"]}.jpg" alt="{cap}">'
+        if rel and os.path.exists(os.path.join(before, f'{e["stem"]}_{sh["name"]}.jpg')):
+            return (f'<figure class="pair"><div><img loading="lazy" src="{rel}/{e["stem"]}_{sh["name"]}.jpg" '
+                    f'alt="before"><span>before</span></div><div>{img}<span>after</span></div>'
+                    f'<figcaption>{cap}</figcaption></figure>')
+        return f'<figure>{img}<figcaption>{cap}{" (new viewpoint)" if rel else ""}</figcaption></figure>' 
     esc = html.escape
     sections = []
     for key, title, preset, note in CATEGORIES:
         cards = []
         for e in [e for e in index if e["key"] == key]:
             sm = e["summary"]
-            shots = "".join(
-                f'<figure><img loading="lazy" src="{e["stem"]}_{sh["name"]}.jpg" alt="{esc(sh["caption"])}">'
-                f'<figcaption>{esc(sh["caption"])}</figcaption></figure>' for sh in e["shots"])
-            rows = [("composition", sm["composition"]), ("storeys / height range", f'{sm["storeys"]} / {sm["height_range_m"]} m'),
+            shots = "".join(fig(e, sh) for sh in e["shots"])
+            rows = [("architecture", sm.get("architecture", "none (plain boxes)")), ("composition", sm["composition"]), ("storeys / height range", f'{sm["storeys"]} / {sm["height_range_m"]} m'),
                     ("rooms", sm["rooms"]), ("mega-room", sm["mega"]), ("open areas / merged halls", f'{sm["open_areas"]} / {sm["halls"]}'),
                     ("windows / galleries", f'{sm["windows"]} / {sm["galleries"]}'), ("vertical connectors / drops", f'{sm["connectors"]} / {sm["drops"]}'),
                     ("loops", sm["loops"]), ("landmarks / cross-storey views", f'{sm["landmarks"]} / {sm["cross_storey_views"]}'),
@@ -250,11 +277,13 @@ def page(out: str, review_md: str = ""):
 <div class="map">{e["map_svg"]}<p class="muted">Top-down plan: colour = floor height</p></div></div>
 <div class="shots">{shots}</div>
 <div class="facts"><table>{table}</table><div><b>Analysis flags</b><ul>{flags}</ul></div></div>
-<p class="links"><a href="{e["stem"]}.html">Open the interactive 3D preview</a> · <a href="{e["stem"]}.map" download>.map</a> · <a href="{e["stem"]}.glb" download>.glb</a> · <a href="{e["stem"]}.analysis.json" download>analysis</a></p>
+<p class="links"><a href="{e["stem"]}.html">Open the interactive 3D preview</a>{f' · <a href="{rel}/{e["stem"]}.html">the same level before</a>' if rel and e["stem"] in old else ""} · <a href="{e["stem"]}.map" download>.map</a> · <a href="{e["stem"]}.glb" download>.glb</a> · <a href="{e["stem"]}.analysis.json" download>analysis</a></p>
 </article>''')
         sections.append(f'<section><h2>{esc(title)}</h2><p class="note">{esc(note)}</p>{"".join(cards)}</section>')
     with open(os.path.join(out, "index.html"), "w") as fh:
-        fh.write(PAGE.replace("__STAMP__", _stamp()).replace("__REVIEW__", review_md).replace("__SECTIONS__", "".join(sections)))
+        page_html = PAGE if not before else PAGE.replace("<main>", '<main class="compare">') \
+            .replace("architectural showcase</h1>", "architecture, step 1: hall cross-sections</h1>")
+        fh.write(page_html.replace("__STAMP__", _stamp()).replace("__REVIEW__", review_md).replace("__SECTIONS__", "".join(sections)))
     print(f"showcase page -> {out}/index.html")
 
 
@@ -274,6 +303,9 @@ h1 { font-size:28px; margin:0; } h1 span { color:var(--accent); } h2 { font-size
 .map svg { width:100%; height:auto; max-height:420px; } .map .bg { fill:#0b0d11; } .map .lbl { font-size:7px; } .map p { margin:4px; font-size:12px; }
 figure { margin:0; } img { width:100%; display:block; border-radius:8px; background:#1a1d24; } figcaption { font-size:12.5px; color:var(--muted); margin:4px 2px 0; }
 .shots { display:grid; grid-template-columns:repeat(auto-fit, minmax(260px,1fr)); gap:12px; margin:12px 0; }
+.compare .shots { grid-template-columns:1fr; } .pair { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.pair div { position:relative; } .pair span { position:absolute; left:8px; top:6px; background:rgba(0,0,0,.65); color:#fff;
+  font-size:12px; padding:1px 7px; border-radius:5px; } .pair figcaption { grid-column:1 / -1; }
 .facts { display:grid; grid-template-columns:1fr 1fr; gap:16px; font-size:13px; } .facts td { padding:3px 8px 3px 0; border-bottom:1px solid var(--line); vertical-align:top; }
 .facts td:first-child { color:var(--muted); } .facts ul { margin:6px 0; padding-left:18px; } .links a { color:var(--accent); }
 @media (max-width: 800px) { .top, .facts { grid-template-columns:1fr; } }
@@ -296,6 +328,7 @@ if __name__ == "__main__":
         path = os.path.join(out, "review.html")
         if os.path.exists(path):
             review = open(path).read()
-        page(out, review)
+        before = sys.argv[sys.argv.index("--before") + 1] if "--before" in sys.argv else None
+        page(out, review, before)
     else:
         build(out)

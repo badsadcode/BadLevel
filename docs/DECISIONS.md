@@ -284,3 +284,47 @@ separation is reported separately.
 **Next.** Fortress and industrial need more distance (stairwell towers vs lift
 shafts already differ; their footprints and halls should too). Hub vs central remains
 the weakest composition pair.
+
+## D18. Architecture starts with hall cross-sections
+
+**Problem.** The architectural showcase (12 levels from the four themed presets, seeds
+1-3) showed that BadLevel made big spaces and real verticality but not architecture:
+every room was a box with a flat ceiling and sheer walls, so a fortress, a factory
+and a compound differed by plan only. Gothic and underground weren't convincing at all.
+
+**Decision.** `badlevel/architecture.py` gives roofed rooms a *cross-section*: a
+profile of ceiling heights swept along the room's long axis, plus piers, columns and
+pilasters standing in it. Profiles per style (D18 table in the README). It's an
+additive pass, in two halves around a room's features: piers before (so features
+avoid them), ceilings after (so they can respect platforms, decks and stairs).
+
+**Why sections first.** The ceiling and the structure that carries it change the
+silhouette of the biggest spaces most, with no new space types and no new routing. A
+section is also easy to read and replace as greybox: a nave is a nave in any engine.
+
+**Noor's constraints, and how they're met.**
+1. *Variety within a style*: palettes, not templates; open variants (vault, clearspan)
+   and asymmetric ones (single-aisle, shed); each use of a profile halves its weight
+   for the rest of the level.
+2. *A hierarchy across a level*: rooms ranked by volume into grand / major / minor
+   tiers with their own palettes; small rooms get haunches or nothing.
+3. *Proportions*: bay spacing grows with the height (clamped; at least three bays),
+   piers thicken from 12 m, ribs and trusses deepen with the span; an undercroft is only
+   offered to low rooms (in a 18 m hall it turned into a hypostyle, seen in a test render).
+4. *Genuinely open space*: every grand palette keeps a pierless option.
+5. *Framed reveals*: not in this step (step 3 of the plan).
+6. *Useful as greybox*: plain blocks only, on the 32-unit grid and 16-unit steps;
+   `room.meta["arch"]` records profile, bay, aisle widths, spring heights.
+
+**Safety.** Ceilings are only lowered, never below the top walkable surface + 128
+(a base corridor's height) or below an opening beside the cell; galleries and sky are
+skipped. Piers keep 2 cells from doorway cells (features keep 3, but arcades with gaps
+looked broken), stand on plain floor, keep a walkable ring, and are undone if the base
+floor would split. Each room uses its own random stream, so unstyled levels are
+byte-identical (golden check: 26 of 26 unchanged; only the 12 styled preset levels in
+the set changed). The validator remains mandatory.
+
+**Known limits.** Arches and vaults are stepped (1 cell x 16 units), "voxel arches";
+smooth slopes would need sloped brushes in the exporter. Rooms on a multi-storey level
+are often 6 m high, which leaves 64 units to shape: there the effect is subtle. Shaped
+rooms (rings, octagons) take the profile of their bounding box.

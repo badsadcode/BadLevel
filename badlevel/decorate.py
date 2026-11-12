@@ -337,14 +337,25 @@ def _door_entity(level: Level, corr, kind: str) -> Entity:
 
 def decorate(level: Level, rng: random.Random):
     """Each room's space type adds its features, then its contents; then the corridors' contents.
-    (Two passes over the rooms, in this order, so the random sequence is stable.)"""
+    (Two passes over the rooms, in this order, so the random sequence is stable.) With an
+    ``arch_style``, a room's cross-section puts its piers in before the features and shapes
+    its ceilings after them (see architecture.py; it has its own random stream)."""
+    from . import architecture
     from .spaces import space_for
     from .spaces import corridor as corridor_space
     ctxs: Dict[int, RoomCtx] = {}
+    sections = architecture.plan(level)        # {} without an arch_style: nothing changes
     for room in level.rooms:
         ctx = RoomCtx(level, room)
         ctxs[room.id] = ctx
+        sec = sections.get(room.id)
+        piers = architecture.place_piers(level, room, sec, ctx) if sec else 0
         space_for(room.kind).decorate(level, room, ctx, rng)
+        if sec:
+            lowered = architecture.apply_ceilings(level, room, sec)
+            room.meta["arch"] = dict(sec.info, style=level.config.arch_style, profile=sec.name,
+                                     axis="x" if sec.frame.along_x else "y", piers=piers, shaped_cells=lowered)
+            room.features.append(sec.name)
     info = {"max_depth": max(n.depth for n in level.graph.nodes) or 1}
     for room in level.rooms:
         space_for(room.kind).populate(level, room, ctxs[room.id], rng, info)

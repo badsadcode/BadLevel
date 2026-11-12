@@ -43,6 +43,10 @@ class GenConfig:
     mega_rooms: int = 0          # levels within the level (0 = none)
     mega_styles: dict = field(default_factory=dict)   # {"hangar": 1, "works": 2, "terraces": 0}
 
+    # --- architecture ----------------------------------------------------------
+    arch_style: str = ""         # "" (plain boxes) | gothic | industrial | bunker | compound: hall cross-sections
+    arch_weights: dict = field(default_factory=dict)  # bias the profiles: {"basilica": 2.0, "sawtooth": 0.0}
+
     # --- merged halls -------------------------------------------------------
     merge_chance: float = 0.3    # neighbouring rooms joined into one hall instead of a corridor
     max_hall_rooms: int = 3      # rooms (semantic regions) per merged hall
