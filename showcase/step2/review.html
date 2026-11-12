@@ -1,0 +1,47 @@
+<h2>Smooth vaults, small rooms, and structure along the walls</h2>
+
+<p><b>Same 12 levels, same seeds, same camera rules.</b> Left: step 1 (stepped cross-sections).
+Right: this step, which adds three things in the order you agreed: smooth vaults and roofs (D19), more
+character for small rooms (D19), and structure along the walls (D20). The layouts haven't changed. A few
+camera positions moved by a cell or two, because the "farthest free corner" rule now steps around the new
+wall members. Nothing was picked or touched up.</p>
+
+<h3>What works</h3>
+<ul>
+<li><b>Vaults are vaults now.</b> The fortress halls have smooth pointed vaults with ribs instead of stepped
+"voxel arches". In the <code>.map</code> they're real sloped brushes (convex, ready for qbsp); in the 3D
+preview and the <code>.glb</code> they're smooth surfaces. Gameplay and analysis still use the lowest point
+of each cell, so validation is unchanged. A render with a magenta background found no cracks in any of the
+48 shots.</li>
+<li><b>Small rooms have a ceiling worth looking at.</b> Low pointed vaults, gables and sheds now read as
+surfaces, and two new low-room profiles (tray, coffered) cover what vaults can't. Plain rooms over seeds
+1–5 (secrets excluded): fortress 28 → 6 of 64, industrial ~45 → 13 of 78, compound ~30 → 10 of 63.</li>
+<li><b>Walls have rhythm.</b> Members on the bay lines of every wall (gothic shafts, industrial frame
+pilasters, bunker counterforts) and recesses cut into the solid wall between them (lancet niches with
+pointed heads, service bays, shelters, window bays). Big halls get one feature on an end wall (apse niche,
+loading door, blast door, bay window). Tall industrial halls get crane corbels.</li>
+<li><b>Measured:</b> the mean longest flat wall per room roughly halved: fortress 11.5 → 5.9 m, industrial
+13.0 → 7.0 m, compound 14.5 → 5.9 m, bunker 7.1 → 5.4 m. Each card shows its own numbers.</li>
+<li><b>Nothing broke.</b> All levels validate, 81 tests pass, and levels without a style are byte-identical
+to before (golden check 26/26).</li>
+</ul>
+
+<h3>What doesn't work yet</h3>
+<ul>
+<li><b>Busy small gothic rooms.</b> Shafts every 3 cells in a 6 m room can look crowded. The minor tier
+only thins the recesses, not the members. Worth your eye.</li>
+<li><b>One long wall survives:</b> industrial_1's mega-hall still has a 26 m flat run, where doors and
+platforms left no room for members.</li>
+<li><b>Members are plain full-height boxes.</b> There are no stepped buttresses, string courses or capitals
+yet, so a gothic shaft and an industrial pilaster are the same shape at different spacings.</li>
+<li><b>The bunker is still the weakest.</b> Its 128-high rooms can't take any ceiling work. Counterforts and
+low shelters help, but it still isn't underground. That's a separate step.</li>
+<li><b>Reveals are unchanged</b> (step 3). The preview still draws ceilings dark from below; a lit compile
+still needs your OK to run the downloaded tools.</li>
+</ul>
+
+<h3>Questions</h3>
+<ol>
+<li>Thin out the gothic shafts in small rooms, or keep the density as part of the identity?</li>
+<li>Next: framed reveals and arched openings (step 3), or richer member shapes (buttresses, capitals)?</li>
+</ol>

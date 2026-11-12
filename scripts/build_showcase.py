@@ -248,7 +248,7 @@ def _stamp() -> str:
     return f"{datetime.date.today().isoformat()} by BadLevel {__version__} (generator at commit {sha})"
 
 
-def page(out: str, review_md: str = "", before: str = None):
+def page(out: str, review_md: str = "", before: str = None, title: str = "architecture, step 1: hall cross-sections"):
     """The showcase page. With ``before`` (an earlier showcase directory with the same levels),
     every screenshot is shown next to its predecessor, from the same camera rule."""
     index = json.load(open(os.path.join(out, "showcase.json")))
@@ -290,11 +290,11 @@ def page(out: str, review_md: str = "", before: str = None):
 <div class="facts"><table>{table}</table><div><b>Analysis flags</b><ul>{flags}</ul></div></div>
 <p class="links"><a href="{e["stem"]}.html">Open the interactive 3D preview</a>{f' · <a href="{rel}/{e["stem"]}.html">the same level before</a>' if rel and e["stem"] in old else ""} · <a href="{e["stem"]}.map" download>.map</a> · <a href="{e["stem"]}.glb" download>.glb</a> · <a href="{e["stem"]}.analysis.json" download>analysis</a></p>
 </article>''')
-        shown = f"From the first review, before this step: {note}" if before else note
+        shown = f"From the first review, before the architecture work: {note}" if before else note
         sections.append(f'<section><h2>{esc(title)}</h2><p class="note">{esc(shown)}</p>{"".join(cards)}</section>')
     with open(os.path.join(out, "index.html"), "w") as fh:
         page_html = PAGE if not before else PAGE.replace("<main>", '<main class="compare">') \
-            .replace("architectural showcase</h1>", "architecture, step 1: hall cross-sections</h1>")
+            .replace("architectural showcase</h1>", f"{html.escape(title)}</h1>")
         fh.write(page_html.replace("__STAMP__", _stamp()).replace("__REVIEW__", review_md).replace("__SECTIONS__", "".join(sections)))
     print(f"showcase page -> {out}/index.html")
 
@@ -341,6 +341,7 @@ if __name__ == "__main__":
         if os.path.exists(path):
             review = open(path).read()
         before = sys.argv[sys.argv.index("--before") + 1] if "--before" in sys.argv else None
-        page(out, review, before)
+        title = sys.argv[sys.argv.index("--title") + 1] if "--title" in sys.argv else None
+        page(out, review, before, *([title] if title else []))
     else:
         build(out)
