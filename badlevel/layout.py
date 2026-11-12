@@ -20,7 +20,7 @@ from .config import GenConfig
 from .graph import MissionGraph
 from .level import Cell, Corridor, Level, Room
 from .spaces import space_for
-from .spaces.corridor import _corridor_style, add_beats
+from .spaces.corridor import _corridor_style, add_beats, corridor_height
 from .spaces.hall import _mergeable, _seam_cells, _seam_ok, build_halls
 
 DIRS = [(1, 0), (0, 1), (-1, 0), (0, -1)]
@@ -97,16 +97,20 @@ def place_rooms(g: MissionGraph, cfg: GenConfig, rng: random.Random) -> List[Roo
         """A candidate room for a node, or None if its space type can't exist at this height."""
         return space_for(node.kind).propose(node, floor, cfg, rng, multi)
 
-    first = g.nodes[0]
+    comp = cfg.composition
+    root = g.center if (comp in ("hub", "central") and g.center is not None) else 0
+    first = g.nodes[root]
     rooms: Dict[int, Room] = {}
-    r0 = make(first, 0, 0, preset.get(0, 0), 0)
+    r0 = make(first, 0, 0, preset.get(root, 0), 0)
     if r0 is None:
         raise LayoutError("start room")
-    rooms[0] = r0
+    rooms[root] = r0
+    spokes = {"next": rng.randrange(4)} if comp in ("hub", "central") else {}
+    axis = DIRS[rng.randrange(4)] if comp == "linear" else None
 
     max_floor = cfg.max_level * cfg.level_step
     halls: List[List[int]] = []          # node ids per merged hall
-    order = [0]
+    order = [root]
     tree_edges = [e for e in g.edges if e.tree]
     i = 0
     while i < len(order):
@@ -144,6 +148,8 @@ def place_rooms(g: MissionGraph, cfg: GenConfig, rng: random.Random) -> List[Roo
                 cf = _port_floor(cand, parent.floor, parent.top_floor)
                 climb = abs(pf - cf) // cfg.step_height
                 gap = max(cfg.room_gap + 4, climb + 2 * cfg.corridor_radius + 8) + rng.randint(0, 5)
+                if comp == "central" and pid == root:
+                    gap = max(cfg.room_gap + 4, climb + 2 * cfg.corridor_radius + 6)   # a tight ring
                 stack = multi and _try % 3 == 2 and not merge
                 if merge:
                     if not multi and node.kind != "secret":
@@ -152,7 +158,10 @@ def place_rooms(g: MissionGraph, cfg: GenConfig, rng: random.Random) -> List[Roo
                         cand.floor, cand.ceil = floor, floor + (cand.ceil - cand.floor)
                     if abs(cand.floor - parent.floor) > 64:
                         continue
-                    dx, dy = rng.choice(DIRS)
+                    if comp == "tree" or _try >= 15:
+                        dx, dy = rng.choice(DIRS)
+                    else:   # merged rooms follow the composition too (a spine stays a spine)
+                        dx, dy = _composed_dir(comp, rooms[root], parent, pid == root, node, spokes, axis, rng)
                     lap = 6
                     if dx:
                         if min(h, parent.h) < lap + 2:
@@ -183,8 +192,19 @@ def place_rooms(g: MissionGraph, cfg: GenConfig, rng: random.Random) -> List[Roo
                     x = o.x + rng.randint(-(w // 2), max(0, o.w - w // 2))
                     y = o.y + rng.randint(-(h // 2), max(0, o.h - h // 2))
                 else:
-                    dx, dy = rng.choice(DIRS)
-                    if dx:
+                    if comp == "tree" or _try >= 30:
+                        dx, dy = rng.choice(DIRS)
+                    else:
+                        dx, dy = _composed_dir(comp, rooms[root], parent, pid == root, node, spokes, axis, rng)
+                    if comp == "linear" and getattr(node, "main", False) and _try < 30:
+                        # the spine: rooms centred on the axis, not shifted sideways
+                        if dx:
+                            x = parent.x + parent.w + gap if dx > 0 else parent.x - gap - w
+                            y = parent.y + (parent.h - h) // 2 + rng.randint(-1, 1)
+                        else:
+                            y = parent.y + parent.h + gap if dy > 0 else parent.y - gap - h
+                            x = parent.x + (parent.w - w) // 2 + rng.randint(-1, 1)
+                    elif dx:
                         x = parent.x + parent.w + gap if dx > 0 else parent.x - gap - w
                         y = parent.y + rng.randint(-(h - 4), parent.h - 4)
                     else:
@@ -227,6 +247,30 @@ def place_rooms(g: MissionGraph, cfg: GenConfig, rng: random.Random) -> List[Roo
         for n in h:
             rooms[n].meta["hall"] = sorted(h)
     return result
+
+
+def _composed_dir(comp: str, root: Room, parent: Room, from_root: bool, node, spokes: dict, axis, rng):
+    """Which side of the parent a new room goes on, by composition.
+
+    hub / central: the root's children go round its four sides in turn (spokes); further
+    rooms keep heading outwards, away from the centre. linear: the critical path keeps
+    to one axis (the spine), side rooms branch off perpendicular (ribs)."""
+    if comp in ("hub", "central"):
+        if from_root:
+            d = DIRS[spokes["next"] % 4]
+            spokes["next"] += 1
+            return d
+        (rx, ry), (px, py) = root.center(), parent.center()
+        ox, oy = px - rx, py - ry
+        outward = (1 if ox > 0 else -1, 0) if abs(ox) >= abs(oy) else (0, 1 if oy > 0 else -1)
+        if rng.random() < 0.75:
+            return outward
+        return rng.choice([(outward[1], outward[0]), (-outward[1], -outward[0])])
+    if comp == "linear":
+        if getattr(node, "main", False):
+            return axis
+        return rng.choice([(axis[1], axis[0]), (-axis[1], -axis[0])])
+    return rng.choice(DIRS)
 
 
 def _port_floor(room: Room, other_floor: int, other_top: Optional[int] = None) -> int:
@@ -554,7 +598,8 @@ def _gap(a: Room, b: Room) -> int:
 def choose_loops(g: MissionGraph, rooms: List[Room], cfg: GenConfig, rng: random.Random):
     """Loops make circuits: pick rooms apart in the graph (2+ hops: a triangle that bypasses a room,
     3+ preferred) but close in space, so the loop corridor is short. Now and then a long one on purpose."""
-    for _ in range(cfg.loops):
+    n_loops = cfg.loops + (2 if cfg.composition == "central" else 0)
+    for _ in range(n_loops):
         cands = []
         for a in rooms:
             for b in rooms:
@@ -566,14 +611,16 @@ def choose_loops(g: MissionGraph, rooms: List[Room], cfg: GenConfig, rng: random
                 hops = g.hop_distance(a.node, b.node)
                 if hops < 2:
                     continue
-                # close in space; bigger circuits (3+ hops) and same-height pairs (junctions) preferred
-                cands.append((_gap(a, b) + (10 if hops == 2 else 0) + (12 if a.floor != b.floor else 0),
+                # close in space; bigger circuits (3+ hops) and same-height pairs (junctions) preferred;
+                # radial compositions bring loops back to their centre
+                bonus = -20 if g.center is not None and g.center in (a.node, b.node) else 0
+                cands.append((_gap(a, b) + (10 if hops == 2 else 0) + (12 if a.floor != b.floor else 0) + bonus,
                               a.node, b.node))
         if not cands:
             break
         cands.sort()
-        if rng.random() < cfg.long_loop_chance:
-            pick = rng.choice(cands[len(cands) // 2:])          # a deliberately long one
+        if rng.random() < cfg.long_loop_chance and cfg.composition != "linear":
+            pick = rng.choice(cands[len(cands) // 2:])          # a deliberately long one (not on a spine)
         else:
             pick = rng.choice(cands[:3])
         _, a, b = pick
@@ -645,7 +692,7 @@ def build_layout(g: MissionGraph, cfg: GenConfig, rng: random.Random, seed: int)
         ceils = None
         # preferred style first, then fall back to a plain narrow corridor
         for (rr, dd) in dict.fromkeys([(r, diag), (r, False), (1, False)]):
-            h = CORRIDOR_HEIGHT.get(rr, 128 + 32 * (rr - 1))
+            h = corridor_height(cfg, a, b, rr)
             env = (min(fa, fb), max(fa, fb) + h)
             # a level loop may cross other corridors at its own height: junctions instead of detours
             cross = fa if (not e.tree and fa == fb and not drop) else None
@@ -675,7 +722,7 @@ def build_layout(g: MissionGraph, cfg: GenConfig, rng: random.Random, seed: int)
             level.notes.append(f"loop {e.a}-{e.b} dropped")
             continue
         diag = diag and any(d[0] and d[1] for d in (_dir(path, i) for i in range(len(path) - 1)))
-        h = CORRIDOR_HEIGHT.get(r, 128 + 32 * (r - 1))
+        h = corridor_height(cfg, a, b, r)
         corr = carve_corridor(level, router, e.id, a, b, path, floors, ceils, r, k, h, diag,
                               e.kind, e.key, "drop" if drop else None, env)
         if cfg.corridor_beats and e.kind != "secret":

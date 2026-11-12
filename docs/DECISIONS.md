@@ -220,3 +220,41 @@ in 20 halls instead of 1 in 30).
 need iteration with an artist's eye. Mega-rooms are rectangular outlines; structures are
 solid (no enterable buildings yet). Composition should decide *where* a mega-room sits
 (central space with satellites, compression before it).
+
+## D16. Composition: the macro structure, and pacing by contrast
+
+**Decision.** `GenConfig.composition` picks the level's macro structure, and it acts on
+**both** the mission graph and the placement (if only one of them changed, corridors
+would just wrap around everything):
+
+| composition | graph | placement |
+|---|---|---|
+| `tree` (default) | as before | as before (random sides) |
+| `hub` | side rooms and key branches hang off a centre node; loops come back to it | the centre is placed first; its children go round its four sides in turn, further rooms keep heading outwards |
+| `central` | as hub, plus two extra loops tying satellites back to the centre | as hub, with satellites in a tight ring around the big space |
+| `linear` | side rooms attach only to the critical path | the critical path follows one axis with rooms centred on it (a spine), side rooms branch off perpendicular (ribs), merged halls follow the axis, no deliberately long loops |
+
+Recipes choose it from what the level contains (big spaces -> `central`) unless a
+preset pins it: compact and bunker are spines, industrial and explore hubs.
+
+**Pacing by contrast.** With `pacing_contrast`, corridors into big spaces (mega-rooms,
+courtyards, rooms 9 m+ tall) are 3 cells wide and 3.5 m high, so arriving is a
+release. The analysis reports every such transition (`transitions`: corridor vs room
+cross-section) and flags the strongest reveal.
+
+**Measured.** Three silhouette features (elongation of the room layout, centrality of
+the best-connected room, share of dead ends) recognise the composition from the
+silhouette **alone** 70% of the time (chance: 25%); linear levels are clearly
+elongated, hub/central clearly centralised. In side-by-side top-down renders hubs read
+as crosses, central levels as a mass with satellites, linear ones as fishbones (5 of
+6 seeds; one wraps around through ordinary loops). All presets recognisable: 100% on
+the measured batch.
+
+**This answers D12** in part: presets no longer share one silhouette. What remains:
+hub and central look alike from far above (they differ in what sits at the centre, not
+in shape), and compositions are still four hand-made strategies rather than a grammar.
+
+**Bugs found on the way.** (1) Merged halls ignored the composition and broke spines.
+(2) Recipes chose the composition before applying a preset's overrides, so a fortress
+whose courtyard and mega-room come from overrides was composed as a plain tree; the
+composition is now derived after overrides.

@@ -476,6 +476,7 @@ def to_html(level: Level, analysis: dict = None, downloads: list = None) -> str:
         ("Rooms", stats["rooms"]), ("Corridors", stats["corridors"]),
         ("Loops", sum(1 for e in level.graph.edges if not e.tree)),
         ("Keys", ", ".join(e.key for e in level.graph.edges if e.kind == "locked") or "none"),
+        ("Composition", getattr(level.config, "composition", "tree")),
         ("Storeys", stats["storeys"]),
         ("Vertical connectors", ", ".join(f"{v} {k}" for k, v in stats["connectors"].items() if v) or "-"),
         ("One-way drops", stats["drops"]),

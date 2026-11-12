@@ -47,7 +47,8 @@
    "works": 3.0,
    "hangar": 1.0,
    "terraces": 0.0
-  }
+  },
+  "composition": "hub"
  },
  "compiled": {
   "seed": 101,
@@ -72,6 +73,8 @@
   "drop_chance": 0.6,
   "max_drop": 288,
   "tall_room_chance": 0.5249999999999999,
+  "composition": "hub",
+  "pacing_contrast": true,
   "open_areas": 1,
   "mega_rooms": 1,
   "mega_styles": {

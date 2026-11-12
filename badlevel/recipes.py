@@ -120,6 +120,13 @@ def compile_recipe(recipe: Recipe, seed: int = 1) -> GenConfig:
             merged.update(v)
             v = merged
         setattr(cfg, k, v)
+    # decided last, from what the level ends up containing (overrides may add big spaces):
+    # big spaces get a compressed approach, and the level is organised around them
+    big = cfg.mega_rooms > 0 or cfg.open_areas > 0
+    if "pacing_contrast" not in recipe.overrides:
+        cfg.pacing_contrast = big
+    if "composition" not in recipe.overrides:
+        cfg.composition = "central" if big else "tree"
     return cfg
 
 
@@ -129,7 +136,7 @@ def compile_recipe(recipe: Recipe, seed: int = 1) -> GenConfig:
 PRESETS: Dict[str, Recipe] = {r.name: r for r in [
     Recipe("compact", "A few small rooms and short corridors. Restrained, believable, quick to play.",
            scale=0.1, openness=0.3, verticality=0.2, claustrophobia=0.4, combat=0.5, exploration=0.2,
-           loopiness=0.2, regularity=0.6, overrides={"windows": 1, "max_level": 1}),
+           loopiness=0.2, regularity=0.6, overrides={"windows": 1, "max_level": 1, "composition": "linear"}),
     Recipe("classic", "Quake-style: varied rooms, height changes, loops, a key and a secret.",
            scale=0.5, openness=0.45, verticality=0.45, claustrophobia=0.3, combat=0.6, exploration=0.5,
            loopiness=0.5, regularity=0.35),
@@ -140,7 +147,7 @@ PRESETS: Dict[str, Recipe] = {r.name: r for r in [
            overrides={"storeys": 2, "glazed_chance": 0.0, "windows": 4, "tall_room_chance": 0.0, "room_scale": 0.75,
                       "size_bias": {"small": 2.5, "medium": 1.0, "large": 0.15},
                       "connector_weights": {"stairs": 0.15, "stairwell": 0.25, "lift": 0.3, "ladder": 0.3},
-                      "feature_weights": {"balcony": 0.0}, "merge_chance": 0.05}),
+                      "feature_weights": {"balcony": 0.0}, "merge_chance": 0.05, "composition": "linear"}),
     Recipe("fortress", "Tall, ordered, defensive. An inner courtyard, several storeys climbed by "
                        "stairwells, great halls, galleries and arrow slits.",
            scale=0.7, openness=0.35, verticality=0.92, claustrophobia=0.25, combat=0.8, exploration=0.4,
@@ -160,7 +167,8 @@ PRESETS: Dict[str, Recipe] = {r.name: r for r in [
                       "connector_weights": {"stairs": 0.1, "stairwell": 0.25, "lift": 0.35, "ladder": 0.3},
                       "feature_weights": {"platform": 2.5, "balcony": 2.5, "pillars": 2.0},
                       "corridor_width_bias": {1: 0.4, 2: 1.0, 3: 2.5}, "diagonal_chance": 0.2,
-                      "mega_rooms": 1, "mega_styles": {"works": 3.0, "hangar": 1.0, "terraces": 0.0}}),
+                      "mega_rooms": 1, "mega_styles": {"works": 3.0, "hangar": 1.0, "terraces": 0.0},
+                      "composition": "hub"}),
     Recipe("compound", "Open and spread out: courtyards under the sky, large merged halls, wide "
                        "connections, many windows, one level.",
            scale=0.7, openness=0.95, verticality=0.2, claustrophobia=0.0, combat=0.6, exploration=0.6,
@@ -174,7 +182,8 @@ PRESETS: Dict[str, Recipe] = {r.name: r for r in [
                       "for exploration, walking sims and architectural blockouts.",
            scale=0.6, openness=0.6, verticality=0.7, claustrophobia=0.2, combat=0.0, exploration=1.0,
            loopiness=0.6, regularity=0.35,
-           overrides={"mega_rooms": 1, "mega_styles": {"terraces": 2.0, "works": 1.0, "hangar": 0.5}}),
+           overrides={"mega_rooms": 1, "mega_styles": {"terraces": 2.0, "works": 1.0, "hangar": 0.5},
+                      "composition": "hub"}),
 ]}
 
 

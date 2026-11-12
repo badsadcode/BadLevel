@@ -15,7 +15,8 @@
  },
  "overrides": {
   "windows": 1,
-  "max_level": 1
+  "max_level": 1,
+  "composition": "linear"
  },
  "compiled": {
   "seed": 101,
@@ -40,6 +41,8 @@
   "drop_chance": 0.6,
   "max_drop": 288,
   "tall_room_chance": 0.13999999999999999,
+  "composition": "linear",
+  "pacing_contrast": false,
   "open_areas": 0,
   "mega_rooms": 0,
   "mega_styles": {},

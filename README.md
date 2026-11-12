@@ -232,6 +232,20 @@ Each corridor gets its own width and may run diagonally:
 - If a wide or diagonal route doesn't fit, the corridor falls back to a plain
   3-wide one instead of failing the level.
 
+## Composition and pacing
+
+`composition` sets the level's macro structure, in both the mission graph and the
+placement: `tree` (branching growth, the default), `hub` (a centre with spokes and
+loops coming back to it), `central` (satellites in a ring around a big space) or
+`linear` (a spine with side rooms as ribs). With `pacing_contrast`, the corridors into
+big spaces are narrow and low, so arriving is a release; the analysis reports each
+transition and the strongest reveal. Recipes pick both from what the level contains;
+presets can pin them.
+
+```bash
+python3 -m badlevel generate --seed 7 --recipe industrial
+```
+
 ## Open areas
 
 Courtyards, plazas and yards open to the sky (`open_areas` in the config; recipes turn
@@ -326,7 +340,7 @@ ericw-tools. Export working is not the same as import working.
 ## Roadmap ideas
 
 - Verify in TrenchBroom + compile with ericw-tools (qbsp/vis/light)
-- Composition
+- Composition as a grammar instead of four strategies; hub vs central still look alike from above
   (macro structures, compression/release pacing). See docs/DECISIONS.md D12.
 - Multi-storey compositions: halls spanning storeys, interlocking structures
 - TrenchBroom groups per room/region in the `.map`

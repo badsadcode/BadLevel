@@ -111,6 +111,14 @@ def diagnose(report: dict, rules: dict = None) -> list:
             flags.append(_flag("warn", "monotone_corridor",
                                f"corridor {c['id']}: {c['monotone_run']} m with nothing changing (no turn, step, "
                                "window or beat). Fine for a deliberate sniper alley; otherwise add a beat."))
+    trans = report.get("transitions") or []
+    if trans:
+        t = trans[0]
+        flags.append(_flag("info", "release",
+                           f"strongest reveal: corridor {t['corridor']} ({t['corridor_m'][0]:.0f} m wide, "
+                           f"{t['corridor_m'][1]:.1f} m high) opens into {t['kind']} room {t['room']} "
+                           f"({t['room_m'][0]:.0f} m across, {t['room_m'][1]:.0f} m high): {t['contrast']:.0f}x the "
+                           "cross-section.", room=t["room"]))
     vis = report.get("visual")
     if vis:
         storeys = report.get("storeys", 1)

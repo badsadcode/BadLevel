@@ -33,7 +33,8 @@
   "feature_weights": {
    "balcony": 0.0
   },
-  "merge_chance": 0.05
+  "merge_chance": 0.05,
+  "composition": "linear"
  },
  "compiled": {
   "seed": 101,
@@ -58,6 +59,8 @@
   "drop_chance": 0.6,
   "max_drop": 288,
   "tall_room_chance": 0.0,
+  "composition": "linear",
+  "pacing_contrast": false,
   "open_areas": 0,
   "mega_rooms": 0,
   "mega_styles": {},

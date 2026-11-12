@@ -49,6 +49,7 @@ class Edge:
 class MissionGraph:
     nodes: List[Node] = field(default_factory=list)
     edges: List[Edge] = field(default_factory=list)
+    center: Optional[int] = None     # hub / central compositions: the node everything gathers around
 
     def add_node(self, kind, size, **kw) -> Node:
         n = Node(len(self.nodes), kind, size, **kw)
@@ -109,6 +110,11 @@ def build_graph(cfg: GenConfig, rng: random.Random) -> MissionGraph:
     main.append(g.add_node("exit", "medium", depth=n_main - 1))
     for a, b in zip(main, main[1:]):
         g.add_edge(a.id, b.id)
+    for n in main:
+        n.main = True
+    radial = cfg.composition in ("hub", "central")
+    if radial:
+        g.center = main[arena_at].id     # the arena: mega-rooms and yards pick it first
 
     # --- locks and key branches ---------------------------------------
     # Lock edges are spread along the path; edge index i joins main[i] -> main[i+1].
@@ -141,6 +147,8 @@ def build_graph(cfg: GenConfig, rng: random.Random) -> MissionGraph:
         first = lock_edges[k - 1] + 1 if k else 0
         candidates = main[first: idx + 1]
         parent = rng.choice(candidates[1:] or candidates)
+        if radial and g.nodes[g.center] in candidates and rng.random() < 0.8:
+            parent = g.nodes[g.center]       # key branches hang off the centre
         prev = parent
         if rng.random() < 0.6:
             mid = g.add_node(rng.choice(["combat", "supply"]), weighted(rng, ["small", "medium"], cfg.size_bias),
@@ -154,6 +162,10 @@ def build_graph(cfg: GenConfig, rng: random.Random) -> MissionGraph:
     for _ in range(cfg.side_rooms):
         parents = [n for n in g.nodes if n.kind not in ("exit", "key", "secret")]
         parent = rng.choice(parents)
+        if radial and rng.random() < 0.75:
+            parent = g.nodes[g.center]       # spokes
+        elif cfg.composition == "linear":
+            parent = rng.choice([n for n in parents if getattr(n, "main", False)])   # short ribs off the spine
         n = g.add_node(rng.choice(["supply", "combat"]), weighted(rng, ["small", "medium"], cfg.size_bias),
                        zone=parent.zone, depth=parent.depth)
         g.add_edge(parent.id, n.id)

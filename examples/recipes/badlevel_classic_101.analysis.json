@@ -7537,6 +7537,50 @@
    "monotone_run": 5
   }
  ],
+ "transitions": [
+  {
+   "corridor": 2,
+   "room": 4,
+   "kind": "arena",
+   "corridor_m": [
+    3.0,
+    4.0
+   ],
+   "room_m": [
+    16.0,
+    9.5
+   ],
+   "contrast": 12.7
+  },
+  {
+   "corridor": 7,
+   "room": 4,
+   "kind": "arena",
+   "corridor_m": [
+    3.0,
+    4.0
+   ],
+   "room_m": [
+    16.0,
+    9.5
+   ],
+   "contrast": 12.7
+  },
+  {
+   "corridor": 3,
+   "room": 4,
+   "kind": "arena",
+   "corridor_m": [
+    5.0,
+    5.0
+   ],
+   "room_m": [
+    16.0,
+    9.5
+   ],
+   "contrast": 6.1
+  }
+ ],
  "rooms": [
   {
    "id": 0,
@@ -7970,6 +8014,8 @@
    }
   ],
   "longest_monotone_corridor": 16,
+  "composition": "tree",
+  "strongest_release": 12.7,
   "corridor_beats": 2,
   "visual_links": 27,
   "cross_storey_views": 1,
@@ -8046,6 +8092,12 @@
    "severity": "info",
    "code": "mandatory_choke",
    "message": "4 corridor(s) are the only route to the exit (0, 2, 3, 4). Every player passes there; good spots for set-piece fights, or add loops to soften them."
+  },
+  {
+   "severity": "info",
+   "code": "release",
+   "message": "strongest reveal: corridor 2 (3 m wide, 4.0 m high) opens into arena room 4 (16 m across, 10 m high): 13x the cross-section.",
+   "room": 4
   },
   {
    "severity": "info",

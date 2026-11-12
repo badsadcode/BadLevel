@@ -274,6 +274,7 @@ def analyze(level: Level, cfg: AnalysisConfig = None) -> dict:
                "enemies": rooms[level.room_by_node(nid).id]["enemies"]} for nid in main]
 
     corridors = _corridor_monotony(level)
+    transitions = _transitions(level)
 
     visual = _visual_connectivity(level, occ, cfg, vi, vj, V, xs, ys, zs, owners, areas, main, pts)
 
@@ -296,6 +297,7 @@ def analyze(level: Level, cfg: AnalysisConfig = None) -> dict:
         "chokepoints": chokepoints,
         "visual": visual,
         "corridors": corridors,
+        "transitions": transitions,
         "rooms": rooms,
         "level": {
             "positions": int(n),
@@ -313,6 +315,8 @@ def analyze(level: Level, cfg: AnalysisConfig = None) -> dict:
             "mandatory_chokepoints": sum(1 for c in chokepoints if c["mandatory"]),
             "pacing": pacing,
             "longest_monotone_corridor": max((c["monotone_run"] for c in corridors), default=0),
+            "composition": getattr(level.config, "composition", "tree"),
+            "strongest_release": max((t["contrast"] for t in transitions), default=0.0),
             "corridor_beats": sum(len(c["beats"]) for c in corridors),
             "visual_links": len(visual["links"]),
             "cross_storey_views": sum(1 for l in visual["links"] if l["cross_storey"]),
@@ -476,4 +480,26 @@ def _corridor_monotony(level: Level) -> list:
         out.append({"id": c.id, "length": len(path), "radius": c.radius, "loop": not level.graph.edges[c.edge].tree,
                     "beats": [b["type"] for b in c.beats], "junctions": list(c.junctions),
                     "monotone_run": best})
+    return out
+
+
+def _transitions(level: Level) -> list:
+    """Pacing by contrast: for every corridor that opens into a big space, how much bigger the
+    space is than the way in (cross-section of the room vs the corridor). Compression before
+    release reads as a 'reveal'; a wide, tall corridor into a big hall reads as more of the same."""
+    from ..spaces.corridor import is_big
+    out = []
+    s = level.cell
+    for c in level.corridors:
+        for rid in (c.a, c.b):
+            room = level.rooms[rid]
+            if room.is_connector or not is_big(room):
+                continue
+            corr_section = (2 * c.radius + 1) * s * c.height
+            room_section = min(room.w, room.h) * s * (room.ceil - room.floor)
+            out.append({"corridor": c.id, "room": rid, "kind": room.kind,
+                        "corridor_m": [round((2 * c.radius + 1) * s / 32, 1), round(c.height / 32, 1)],
+                        "room_m": [round(min(room.w, room.h) * s / 32, 1), round((room.ceil - room.floor) / 32, 1)],
+                        "contrast": round(room_section / corr_section, 1)})
+    out.sort(key=lambda t: -t["contrast"])
     return out

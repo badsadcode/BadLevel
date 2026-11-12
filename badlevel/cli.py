@@ -42,7 +42,7 @@ def _cfg_from_args(args, seed: int, recipe=None) -> GenConfig:
     if args.config:
         with open(args.config) as fh:
             cfg = GenConfig.from_dict({**json.load(fh), "seed": seed})
-    for name in ("main_rooms", "side_rooms", "loops", "keys", "storeys"):
+    for name in ("main_rooms", "side_rooms", "loops", "keys", "storeys", "composition"):
         v = getattr(args, name)
         if v is not None:
             setattr(cfg, name, v)
@@ -105,6 +105,8 @@ def main(argv=None):
         sp.add_argument("--loops", type=int)
         sp.add_argument("--keys", type=int)
         sp.add_argument("--storeys", type=int, help="1 = single storey (default), 2-5 = stacked floors")
+        sp.add_argument("--composition", choices=["tree", "hub", "central", "linear"],
+                        help="macro structure of the level")
         sp.add_argument("--no-secret", action="store_true")
         sp.add_argument("--no-analysis", action="store_true", help="skip combat analysis (needs numpy)")
         sp.add_argument("--candidates", type=int, default=1,

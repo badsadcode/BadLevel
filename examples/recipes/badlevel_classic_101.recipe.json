@@ -37,6 +37,8 @@
   "drop_chance": 0.6,
   "max_drop": 288,
   "tall_room_chance": 0.315,
+  "composition": "tree",
+  "pacing_contrast": false,
   "open_areas": 0,
   "mega_rooms": 0,
   "mega_styles": {},

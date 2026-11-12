@@ -28,8 +28,29 @@ def _dir(*a, **k):
 SLAB = 16
 
 
+BIG_KINDS = ("megaroom", "courtyard")
+
+
+def is_big(room: Room) -> bool:
+    return room.kind in BIG_KINDS or room.ceil - room.floor >= 288
+
+
+def compressed(cfg: GenConfig, a: Room, b: Room) -> bool:
+    """Pacing by contrast: the way into a big space is narrow and low, so arriving is a release."""
+    return cfg.pacing_contrast and not (a.is_connector or b.is_connector) and (is_big(a) or is_big(b))
+
+
+def corridor_height(cfg: GenConfig, a: Room, b: Room, r: int) -> int:
+    from ..layout import CORRIDOR_HEIGHT
+    if compressed(cfg, a, b):
+        return 112
+    return CORRIDOR_HEIGHT.get(r, 128 + 32 * (r - 1))
+
+
 def _corridor_style(g: MissionGraph, e, a: Room, b: Room, cfg: GenConfig, rng: random.Random):
     kinds = {g.nodes[e.a].kind, g.nodes[e.b].kind}
+    if compressed(cfg, a, b):
+        return 1, False
     if a.is_connector or b.is_connector:
         return 1, False                  # connector ports are 3 cells wide
     if e.kind == "secret":

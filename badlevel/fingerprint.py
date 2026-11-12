@@ -17,7 +17,39 @@ FEATURES = [
     "storeys", "vertical_spread", "rect_share", "diagonal_share", "hall_share",
     "windows_per_room", "glass_share", "enemies_per_room", "crate_share", "loops",
     "lift_ladder_share", "open_area_share", "mega_share",
+    "elongation", "centrality", "leaf_share",
 ]
+# macro shape only: what the level looks like from far above
+SILHOUETTE = ["elongation", "centrality", "leaf_share"]
+
+
+def _silhouette(level: Level, rooms) -> Dict[str, float]:
+    """Elongation of the room layout (spread along its main axis vs across it), how much one
+    room dominates the connections, and the share of dead-end rooms."""
+    pts = [(r.center(), len(list(r.cells()))) for r in rooms]
+    W = sum(w for _, w in pts) or 1
+    mx = sum(c[0] * w for c, w in pts) / W
+    my = sum(c[1] * w for c, w in pts) / W
+    sxx = sum((c[0] - mx) ** 2 * w for c, w in pts) / W
+    syy = sum((c[1] - my) ** 2 * w for c, w in pts) / W
+    sxy = sum((c[0] - mx) * (c[1] - my) * w for c, w in pts) / W
+    tr, det = sxx + syy, sxx * syy - sxy * sxy
+    disc = math.sqrt(max(0.0, tr * tr / 4 - det))
+    l1, l2 = tr / 2 + disc, max(1e-6, tr / 2 - disc)
+    deg = {r.id: 0 for r in level.rooms}
+    for c in level.corridors:
+        deg[c.a] += 1
+        deg[c.b] += 1
+    for e in level.graph.edges:
+        if getattr(e, "merged", False):
+            deg[e.a] += 1
+            deg[e.b] += 1
+    real = [r.id for r in rooms]
+    return {
+        "elongation": math.sqrt(l1 / l2),
+        "centrality": max(deg[i] for i in real) / max(1, len(real) - 1),
+        "leaf_share": sum(1 for i in real if deg[i] == 1) / max(1, len(real)),
+    }
 
 
 def fingerprint(level: Level) -> Dict[str, float]:
@@ -53,13 +85,14 @@ def fingerprint(level: Level) -> Dict[str, float]:
         "lift_ladder_share": sum(1 for r in conns if r.kind in ("lift", "ladder")) / max(1, len(conns)),
         "open_area_share": len(level.sky) / open_cells,
         "mega_share": sum(len(list(r.cells())) for r in rooms if r.kind == "megaroom") / max(1, sum(areas)),
+        **_silhouette(level, rooms),
     }
 
 
-def normalise(prints: List[Dict[str, float]]) -> List[List[float]]:
+def normalise(prints: List[Dict[str, float]], features: List[str] = None) -> List[List[float]]:
     """z-score every feature over the given set."""
     cols = []
-    for f in FEATURES:
+    for f in features or FEATURES:
         vals = [p[f] for p in prints]
         m = sum(vals) / len(vals)
         sd = math.sqrt(sum((v - m) ** 2 for v in vals) / len(vals)) or 1.0

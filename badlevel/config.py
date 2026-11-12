@@ -34,6 +34,10 @@ class GenConfig:
     max_drop: int = 288          # highest intentional drop (units)
     tall_room_chance: float = 0.4  # arenas / hubs reaching up into the next storey
 
+    # --- composition ------------------------------------------------------------
+    composition: str = "tree"    # tree | hub | central | linear: the macro structure of the level
+    pacing_contrast: bool = False  # compression before release: low, narrow corridors into big spaces
+
     # --- open areas ------------------------------------------------------------
     open_areas: int = 0          # courtyards / plazas open to the sky (0 = none)
     mega_rooms: int = 0          # levels within the level (0 = none)
