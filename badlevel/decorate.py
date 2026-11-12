@@ -28,6 +28,7 @@ class RoomCtx:
         self.room = room
         self.used: Set[Cell] = set(room.world_diag())
         self.used.update(tuple(c) for c in room.meta.get("terrace", []))
+        self.used.update(tuple(c) for c in room.meta.get("overlook", []))   # the view from the booth
         gallery = [tuple(c) for c in room.meta.get("gallery", [])]
         if gallery:  # the upper-storey gallery deck: keep features off it, put a sniper on it
             self.used.update(gallery)

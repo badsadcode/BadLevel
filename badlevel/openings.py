@@ -238,3 +238,114 @@ def add_galleries(level: Level, router, rng: random.Random):
                 break
             if done:
                 break
+
+
+# ----------------------------------------------------------------------
+# overlooks: seeing a hall you can't (yet) enter
+# ----------------------------------------------------------------------
+def add_overlook(level: Level, router, rng: random.Random) -> bool:
+    """Underground levels: the deep chamber is seen from above before you reach it. A gallery
+    would be a physical way in (and the chamber usually sits behind a locked door), so this is
+    visual only: an observation booth carved beside the chamber at gallery height, reached by a
+    corridor from a room on the storey above, looking in through a wide glazed window (glass
+    stops movement and gunfire, not sight), or a long slit where the level has no glass (too low
+    for a player). One cell of rock stays between booth and hall."""
+    from .layout import LayoutError, carve_corridor, plan_floors
+    from .spaces import space_for
+    cfg = level.config
+    g = level.graph
+    H = cfg.storey_height
+    halls = [r for r in level.rooms if r.kind == "megaroom" and not r.meta.get("gallery")]
+    if not halls:
+        return False
+    hall = halls[0]
+    G = next((z for z in range(hall.floor + H, hall.floor + 159, -32) if hall.ceil >= z + 144), None)
+    if G is None:
+        return False
+    depth = g.nodes[hall.node].depth
+    uppers = [u for u in level.rooms if not u.is_connector and u.kind not in ("secret", "courtyard", "megaroom")
+              and abs(u.floor - G) <= 96 and g.nodes[u.node].depth <= depth]
+    uppers.sort(key=lambda u: abs(u.center()[0] - hall.center()[0]) + abs(u.center()[1] - hall.center()[1]))
+    bw, bd = 5, 3                                       # booth: along the wall x out of it
+    # a level without glass (the bunker: firing slits only) gets a long observation slit at eye
+    # height instead of a pane: 48 units, so no player fits through it either
+    glazed = cfg.glazed_chance > 0
+    win_lo, win_hi = (G + 16, G + 112) if glazed else (G + 24, G + 24 + SLIT)
+
+    def free(c, lo, hi):
+        return (2 < c[0] < level.width - 3 and 2 < c[1] < level.height - 3 and not level.spans_in(c, lo, hi)
+                and c not in level.diag and c not in level.glass and not router.room_at.get(c))
+
+    sites = []
+    for d in ((0, -1), (0, 1), (-1, 0), (1, 0)):
+        along = (1, 0) if d[1] else (0, 1)
+        length = hall.w if d[1] else hall.h
+        if d == (0, -1):
+            edge = [(hall.x + i, hall.y) for i in range(length)]
+        elif d == (0, 1):
+            edge = [(hall.x + i, hall.y + hall.h - 1) for i in range(length)]
+        elif d == (-1, 0):
+            edge = [(hall.x, hall.y + i) for i in range(length)]
+        else:
+            edge = [(hall.x + hall.w - 1, hall.y + i) for i in range(length)]
+        mid = length // 2
+        for off in sorted(range(2, length - bw - 1), key=lambda o: abs(o + bw // 2 - mid)):
+            sites.append((d, along, edge[off:off + bw]))
+    for d, along, inner in sites:
+        if any(not hall.contains(*c) or hall.is_diag(*c) for c in inner):
+            continue
+        wall = [(c[0] + d[0], c[1] + d[1]) for c in inner]
+        booth = [(c[0] + d[0] * k, c[1] + d[1] * k) for c in inner for k in range(2, 2 + bd)]
+        ring = {(x + dx, y + dy) for (x, y) in booth for dx in (-1, 0, 1) for dy in (-1, 0, 1)} - set(booth) - set(wall)
+        if not all(free(c, G - 48, G + 176) for c in booth) or not all(free(c, G - 48, G + 176) for c in ring) \
+                or not all(free(c, win_lo, win_hi) for c in wall):
+            continue
+        xs, ys = [c[0] for c in booth], [c[1] for c in booth]
+        room = Room(len(level.rooms), -1, "overlook", min(xs), min(ys), max(xs) - min(xs) + 1,
+                    max(ys) - min(ys) + 1, G, G + 128, storey=hall.storey + 1)
+        level.rooms.append(room)
+        space_for("overlook").build(level, room, cfg)
+        router.add_room(room)
+        for u in uppers[:5]:
+            env = (min(u.floor, G), max(u.floor, G) + 128)
+            try:
+                path = router.route(u, room, 1, False, 1, env)
+            except LayoutError:
+                continue
+            while len(path) > 1 and u.contains(*path[1]):
+                path.pop(0)
+            inner_path = path[1:-1]
+            floors = plan_floors(inner_path, u.floor, G, cfg, 1)
+            if floors is None or len(inner_path) < 2:
+                continue
+            node = g.add_node("overlook", "small", zone=g.nodes[u.node].zone, depth=g.nodes[u.node].depth,
+                              storey=room.storey)
+            room.node = node.id
+            edge = g.add_edge(u.node, node.id, tree=False, connector="overlook")
+            carve_corridor(level, router, edge.id, u, room, inner_path, floors, [f + 128 for f in floors],
+                           1, 1, 128, False, "open", None, None, env)
+            # the window: one cell of wall, glazed, between booth and hall
+            for w in wall[1:-1]:
+                level.add_span(w, (win_lo, win_hi), "window:overlook")
+                if glazed:
+                    level.glass.add(w)
+            s = level.cell
+            ws = wall[1:-1]
+            lo = (min(c[0] for c in ws) * s, min(c[1] for c in ws) * s, win_lo)
+            hi = ((max(c[0] for c in ws) + 1) * s, (max(c[1] for c in ws) + 1) * s, win_hi)
+            level.entities.append(Entity("window", tuple((a + b) / 2 for a, b in zip(lo, hi)),
+                                         {"glazed": glazed, "areas": [f"room:{room.id}", f"room:{hall.id}"],
+                                          "overlook": True}, (lo, hi)))
+            # keep the sightline clear: nothing stands right in front of the window
+            front = [(c[0] - d[0] * k, c[1] - d[1] * k) for c in inner[1:-1] for k in range(0, 2)]
+            hall.meta["overlook"] = [list(c) for c in front if hall.contains(*c)]
+            room.meta["overlooks"] = hall.id
+            return True
+        # no way up to this booth: take it back out
+        for c in room.cells():
+            level.spans.pop(c, None)
+            level.owners.pop(c, None)
+        router.remove_room(room)
+        if level.rooms and level.rooms[-1] is room:
+            level.rooms.pop()
+    return False

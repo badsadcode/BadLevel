@@ -316,3 +316,32 @@ def test_underground_is_opt_in():
     assert not compile_recipe(PRESETS["fortress"], 1).underground
     lv = generate(seed=4, storeys=3)
     assert not any(r.meta.get("surface") for r in lv.rooms)
+
+
+def test_deep_chamber_is_seen_from_above(styled):
+    """Underground: an observation booth on the storey above looks into the deep chamber through
+    glass. Visual only: the booth is a dead end, and the glass blocks movement."""
+    seen = 0
+    for lv in styled["bunker"]:
+        booth = [r for r in lv.rooms if r.kind == "overlook"]
+        if not booth:
+            continue
+        seen += 1
+        b = booth[0]
+        hall = lv.rooms[b.meta["overlooks"]]
+        assert b.floor - hall.floor >= 160 and validate(lv)["ok"]
+        win = [e for e in lv.entities if e.kind == "window" and e.props.get("overlook")]
+        assert win and not win[0].props["glazed"]          # a bunker sees through slits, never glass
+        s = lv.cell
+        (x0, y0, _), (x1, y1, _) = win[0].bounds
+        cells = [(x, y) for x in range(int(x0 // s), int((x1 - 1) // s) + 1)
+                 for y in range(int(y0 // s), int((y1 - 1) // s) + 1)]
+        # nobody fits through: glass, or an opening lower than a player
+        # (a corridor may pass below the slit, through the same wall: check the window's own opening)
+        def window_span(c):
+            return next(sp for sp in lv.spans[c] if lv.owner_of(c, sp) == "window:overlook")
+        assert cells and all(c in lv.glass or (lambda sp: sp[1] - sp[0] < lv.config.player_height)(window_span(c))
+                             for c in cells)
+        # nothing stands in front of the window
+        assert all(lv.room_spans(tuple(c), hall) for c in hall.meta["overlook"])
+    assert seen >= 4, seen

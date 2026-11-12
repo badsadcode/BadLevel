@@ -186,6 +186,19 @@ def viewpoints(level, report):
                               "target": gl(cx * s, cy * s, r.ceil + 160)})
             break
 
+    # 7. an overlook: from the observation booth, through its window, down into the hall below
+    for r in level.rooms:
+        if r.kind == "overlook" and r.meta.get("overlooks") is not None:
+            hall = level.rooms[r.meta["overlooks"]]
+            hx, hy = hall.center()
+            # the booth cell nearest the hall's centre, i.e. at the window
+            c = min(r.cells(), key=lambda c: (c[0] + 0.5 - hx) ** 2 + (c[1] + 0.5 - hy) ** 2)
+            shots.append({"name": "overlook_window", "caption": f"Seen from above before you get there: the "
+                          f"{hall.kind} through the observation window, {(r.floor - hall.floor) / 32:.0f} m up",
+                          "eye": gl((c[0] + 0.5) * s, (c[1] + 0.5) * s, r.floor + EYE),
+                          "target": gl(hx * s, hy * s, hall.floor)})
+            break
+
     # 4. the most interesting sight link: across storeys first, then the longest
     links = report.get("visual", {}).get("links", [])
     if links:

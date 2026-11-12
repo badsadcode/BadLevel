@@ -314,6 +314,28 @@ class Router:
         # every corridor cell carved so far, with its vertical range
         self.open_cells: Dict[Cell, List[Tuple[int, int]]] = {}
 
+    def add_room(self, room: Room):
+        """Register a room added after placement (an overlook booth): the router avoids it like
+        any other room and can route into it."""
+        if room not in self.rooms:
+            self.rooms.append(room)
+        for c in room.cells():
+            self.room_at.setdefault(c, []).append(room.id)
+        R = self.MAX_REACH
+        for y in range(room.y - R, room.y + room.h + R):
+            for x in range(room.x - R, room.x + room.w + R):
+                if not room.contains(x, y):
+                    self._near_room.setdefault((x, y), []).append((room.id, room.dist(x, y)))
+
+    def remove_room(self, room: Room):
+        for cells in self.room_at.values():
+            if room.id in cells:
+                cells.remove(room.id)
+        for lst in self._near_room.values():
+            lst[:] = [t for t in lst if t[0] != room.id]
+        if self.rooms and self.rooms[-1] is room:
+            self.rooms.pop()
+
     def add_open(self, c: Cell, lo: int, hi: int):
         self.open_cells.setdefault(c, []).append((lo, hi))
 
@@ -730,6 +752,9 @@ def build_layout(g: MissionGraph, cfg: GenConfig, rng: random.Random, seed: int)
     if cfg.storeys > 1 and cfg.galleries:
         from .openings import add_galleries
         add_galleries(level, router, rng)
+    if cfg.underground and cfg.storeys > 1:
+        from .openings import add_overlook
+        add_overlook(level, router, rng)
     return level
 
 

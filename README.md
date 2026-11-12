@@ -321,7 +321,9 @@ feature on the axis of the way in, the rest stay oblique for surprise. Never ove
 **Underground** (`underground`, the bunker preset): in from the surface and down. The
 start room is open to the sky, the critical path steps down storey by storey to an exit
 on the deepest storey, and at the bottom there's a deep chamber cut from the rock
-(cavern section: rough ceiling, rock pillars, rough-cut walls).
+(cavern section: rough ceiling, rock pillars, rough-cut walls). On the way down, an observation booth
+on the storey above looks into the deep chamber through a glazed window (visual only: the
+chamber stays behind its locked door).
 
 Safety: piers go in before a room's features, keep 2 cells from doorways and a walkable
 ring, and are undone if they would split the floor. Ceilings are applied after the

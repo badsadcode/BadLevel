@@ -138,3 +138,20 @@ class RoomSpace(SpaceType):
 
 
 register(RoomSpace())
+
+
+class OverlookSpace(RoomSpace):
+    """An observation booth: a small room that exists to look into a hall through glass."""
+    name = "overlook"
+    kinds = ("overlook",)
+    ENEMY_AREA = {}
+    PICKUPS = {}
+
+    def feature_options(self, room: Room):
+        return [[]]
+
+    def crate_chance(self, room: Room) -> float:
+        return 0.0
+
+
+register(OverlookSpace())

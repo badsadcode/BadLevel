@@ -479,3 +479,30 @@ a test checks every door in the styled presets).
 **Camera.** The showcase's reveal camera now looks along the corridor's last stretch
 from 4 cells before the hall (slightly upwards), as a player arrives, instead of at the
 hall's centre, which was often off the axis and filled half the shot with corridor wall.
+
+## D23. The deep chamber is seen from above (an overlook, visual only)
+
+**Problem.** Tom and Noor: make the deep chamber visible on the way down, so the descent
+becomes a reveal of its own. A gallery (a deck inside the hall reached from the storey
+above) is the existing tool, but it never formed: the chamber sits behind the locked door
+(lock zone 1) while the rooms above are in zone 0, and a gallery is a physical way in (you
+could drop from the deck into the hall and skip the lock). The generator was right to refuse.
+
+**Decision.** `add_overlook` (layout, underground only): an **observation booth**, a new
+small space type `overlook` (no enemies, no pickups, no architecture), carved into the rock
+beside the chamber at gallery height, with exactly one cell of rock between them. A corridor
+reaches it from a room on the storey above (any zone, at or before the chamber's depth),
+routed and carved like a gallery corridor; the router learns about the late room
+(`Router.add_room`). In that one-cell wall goes a wide **glazed window** (glass blocks
+movement and gunfire but not sight), or, where the level uses no glass, a long **observation
+slit** at eye height, 48 units tall so no player fits: the bunker's identity is "firing slits,
+never glass", and a preset test caught the first version breaking it. Either way the lock
+logic is untouched and the booth is a dead end. The hall cells in front of the window are reserved, so no member, platform or crate
+blocks the view. If no corridor can reach a candidate booth, it is taken back out.
+
+**Result.** Bunker seeds 1-8: 8 of 8 chambers have an overlook 7-8 m above their floor;
+every level validates; the visual-connectivity analysis counts the new through-glass views.
+A showcase camera rule looks from the booth through the window into the chamber.
+
+**Known limits.** One overlook per level, always a booth with a window (no balcony over
+the void). The booth is a side branch; nothing pulls the player into it, it is found.

@@ -47,7 +47,7 @@ from .level import Cell, Level, Room
 STYLES = ("gothic", "industrial", "bunker", "compound")
 HEAD = 112          # least headroom under any structure: the lowest corridor the generator makes
                     # (pacing compression), so a jump never meets a beam it wouldn't meet there
-SKIP_KINDS = ("courtyard", "secret")
+SKIP_KINDS = ("courtyard", "secret", "overlook")
 
 
 def q(z: float) -> int:
