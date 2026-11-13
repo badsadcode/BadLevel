@@ -247,6 +247,32 @@ def viewpoints(level, report):
                       f"{lk['a']} → {lk['b']}" + (" (across storeys)" if lk["cross_storey"] else "")
                       + (" (through glass)" if lk["through_glass"] else ""),
                       "eye": gl(*lk["from"]), "target": gl(*lk["to"])})
+
+    # 5. room options (D32, D34), when a level has them: a dome or a round room from a corner,
+    #    a spiral stair from its bottom door
+    dome = next((r for r in rooms if r.meta.get("arch", {}).get("profile") == "dome"), None)
+    shaped = dome or next((r for r in rooms if r.shape in ("round", "hex")), None)
+    if shaped:
+        base = [c for c in shaped.cells() if c not in level.diag
+                and any((c[0], c[1], i) in reach and sp[0] == shaped.floor
+                        for i, sp in enumerate(level.spans.get(c, [])))]
+        if base:
+            frac = 0.75 if dome else 0.35
+            c = _corner_eye(level, occ, shaped, base, shaped.floor + frac * (shaped.ceil - shaped.floor))
+            what = "A dome" if dome else f"A {shaped.shape} room"
+            shots.append({"name": "shape", "caption": f"{what}: the {shaped.kind}, {shaped.w}×{shaped.h} m"
+                          + (f", {shaped.shape} plan" if dome else "") + ", seen from its edge",
+                          "eye": gl((c[0] + 0.5) * s, (c[1] + 0.5) * s, shaped.floor + EYE),
+                          "target": _room_center(level, shaped, frac)})
+    spiral = next((r for r in level.rooms if r.kind == "spiral"), None)
+    if spiral:
+        import math
+        cx, cy = (spiral.x + spiral.w / 2) * s, (spiral.y + spiral.h / 2) * s
+        a = spiral.meta["start"] * 2 * math.pi
+        shots.append({"name": "spiral", "caption": f"A spiral stair: {spiral.meta['turns']} turn(s) round a newel, "
+                      f"{(spiral.top_floor - spiral.floor) / 32:.0f} m up, from the bottom door",
+                      "eye": gl(cx + math.cos(a) * 4.4 * s, cy + math.sin(a) * 4.4 * s, spiral.floor + EYE),
+                      "target": gl(cx - math.sin(a) * 3 * s, cy + math.cos(a) * 3 * s, spiral.floor + 160)})
     return shots
 
 
@@ -292,6 +318,7 @@ def arch_summary(level) -> str:
     return "; ".join(parts) + (f"; {plain} plain" if plain else "")
 
 
+OPTIONS = ()              # (spaciousness, variety): the room options showcase
 STYLE_OVERRIDE = {}       # category key -> arch_style (the styles showcase: one layout, every style)
 
 STYLE_NOTES = {
@@ -329,6 +356,10 @@ def build(out: str):
             cfg = compile_recipe(PRESETS[preset], seed)
             if key in STYLE_OVERRIDE:
                 cfg.arch_style = STYLE_OVERRIDE[key]
+            if OPTIONS:                                  # --options 0.8:1 (spaciousness, variety)
+                from badlevel.recipes import roomier, varied
+                roomier(cfg, OPTIONS[0])
+                varied(cfg, OPTIONS[1])
             level = generate(cfg)
             report = analyze(level)
             stem = f"{key}_{seed}"
@@ -446,6 +477,9 @@ if __name__ == "__main__":
     if "--styles" in sys.argv:                      # --styles fortress:3
         pr, sd = sys.argv[sys.argv.index("--styles") + 1].split(":")
         use_styles(pr, int(sd))
+    if "--options" in sys.argv:                     # --options 0.8:1
+        sp, va = sys.argv[sys.argv.index("--options") + 1].split(":")
+        OPTIONS = (float(sp), float(va))
     if "--page" in sys.argv:
         review = ""
         path = os.path.join(out, "review.html")
