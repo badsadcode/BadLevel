@@ -48,6 +48,9 @@ def _cfg_from_args(args, seed: int, recipe=None) -> GenConfig:
             setattr(cfg, name, v)
     if args.no_secret:
         cfg.secret = False
+    style = getattr(args, "style", None)
+    if style is not None:
+        cfg.arch_style = "" if style == "none" else style       # any recipe, any architecture
     return cfg
 
 
@@ -112,6 +115,9 @@ def main(argv=None):
         sp.add_argument("--composition", choices=["tree", "hub", "central", "linear"],
                         help="macro structure of the level")
         sp.add_argument("--no-secret", action="store_true")
+        from .architecture import STYLES
+        sp.add_argument("--style", choices=("none",) + STYLES,
+                        help="architecture style, whatever the recipe (none = plain boxes)")
         sp.add_argument("--no-analysis", action="store_true", help="skip combat analysis (needs numpy)")
         sp.add_argument("--candidates", type=int, default=1,
                         help="generate N variants per seed, keep the first that passes the quality gate")

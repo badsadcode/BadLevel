@@ -47,8 +47,9 @@ def test_headroom_and_openings(styled):
             for r in shaped(lv):
                 for c in r.cells():
                     spans = lv.room_spans(c, r)
-                    if spans and spans[-1][1] < r.ceil and c not in lv.sky:
-                        f, top = spans[-1]
+                    if spans and spans[-1][1] < r.ceil and c not in lv.sky \
+                            and not (lv.owner_at(c, spans[-1][0]) or "").startswith("window:"):
+                        f, top = spans[-1]                 # (a slit cut through a jamb is a window)
                         assert top - f >= A.HEAD, (lv.seed, r.id, c, spans)
 
 
@@ -462,3 +463,53 @@ def test_map_groups_per_element(styled):
     assert m.count('"classname" "func_group"') == len(groups)
     # a level without architecture has no groups: its .map is unchanged
     assert "func_group" not in to_map(generate(seed=2))
+
+
+# ----------------------------------------------------------------------
+# more vocabularies: egyptian, sci-fi, castle (any recipe can use any style)
+# ----------------------------------------------------------------------
+@pytest.mark.parametrize("style,grand", [("egyptian", {"hypostyle", "corbelled", "battered"}),
+                                         ("scifi", {"hull", "chamfered", "lightwell"}),
+                                         ("castle", {"trussed", "barrel", "undercroft"})])
+def test_new_styles(style, grand):
+    profiles = set()
+    walls = recesses = 0
+    for preset in ("fortress", "classic"):
+        for seed in (1, 2):
+            cfg = compile_recipe(PRESETS[preset], seed)
+            cfg.arch_style = style
+            lv = generate(cfg)
+            assert validate(lv)["ok"]
+            for r in shaped(lv):
+                assert r.meta["arch"]["style"] == style
+                profiles.add(r.meta["arch"]["profile"])
+                if r.meta["arch"]["tier"] == "grand":
+                    assert r.meta["arch"]["profile"] in grand
+            for r in lv.rooms:
+                w = r.meta.get("walls", {})
+                walls += w.get("members", 0)
+                recesses += w.get("recesses", 0)
+    assert len(profiles) >= 3 and walls > 0 and recesses > 0, (profiles, walls, recesses)
+
+
+def test_style_from_the_command_line(tmp_path):
+    from badlevel.cli import main as cli
+    assert cli(["generate", "--seed", "2", "--recipe", "classic", "--style", "castle", "--out", str(tmp_path),
+                "--formats", "map", "--no-analysis"]) == 0
+    assert any("timber" in p.read_text() or "func_group" in p.read_text() for p in tmp_path.glob("*.map"))
+
+
+@pytest.mark.parametrize("preset", ["fortress", "classic", "compound"])
+def test_architecture_never_changes_the_layout(preset):
+    """Any style on the same recipe and seed gives the same layout: it never makes an attempt
+    invalid (a window's owner entry has to come before a room's on a cell that became solid)."""
+    from badlevel.architecture import STYLES
+    for seed in (1, 2):
+        base = compile_recipe(PRESETS[preset], seed)
+        base.arch_style = ""
+        ref = generate(base)
+        for st in STYLES:
+            cfg = compile_recipe(PRESETS[preset], seed)
+            cfg.arch_style = st
+            lv = generate(cfg)
+            assert lv.notes[-1] == ref.notes[-1] and len(lv.rooms) == len(ref.rooms), (preset, seed, st)

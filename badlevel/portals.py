@@ -92,6 +92,9 @@ HEADS = {   # style -> (shape, rise per cell of width, least rise, most rise)
     "gothic": ("pointed", 28, 48, 192),
     "compound": ("round", 16, 32, 128),
     "industrial": ("flat", 0, 64, 112),
+    "egyptian": ("flat", 0, 48, 96),          # a massive lintel over a tall doorway
+    "scifi": ("chamfer", 16, 32, 64),         # a door frame with its corners cut
+    "castle": ("round", 16, 32, 128),
 }
 
 
@@ -129,7 +132,7 @@ def _jambs(level: Level, room: Room, op: dict, style: str, taken: set, mouths: s
     t = (0, 1) if d[0] else (1, 0)                     # along the wall
     first, last = op["cells"][0], op["cells"][-1]
     ends = [(first[0] - t[0], first[1] - t[1]), (last[0] + t[0], last[1] + t[1])]
-    deep = 2 if style == "bunker" else 1
+    deep = 2 if style in ("bunker", "egyptian") else 1          # a blast frame; a pylon gate
     placed = 0
     for e in ends:
         cells = [(e[0] - d[0] * k, e[1] - d[1] * k) for k in range(deep)]
@@ -188,7 +191,8 @@ def _head(level: Level, room: Room, op: dict, style: str, doors: set, smooth: bo
     along = (lambda X, Y: Y) if d[0] else (lambda X, Y: X)
     xs = [along(*m) for m in mouth]
     centre, half = (min(xs) + max(xs) + 1) / 2.0, w / 2.0
-    arch = {"pointed": pointed, "round": round_arch}.get(shape)
+    arch = {"pointed": pointed, "round": round_arch,
+            "chamfer": lambda t: min(1.0, (1.0 - t) * 3.0)}.get(shape)
 
     def z(A):
         if arch is None or not smooth:

@@ -310,6 +310,11 @@ plus structure standing in the room, so the silhouette changes even as plain gre
 | industrial | **portal** (pilaster frames, deep trusses, maybe a raised monitor), **sawtooth**, **multispan** (gabled spans on column rows), **clearspan** |
 | bunker | **ribbed** (downstand ribs, haunches), **barrel** (low segmental vault), **mushroom** (squat piers with drop panels) |
 | compound | **gable**, **shed**, **portal**, **multispan**, **clearspan** |
+| egyptian | **hypostyle** (columns and a processional aisle), **lintel**, **corbelled**, **battered** |
+| scifi | **hull** (chamfered with frames), **chamfered**, **lightwell** |
+| castle | **trussed** (open roof with tie-beams), **timber**, barrel, undercroft |
+
+Any recipe can use any style: `badlevel generate --recipe classic --style castle`.
 
 Rooms are ranked by volume: the biggest space (and any mega-room) is *grand*, the next
 third *major*, the rest *minor*, each with its own palette. Small rooms get something

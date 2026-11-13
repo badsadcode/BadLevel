@@ -122,7 +122,9 @@ def add_windows(level: Level, rng: random.Random, count: int, glazed_chance: flo
         cells = []
         for (wall, _, _, _, _) in chosen:
             for w in wall:
-                level.add_span(w, (lo, hi), f"window:{made}")
+                level.add_span(w, (lo, hi))
+                # first: a wall cell that was a room cell (a jamb, a member) still has the room's entry
+                level.owners.setdefault(w, []).insert(0, (lo, hi, f"window:{made}"))
                 cells.append(w)
                 if glazed:
                     level.glass.add(w)

@@ -34,7 +34,8 @@ from .architecture import HEAD, Frame, Section, bay_lines, bay_size, place_piers
 from .level import Cell, Level, Room
 
 # style -> (bay factor, bay min, bay max)
-RHYTHM = {"gothic": (0.42, 3, 8), "industrial": (0.7, 4, 8), "bunker": (0.4, 3, 4), "compound": (0.6, 4, 7)}
+RHYTHM = {"gothic": (0.42, 3, 8), "industrial": (0.7, 4, 8), "bunker": (0.4, 3, 4), "compound": (0.6, 4, 7),
+          "egyptian": (0.5, 3, 6), "scifi": (0.35, 3, 4), "castle": (0.5, 4, 7)}
 
 
 class Side:
@@ -146,7 +147,11 @@ def articulate(level: Level, room: Room, ctx, sec: Optional[Section], tier: str)
         end = {"gothic": dict(frac_w=0.34, depth=2, frac_h=0.7, z0=0, pointed=True),
                "industrial": dict(frac_w=0.3, depth=1, frac_h=None, top=176, z0=0, pointed=False),
                "bunker": dict(frac_w=0.3, depth=1, frac_h=None, top=112, z0=0, pointed=False),
-               "compound": dict(frac_w=0.3, depth=1, frac_h=0.6, z0=32, pointed=False)}[style]
+               "compound": dict(frac_w=0.3, depth=1, frac_h=0.6, z0=32, pointed=False),
+               # a sanctuary niche at the end of the axis; a bulkhead door; a fireplace
+               "egyptian": dict(frac_w=0.25, depth=2, frac_h=0.6, z0=0, pointed=False),
+               "scifi": dict(frac_w=0.3, depth=1, frac_h=None, top=128, z0=0, pointed=False),
+               "castle": dict(frac_w=0.25, depth=1, frac_h=None, top=96, z0=0, pointed=False)}[style]
         w = max(3, min(7, int(round(fr.W * end["frac_w"]))))
         tries = [(s, (fr.W - w) // 2, False, w) for s in rng.sample(["u0", "u1"], 2)]
         focus = _incoming_axis(level, room, fr, ctx)
@@ -209,7 +214,7 @@ def articulate(level: Level, room: Room, ctx, sec: Optional[Section], tier: str)
     # --- inward: members on the bay lines of the long walls (unless the section already has them)
     has_members = sec is not None and any(
         all(v in (0, fr.W - 1) for _, v in g) for g in sec.piers)
-    member_w = 2 if style == "bunker" and fr.W >= 9 else 1
+    member_w = 2 if style in ("bunker", "castle") and fr.W >= 9 else 1     # counterforts, buttresses
     lines = bay_lines(fr.L, bay, member_w)
     if not has_members and fr.W >= 5 and fr.L >= 6:
         groups = []
@@ -226,6 +231,10 @@ def articulate(level: Level, room: Room, ctx, sec: Optional[Section], tier: str)
         "industrial": dict(width=3 if bay >= 6 else 2, z0=0, frac=None, top=128, every=2, depth=1, pointed=False),
         "bunker": dict(width=2, z0=0, frac=None, top=96, every=1, depth=1, pointed=False),
         "compound": dict(width=3 if bay >= 6 else 2, z0=32, frac=0.55, every=1, depth=1, pointed=False),
+        # false doors; panel bays with a console sill; deep window embrasures
+        "egyptian": dict(width=1, z0=0, frac=0.5, every=1, depth=1, pointed=False),
+        "scifi": dict(width=3 if bay >= 4 else 2, z0=16, frac=None, top=112, every=2, depth=1, pointed=False),
+        "castle": dict(width=1, z0=0, frac=None, top=128, every=1, depth=2, pointed=False),
     }[style]
     if tier == "minor" and style in ("gothic", "compound"):
         spec["every"] = 2                                    # quieter in small rooms

@@ -611,3 +611,38 @@ roofs). Exporters file every face and brush under a part:
 bigger from per-object overhead, and about 40% more brushes in a styled fortress (1,400 ->
 2,000). Levels without architecture have no tags: their .map is byte-identical (golden
 26/26) and their .glb only gains the per-room objects.
+
+## D28. Three more vocabularies: egyptian, sci-fi, castle
+
+**Why.** Tom and Noor: "let's go with all of them". A new style is now mostly data: a palette
+of profiles per tier (architecture.py), a wall rhythm, members, recesses and an end feature
+(walls.py), and a portal head (portals.py). Nine new profiles were needed; everything else
+reuses the machinery of D18-D27 (piers, smooth surfaces, forced steps, recesses, parts).
+
+| Style | Grand halls | Other rooms | Walls | End feature | Portals |
+|---|---|---|---|---|---|
+| egyptian | **hypostyle** (a forest of thick columns, a taller processional aisle lit by a clerestory), **corbelled**, **battered** | **lintel** (stone beams close together), corbelled, battered | false-door niches | a sanctuary niche, 2 deep | flat, under a massive lintel; pylon-thick jambs (2 deep) |
+| scifi | **hull** (chamfered section with frames), **chamfered**, **lightwell** (a lit spine) | chamfered, lightwell, haunched | thin frames, panel bays with a console sill | a bulkhead door | a frame with its corners cut |
+| castle | **trussed** (a steep open roof with tie-beams at the eaves), barrel, undercroft | **timber** (joists), barrel, trussed | buttresses (2 wide), window embrasures 2 deep | a fireplace | round arches |
+
+Corbelling is stepped on purpose (courses are steps); battered walls and chamfers are
+smooth; hull frames and tie-beams are forced steps laid over a smooth section. Corbelling
+springs from at least half the room's height, otherwise a big hall turns into a ziggurat.
+
+**Any recipe, any style.** `--style` on the command line (and `arch_style` in a recipe)
+applies any vocabulary to any preset: `badlevel generate --recipe classic --style castle`.
+A styles showcase renders one layout (fortress, seed 3) in all eight variants.
+
+**Checked.** Egyptian, sci-fi and castle on fortress, industrial, compound and classic,
+seeds 1-3: all valid, each style uses its whole palette; tests per style (grand halls get a
+grand profile, walls get members and recesses). Unstyled levels unchanged.
+
+**Bug found on the way: architecture could change the layout.** The styles showcase was
+meant to show one layout in eight styles, but bunker, egyptian and castle produced
+different room counts. Their first attempt had failed validation ("span too low (48)"): a
+jamb or a wall member turns a room cell solid, the cell keeps the room's owner entry, and
+when the window pass later cuts a firing slit through it, the slit's owner came *after*
+the room's, so the validator saw a 48-unit room span instead of a window. The generator
+then retried with a new layout. Windows now put their owner entry first. Checked over every
+preset x every style x seeds 1-3 (147 levels): styled and unstyled levels now take the same
+attempt and have the same layout; a test keeps it so. Unstyled levels unchanged.

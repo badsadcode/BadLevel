@@ -268,12 +268,43 @@ def arch_summary(level) -> str:
     return "; ".join(parts) + (f"; {plain} plain" if plain else "")
 
 
+STYLE_OVERRIDE = {}       # category key -> arch_style (the styles showcase: one layout, every style)
+
+STYLE_NOTES = {
+    "none": "No architecture: the level as the layout makes it (boxes).",
+    "gothic": "Pointed vaults, basilicas, undercrofts; shafts, lancet niches, an apse; pointed portals.",
+    "industrial": "Portal frames, trusses, sawtooth and multispan roofs; frame pilasters, service bays, crane "
+                  "corbels; lintelled openings.",
+    "bunker": "Ribbed slabs, mushroom piers, low barrels; counterforts, shelters, a blast door; blast frames.",
+    "compound": "Gables, sheds, portal frames; pilasters, window bays, a bay window; round arches.",
+    "egyptian": "A hypostyle hall with a processional aisle, stone lintels, corbelled ceilings, battered walls; "
+                "false-door niches, a sanctuary at the end of the axis; massive lintels and pylon-thick gates.",
+    "scifi": "Chamfered station modules, hull frames, a lit spine; thin frames, panel bays with consoles, a "
+             "bulkhead door; door frames with their corners cut.",
+    "castle": "A trussed great hall with tie-beams, timber joists, barrel vaults; buttresses, deep window "
+              "embrasures, a fireplace; round arches.",
+}
+
+
+def use_styles(preset: str, seed: int):
+    """Switch the showcase to the styles view: one layout (preset, seed), in every style."""
+    global CATEGORIES, SEEDS
+    from badlevel.architecture import STYLES
+    CATEGORIES = [(st, st.capitalize() if st != "scifi" else "Sci-fi station", preset, STYLE_NOTES.get(st, ""))
+                  for st in ("none",) + STYLES]
+    SEEDS = (seed,)
+    STYLE_OVERRIDE.clear()
+    STYLE_OVERRIDE.update({st: ("" if st == "none" else st) for st, *_ in CATEGORIES})
+
+
 def build(out: str):
     os.makedirs(out, exist_ok=True)
     index = []
     for key, title, preset, note in CATEGORIES:
         for seed in SEEDS:
             cfg = compile_recipe(PRESETS[preset], seed)
+            if key in STYLE_OVERRIDE:
+                cfg.arch_style = STYLE_OVERRIDE[key]
             level = generate(cfg)
             report = analyze(level)
             stem = f"{key}_{seed}"
@@ -385,6 +416,9 @@ __SECTIONS__
 
 if __name__ == "__main__":
     out = sys.argv[1] if len(sys.argv) > 1 else "showcase"
+    if "--styles" in sys.argv:                      # --styles fortress:3
+        pr, sd = sys.argv[sys.argv.index("--styles") + 1].split(":")
+        use_styles(pr, int(sd))
     if "--page" in sys.argv:
         review = ""
         path = os.path.join(out, "review.html")

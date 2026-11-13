@@ -44,7 +44,7 @@ from typing import Callable, Dict, List, Optional, Tuple
 
 from .level import Cell, Level, Room
 
-STYLES = ("gothic", "industrial", "bunker", "compound")
+STYLES = ("gothic", "industrial", "bunker", "compound", "egyptian", "scifi", "castle")
 HEAD = 112          # least headroom under any structure: the lowest corridor the generator makes
                     # (pacing compression), so a jump never meets a beam it wouldn't meet there
 SKIP_KINDS = ("courtyard", "secret", "overlook")
@@ -494,11 +494,168 @@ def cavern(fr: Frame, rng: random.Random) -> Optional[Section]:
     return s
 
 
+# ---------------------------------------------------------------- egyptian
+def hypostyle(fr: Frame, rng: random.Random) -> Optional[Section]:
+    """A forest of thick columns under a flat stone roof, a taller processional aisle down the
+    middle lit by a clerestory (Karnak, in greybox)."""
+    L, W, H = fr.L, fr.W, fr.H
+    if W < 11 or L < 10 or H < HEAD + 96:
+        return None
+    s = Section("hypostyle", fr)
+    p = 2 if W >= 14 else 1
+    band = 4 if W >= 16 else 3                           # the processional aisle
+    b0 = (W - band) // 2
+    b1 = b0 + band
+    side_h = q(max(HEAD + 48, H * rng.uniform(0.6, 0.72)))
+    for u in range(L):
+        for v in range(W):
+            s.set(u, v, H if b0 - p <= v < b1 + p else side_h)
+    bay = p + rng.choice([2, 3])                         # dense: the columns are the room
+    us = bay_lines(L, bay, p)
+    vs = [v for v in range(1, b0 - p, bay)] + [v for v in range(b1 + 1, W - p, bay)]
+    vs = [v for v in vs if v + p <= b0 - 1 or v >= b1 + 1]    # the aisle stays clear, columns flank it
+    for u in us:
+        for v in vs:
+            if v + p <= W - 1:
+                s.piers.append(_pier(u, v, p))
+    s.info = {"bay": bay, "pier": p, "aisle": band, "side_height": side_h}
+    return s
+
+
+def lintel(fr: Frame, rng: random.Random) -> Optional[Section]:
+    """A flat stone roof on heavy beams laid across the room, close together."""
+    L, W, H = fr.L, fr.W, fr.H
+    if H < HEAD + 48:
+        return None
+    s = Section("lintel", fr)
+    depth = min(64, q(H - HEAD - 16))
+    every = rng.choice([2, 3])
+    for u in range(L):
+        for v in range(W):
+            s.set(u, v, H - depth if u % every == 1 else H)
+    s.info = {"every": every, "depth": depth}
+    return s
+
+
+def corbelled(fr: Frame, rng: random.Random) -> Optional[Section]:
+    """A corbelled ceiling: courses of stone stepping inwards to a narrow top. Stepped by
+    nature: each course is a step, not a slope."""
+    L, W, H = fr.L, fr.W, fr.H
+    if H < HEAD + 64 or W < 5:
+        return None
+    s = Section("corbelled", fr)
+    course = rng.choice([32, 48])
+    rise = min(q(H - HEAD - 16), course * (W // 2), q(H * 0.5))   # the walls rise first, then the courses
+    eave = H - rise
+    for u in range(L):
+        for v in range(W):
+            e = min(v, W - 1 - v)                         # courses counted in from the walls
+            s.set(u, v, min(H, eave + course * e))
+    s.info = {"course": course, "eave": eave}
+    return s
+
+
+def _edge_slope(fr: Frame, name: str, band: int, drop: int) -> Optional[Section]:
+    """Ceilings sloping down to both long walls over ``band`` cells (battered walls, chamfers)."""
+    L, W, H = fr.L, fr.W, fr.H
+    drop = min(drop, q(H - HEAD - 16))
+    if drop < 32 or W < 2 * band + 2:
+        return None
+    s = Section(name, fr)
+
+    def h(uf, vf, u, v):
+        e = min(vf, W - vf)
+        return H - drop * max(0.0, 1 - e / band)
+    s.fill(h)
+    s.info = {"band": band, "drop": drop}
+    return s
+
+
+def battered(fr: Frame, rng: random.Random) -> Optional[Section]:
+    """Walls leaning in as they rise (the battered walls of a temple or a pylon)."""
+    return _edge_slope(fr, "battered", 3 if fr.W >= 14 else 2, q(fr.H * rng.uniform(0.25, 0.35)))
+
+
+# ---------------------------------------------------------------- sci-fi
+def chamfered(fr: Frame, rng: random.Random) -> Optional[Section]:
+    """A station module: the upper corners cut at 45 degrees (a near-octagonal section)."""
+    band = 2 if fr.W >= 10 else 1
+    return _edge_slope(fr, "chamfered", band, 32 * band)
+
+
+def ribbed_hull(fr: Frame, rng: random.Random) -> Optional[Section]:
+    """A hull: chamfered section with frames (ribs) every few cells along it."""
+    s = chamfered(fr, rng)
+    if s is None:
+        return None
+    s.name = "hull"
+    L, W, H = fr.L, fr.W, fr.H
+    every = rng.choice([3, 4])
+    rib = min(32, q(H - HEAD - 16 - s.info["drop"]))
+    if rib < 16:
+        return s
+    for u in range(L):
+        if u % every == 0:
+            for v in range(W):
+                s.ceil[(u, v)] = min(s.ceil[(u, v)], q(H - s.info["drop"] - rib))
+                s.forced.add((u, v))
+    s.info.update({"frames": every})
+    return s
+
+
+def lightwell(fr: Frame, rng: random.Random) -> Optional[Section]:
+    """A flat panelled ceiling with a raised light strip down the middle."""
+    L, W, H = fr.L, fr.W, fr.H
+    if H < HEAD + 48 or W < 6:
+        return None
+    s = Section("lightwell", fr)
+    band = 2 if W < 12 else 3
+    b0 = (W - band) // 2
+    for u in range(L):
+        for v in range(W):
+            s.set(u, v, H if b0 <= v < b0 + band else H - 32)
+    s.info = {"strip": band}
+    return s
+
+
+# ---------------------------------------------------------------- castle
+def timber(fr: Frame, rng: random.Random) -> Optional[Section]:
+    """A flat timber ceiling on joists close together."""
+    L, W, H = fr.L, fr.W, fr.H
+    if H < HEAD + 32:
+        return None
+    s = Section("timber", fr)
+    for u in range(L):
+        for v in range(W):
+            s.set(u, v, H - 32 if u % 2 == 0 else H)
+    s.info = {"joists": 2}
+    return s
+
+
+def trussed(fr: Frame, rng: random.Random) -> Optional[Section]:
+    """A great hall: a steep roof open to the ridge, with tie-beams across at the eaves."""
+    s = gable(fr, rng)
+    if s is None:
+        return None
+    s.name = "trussed"
+    L, W, H = fr.L, fr.W, fr.H
+    eave = s.info["eave"]
+    bay = bay_size(H, L, rng.uniform(0.4, 0.55), 3, 7)
+    for u in bay_lines(L, bay):
+        for v in range(W):
+            s.ceil[(u, v)] = eave
+            s.forced.add((u, v))
+    s.info["bay"] = bay
+    return s
+
+
 PROFILES: Dict[str, Callable] = {
     "basilica": basilica, "single-aisle": single_aisle, "vault": vault, "undercroft": undercroft,
     "gable": gable, "shed": shed, "portal": portal, "clearspan": clearspan, "sawtooth": sawtooth,
     "multispan": multispan, "ribbed": ribbed, "barrel": barrel, "mushroom": mushroom, "haunched": haunched,
     "tray": tray, "coffered": coffered, "cavern": cavern,
+    "hypostyle": hypostyle, "lintel": lintel, "corbelled": corbelled, "battered": battered,
+    "chamfered": chamfered, "hull": ribbed_hull, "lightwell": lightwell, "timber": timber, "trussed": trussed,
     "plain": lambda fr, rng: None,
 }
 
@@ -525,6 +682,21 @@ PALETTES: Dict[str, Dict[str, Dict[str, float]]] = {
         "grand": {"multispan": 2.0, "portal": 1.5, "gable": 1.5, "clearspan": 1.0},
         "major": {"gable": 2.0, "shed": 1.0, "portal": 1.0, "plain": 0.5},
         "minor": {"gable": 1.0, "shed": 1.0, "tray": 1.0, "haunched": 0.5, "plain": 0.5},
+    },
+    "egyptian": {
+        "grand": {"hypostyle": 3.0, "corbelled": 1.0, "battered": 1.0},
+        "major": {"lintel": 2.0, "corbelled": 1.5, "battered": 1.0, "hypostyle": 1.0},
+        "minor": {"lintel": 1.0, "corbelled": 1.0, "battered": 1.0, "plain": 0.5},
+    },
+    "scifi": {
+        "grand": {"hull": 2.0, "chamfered": 1.5, "lightwell": 1.5},
+        "major": {"chamfered": 2.0, "hull": 1.0, "lightwell": 1.0, "plain": 0.3},
+        "minor": {"chamfered": 1.0, "lightwell": 1.0, "haunched": 0.5, "plain": 0.5},
+    },
+    "castle": {
+        "grand": {"trussed": 3.0, "barrel": 1.0, "undercroft": 1.0},
+        "major": {"timber": 2.0, "barrel": 1.0, "trussed": 1.0, "undercroft": 1.0},
+        "minor": {"timber": 1.0, "barrel": 1.0, "haunched": 1.0, "plain": 0.5},
     },
 }
 
