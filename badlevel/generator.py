@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import random
 
+from .clearance import widen_pinches
 from .config import GenConfig
 from .decorate import decorate
 from .graph import build_graph
@@ -30,6 +31,7 @@ def generate(cfg: GenConfig = None, **overrides) -> Level:
             decorate(level, rng)
             cleanup_diagonals(level)
             add_windows(level, rng, cfg.windows, cfg.glazed_chance)
+            widen_pinches(level)                 # the player is a box: no 32-unit squeezes
         except LayoutError as e:
             last = str(e)
             continue

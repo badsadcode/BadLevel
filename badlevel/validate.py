@@ -14,6 +14,7 @@ Checks:
                 key, finally the exit) is still reachable: no one-way drop or
                 door order can strand the player
   * coverage  - every room can be reached
+  * clearance - ... by a player-sized box too (no 32-unit squeezes; see clearance.py)
 """
 from __future__ import annotations
 
@@ -211,6 +212,9 @@ def validate(level: Level) -> Dict[str, object]:
             unreached.append(room.id)
     if unreached:
         errors.append(f"rooms unreachable: {unreached}")
+    if not errors and getattr(level.config, "check_clearance", True):
+        from .clearance import clearance_report       # the player is a box, not a point
+        errors += clearance_report(level)
     open_nodes = sum(len(s) for c, s in level.spans.items() if c not in level.diag)
     return {
         "ok": not errors,
