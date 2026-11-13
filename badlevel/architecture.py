@@ -776,6 +776,8 @@ def plan(level: Level) -> Dict[int, Section]:
                     palette[k] = 1.0
         if "dome" in palette and room.shape in ("round", "hex", "octagon", "diamond"):
             palette["dome"] *= 3.0                        # a dome belongs over a centred plan
+        elif "dome" in palette and max(room.w, room.h) > 1.2 * min(room.w, room.h):
+            del palette["dome"]                           # over a long hall it reads as a vault (step 9)
         pal = {k: w * float(bias.get(k, 1.0)) * 0.5 ** used.get(k, 0) for k, w in palette.items()}
         pal = {k: w for k, w in pal.items() if w > 0}
         fr = Frame(room, flip_v=rng.random() < 0.5)

@@ -138,7 +138,8 @@ def place_rooms(g: MissionGraph, cfg: GenConfig, rng: random.Random) -> List[Roo
             hall_of = {r: h for h in halls for r in h}
             merge = (_mergeable(e, parent, node, g) and rng.random() < cfg.merge_chance
                      and len(hall_of.get(pid, [pid])) < cfg.max_hall_rooms)
-            for _try in range(60):
+            tries = 60 + int(60 * getattr(cfg, "spaciousness", 0.0))    # bigger rooms are harder to fit
+            for _try in range(tries):
                 if merge and _try >= 25:
                     merge = False                    # couldn't fit: fall back to a corridor
                 if multi:

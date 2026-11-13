@@ -414,6 +414,7 @@ def test_quake2_map(tmp_path):
     for cls in ("trigger_key", "target_changelevel", "target_secret", "monster_soldier", "key_red_key"):
         assert f'"classname" "{cls}"' in m, cls
     assert '"wad"' not in m and "monster_army" not in m
+    assert '"wait" "0.85"' in m and '"light" "24"' not in m       # Quake 2 light: no minlight (it washes out)
     assert to_map(lv) != m and " 0 0 0 1 1\n" in to_map(lv)        # Quake 1 unchanged
     paths = write_wals(str(tmp_path))
     assert len(paths) == len(Q2_NAMES)

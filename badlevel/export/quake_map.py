@@ -31,6 +31,10 @@ ENEMIES = {1: "monster_army", 2: "monster_knight", 3: "monster_ogre"}
 # in hard, 3 in normal, 2 in easy (the order the level lists them, so each room thins evenly)
 SKILL_FLAGS = (0, 256, 0, 256 | 512)
 LIGHT_FADE = 0.5           # light "wait": fade over twice the distance (BadLevel's rooms are big; Tom: too dark)
+# Quake 2 (ericw-tools 2.0 bounces light by default there): any worldspawn minimum light washes
+# 94% of the lightmap to white, so none, and the lights fade sooner (measured on Tom's bunker:
+# median 119 of 255, 7% white)
+Q2_LIGHT_FADE = 0.85
 MINLIGHT = 24              # worldspawn "light": ericw-tools' minimum light, so no face is pitch black
 ITEMS = {
     "health": "item_health", "megahealth": "item_health", "ammo": "item_shells",
@@ -204,6 +208,7 @@ def to_map(level: Level, game: str = "quake") -> str:
                    "_badlevel_offset": f"{ox} {oy} 0"}            # .map = level coordinates + offset
     if q2:
         del world_props["wad"]                     # Quake 2 reads textures/badlevel/*.wal
+        del world_props["light"]
         world_props["sky"] = "unit1_"
     out = [
         "// Game: Quake 2" if q2 else "// Game: Quake",
@@ -225,7 +230,8 @@ def to_map(level: Level, game: str = "quake") -> str:
         if e.kind == "player_start":
             p = {"classname": "info_player_start", "origin": origin, "angle": e.props.get("angle", 0)}
         elif e.kind == "light":
-            p = {"classname": "light", "origin": origin, "light": e.props.get("intensity", 300), "wait": LIGHT_FADE}
+            p = {"classname": "light", "origin": origin, "light": e.props.get("intensity", 300),
+                 "wait": Q2_LIGHT_FADE if q2 else LIGHT_FADE}
         elif e.kind == "enemy":
             p = {"classname": (Q2_ENEMIES if q2 else ENEMIES).get(e.props.get("tier", 1), "monster_army"),
                  "origin": origin}

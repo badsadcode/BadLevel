@@ -1,0 +1,27 @@
+<!--
+map: E2M3
+title: "We need wider corridors"
+date: 2026-11-13
+time: Day 2, almost midnight
+secrets: Quake 2 bounces light for free
+kills: 13 retries down to 2
+-->
+<p>BadSad installed Quake 2, loaded the bunker, walked into a corridor and stopped: <i>"I wasn't able to go
+through. It's too narrow. In general, we'll need wider corridors and more spacious rooms."</i></p>
+<p>Back on E1M8 the deal was "don't lose the tight Quake 1 feel". Two engines and a few playtests later,
+the verdict changed, so the default changed with it:</p>
+<ul>
+<li><b>Roomier by default:</b> corridors went from 86% three-wide to 88% five-wide, and rooms grew by a
+quarter. The old tight levels are still there, byte for byte, with <code>--space 0</code>.</li>
+<li><b>Wide stairwells and shafts:</b> most of the narrow corridors left were the doors of stairwells,
+lifts and ladders, which were built 3 wide. Now flights are 5 wide and shafts 7.</li>
+<li><b>Ramps:</b> stair corridors can become one smooth slope, with the ceiling following along. To the
+game it's exactly the same heights as the stairs, so a ramp can never trap you.</li>
+</ul>
+<figure><img src="img/ramp.jpg" alt="A long smooth ramp climbing up a corridor, the ceiling sloping with it">
+<figcaption>Twenty-two cells of ramp. The ceiling slopes with it.</figcaption></figure>
+<p>Bloopers: Quake 2's compiler bounces light around by default, so with the lights tuned for Quake 1,
+94% of the level came out pure white (the screenshot looked like a dentist's office). Quake 2 now gets
+its own lighting. And bigger rooms are harder to fit: one compound took 13 tries to generate, mostly
+because a locked door couldn't find a straight bit of short, wide corridor to sit in. Now it's never
+more than 2.</p>

@@ -31,12 +31,13 @@ def stairwell_plan(rise: int, step: int = 16) -> Optional[Tuple[int, int]]:
     if rise % (2 * step):
         return None
     m = rise // (2 * step)              # total steps per flight summed over cycles
-    for cycles in range(1, m + 1):
-        if m % cycles:
-            continue
-        F = m // cycles
-        if 5 <= F <= 9:
-            return cycles, F
+    for lo, hi in ((5, 9), (10, 13)):   # long flights (10-13 steps) only when nothing else divides:
+        for cycles in range(1, m + 1):  # roomier storeys climb 11 or 13 steps a half
+            if m % cycles:
+                continue
+            F = m // cycles
+            if lo <= F <= hi:
+                return cycles, F
     return None
 
 

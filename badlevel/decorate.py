@@ -319,6 +319,14 @@ def _door_entity(level: Level, corr, kind: str) -> Entity:
             if best is None or score < best[0]:
                 best = (score, i)
     if best is None:
+        # a short wide corridor (5 wide between close rooms) leaves no room for the full margins:
+        # any level cell on a straight run will do (the validator still checks the door seals it)
+        for i in range(2, len(path) - 2):
+            if _straight(path, i, 1, axis_only=True) and floors[i - 1] == floors[i] == floors[i + 1]:
+                score = i if kind == "secret_door" else abs(i - len(path) // 2)
+                if best is None or score < best[0]:
+                    best = (score, i)
+    if best is None:
         raise LayoutError(f"no spot for {kind} in corridor {corr.id}")
     i = best[1]
     (cx, cy), f = path[i], floors[i]
