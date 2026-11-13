@@ -36,14 +36,16 @@ def f_buildings(ctx, rng: random.Random) -> bool:
     for _ in range(40):
         if made >= want:
             break
-        bw, bh = rng.randint(4, 7), rng.randint(4, 7)
+        # houses, not towers: wide and low (the first tries are the widest; smaller if the yard is full)
+        big = 9 if _ < 20 else 6
+        bw, bh = rng.randint(5, big), rng.randint(5, big)
         x0 = rng.randint(room.x + 2, max(room.x + 2, room.x + room.w - 2 - bw))
         y0 = rng.randint(room.y + 2, max(room.y + 2, room.y + room.h - 2 - bh))
         rect = [(x, y) for x in range(x0, x0 + bw) for y in range(y0, y0 + bh)]
         ring = [(x, y) for x in range(x0 - 2, x0 + bw + 2) for y in range(y0 - 2, y0 + bh + 2)]
         if not ctx.free(ring):
             continue
-        top = room.floor + rng.choice([160, 192, 224])       # wall and roof top
+        top = room.floor + rng.choice([160, 160, 176])       # wall and roof top: lower than the roofs around
         inner_top = top - SLAB                                # the room inside: >= 128
         # the doorway: 2 cells in the middle of the side facing the yard's middle
         bx, by = x0 + bw / 2.0, y0 + bh / 2.0

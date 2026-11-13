@@ -566,3 +566,22 @@ rooms of 3x3+ inside, and a health or ammo pickup near the middle: a reason to g
 Tests: windows too low for a player, every building reward reachable.
 
 **Measured** (compound seeds 1-8): 16 of 16 yards have buildings, 112 window openings.
+
+## D26. Houses, not towers; and a versatility check
+
+**Buildings.** Step 7's yard buildings stood up to 7 m tall in a 10 m yard, as tall as
+the roofs around them, and from some corners read as pillars. They're now 5-9 cells wide
+and 5-5.5 m high (interior 4-4.5 m), below the roofscape: houses around a yard. The widest
+sizes are tried first, smaller ones when a yard is full. Compound seeds 1-8: still 16 of 16
+yards with buildings.
+
+**Versatility check** (Tom: "is this tool still versatile enough to produce many different
+kinds of levels?"). After eight steps of architecture work aimed at four categories:
+- every preset with every architecture style (none, gothic, industrial, bunker,
+  compound), seeds 1-2: 70 of 70 levels valid, mostly on the first or second attempt. The
+  new systems are switches on a recipe, not welded to the presets that introduced them;
+- the presets are still distinct: 100% recognised from their fingerprints, separation
+  1.58 (1.6 before the architecture work);
+- levels without a style are byte-identical to before all of it (golden 26/26).
+What the generator still can't make is listed in the answer to Tom, and is the input for
+deciding what comes next.
