@@ -269,10 +269,12 @@ def viewpoints(level, report):
         import math
         cx, cy = (spiral.x + spiral.w / 2) * s, (spiral.y + spiral.h / 2) * s
         a = spiral.meta["start"] * 2 * math.pi
-        shots.append({"name": "spiral", "caption": f"A spiral stair: {spiral.meta['turns']} turn(s) round a newel, "
-                      f"{(spiral.top_floor - spiral.floor) / 32:.0f} m up, from the bottom door",
-                      "eye": gl(cx + math.cos(a) * 4.4 * s, cy + math.sin(a) * 4.4 * s, spiral.floor + EYE),
-                      "target": gl(cx - math.sin(a) * 3 * s, cy + math.cos(a) * 3 * s, spiral.floor + 160)})
+        # a cutaway (roofs off), from above the tower and outside its door side: inside the shaft
+        # there's nothing to see at player height but the nearest wall
+        shots.append({"name": "spiral", "caption": f"A spiral stair, cut away: {spiral.meta['turns']} turn(s) round "
+                      f"a newel, {(spiral.top_floor - spiral.floor) / 32:.0f} m up",
+                      "eye": gl(cx - math.cos(a) * 12 * s, cy - math.sin(a) * 9 * s, spiral.top_floor + 420),
+                      "target": gl(cx, cy, (spiral.floor + spiral.top_floor) / 2), "cutaway": True})
     return shots
 
 
@@ -424,9 +426,9 @@ def page(out: str, review_md: str = "", before: str = None, page_title: str = No
 <div class="map">{e["map_svg"]}<p class="muted">Top-down plan: colour = floor height</p></div></div>
 <div class="shots">{shots}</div>
 <div class="facts"><table>{table}</table><div><b>Analysis flags</b><ul>{flags}</ul></div></div>
-<p class="links"><a href="{e["stem"]}.html">Open the interactive 3D preview</a>{f' · <a href="{rel}/{e["stem"]}.html">the same level before</a>' if rel and e["stem"] in old else ""} · <a href="{e["stem"]}.map" download>.map</a> · <a href="{e["stem"]}.glb" download>.glb</a> · <a href="{e["stem"]}.analysis.json" download>analysis</a></p>
+<p class="links"><a href="{e["stem"]}.html">Open the interactive 3D preview</a>{f' · <a href="{rel}/{e["stem"]}.html">the same level before</a>' if rel and e["stem"] in old and os.path.exists(os.path.join(before, e["stem"] + ".html")) else ""} · <a href="{e["stem"]}.map" download>.map</a> · <a href="{e["stem"]}.glb" download>.glb</a> · <a href="{e["stem"]}.analysis.json" download>analysis</a></p>
 </article>''')
-        shown = f"From the first review, before the architecture work: {note}" if before else note
+        shown = f"The category, as the first review put it: {note}" if before else note
         sections.append(f'<section><h2>{esc(title)}</h2><p class="note">{esc(shown)}</p>{"".join(cards)}</section>')
     with open(os.path.join(out, "index.html"), "w") as fh:
         page_html = PAGE if not before else PAGE.replace("<main>", '<main class="compare">')

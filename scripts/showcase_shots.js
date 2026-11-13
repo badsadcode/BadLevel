@@ -21,6 +21,10 @@ const path = require('path');
     await p.evaluate(() => { const v = window.__view; v.camera.fov = 75; v.camera.updateProjectionMatrix();
       v.root.traverse(o => { if (o.isMesh && /bl_(ceiling|sky)/.test(o.material.name)) o.visible = true; }); });
     for (const s of e.shots) {
+      if (process.env.ONLY && !process.env.ONLY.split(',').includes(s.name)) continue;
+      // a cutaway shot hides the ceilings (and the sky) for that one picture
+      await p.evaluate((cut) => { window.__view.root.traverse(o => {
+        if (o.isMesh && /bl_(ceiling|sky)/.test(o.material.name)) o.visible = !cut; }); }, !!s.cutaway);
       await p.evaluate(([eye, target]) => {
         const v = window.__view; v.controls.target.set(...target); v.camera.position.set(...eye); v.controls.update();
       }, [s.eye, s.target]);

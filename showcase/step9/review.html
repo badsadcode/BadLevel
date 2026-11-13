@@ -1,0 +1,35 @@
+<h2>Step 9: room options, bigger rooms, more shapes, domes, spiral stairs</h2>
+
+<p><b>Same 12 categories and seeds as before.</b> Left: today's defaults. Right: the same preset and seed with
+<code>--space 0.8 --variety 1</code> (D32, D34). The two sides are <i>different layouts</i> (bigger rooms change the
+whole plan), so compare the feel, not the room positions. Nothing was picked or touched up. Both sides include the
+playtest fixes (D33: no squeezes for a real player, fewer monsters in big rooms, brighter Quake light).</p>
+
+<h3>What works</h3>
+<ul>
+<li><b>Roomier, and the default is untouched.</b> Tom: "sometimes the rooms feel a little bit cramped… I don't want
+to lose what we have." Both dials are 0 by default, which changes nothing (38 reference levels identical, byte for
+byte). Over these 12 levels: average room side 14.1 → 20.9 m, average height 7.2 → 8.6 m, corridors 3.2 → 3.8 cells
+wide. The underground halls gain the most: their low ceilings were the most cramping.</li>
+<li><b>More shapes.</b> Round, hex, Z, H and diamond plans join the preset's own: 0 of these in the 12 default levels,
+37 rooms with options on (round 10, hex 8, Z 11, H 8). Round rooms read as round in the overview: their outline
+uses 45-degree half cells, not a staircase.</li>
+<li><b>Domes.</b> 15 domes in the 12 levels, three times as likely over centred plans (round, hex, octagon,
+diamond). Built in 3 to 7 courses, a corbelled dome: the new <i>shape</i> shot shows the rings from a room's edge.</li>
+<li><b>Spiral stairs.</b> 19 towers in these levels: a ring round a solid newel, every cell's floor following its
+angle, flat landings at the doors. The <i>spiral</i> shot is a cutaway (roofs off) from above: inside the shaft, at
+player height, you only see the nearest wall.</li>
+<li><b>Same fight, more room.</b> Monsters per level 72 → 64: bigger rooms no longer mean more monsters.</li>
+</ul>
+
+<h3>What doesn't work yet</h3>
+<ul>
+<li><b>Steps are whole cells</b> (32 units deep, 16 high): the spiral reads as chunky, not as thin wedge steps.
+Curved stairs along a round wall need geometry finer than the grid too (roadmap).</li>
+<li><b>Domes are stepped,</b> fine for a blockout or a corbelled vault; a smooth dome needs curved patches (Quake 3)
+or a mesh in Blender.</li>
+<li><b>Most rooms are still rectangles</b> (107 of 176): the extra shapes are an addition, by design, but a level
+that is all round or all hex isn't possible yet.</li>
+<li>Megarooms get a dome as often as round rooms do; a 40 m dome over a rectangular hall reads better as a
+<i>vault</i> than a dome.</li>
+</ul>
