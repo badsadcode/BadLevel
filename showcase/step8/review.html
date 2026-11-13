@@ -1,0 +1,32 @@
+<h2>Step 8: one deliberate landmark per level</h2>
+
+<p><b>Same 12 seeds and categories.</b> Left: step 7. Right: step 8 (D29). Each level's biggest space now has a
+landmark, shaped by the level's style. There's a new <i>landmark</i> shot from the far side of its room. Some
+layouts may differ slightly from step 7, because a bug fix in the same session (D28) stopped architecture from
+sometimes forcing a regenerated layout. Nothing was picked or touched up.</p>
+
+<h3>What works</h3>
+<ul>
+<li><b>Something to navigate by.</b> The first review said "landmarks" were only the most visible rooms, measured.
+Now there's an actual object: a stepped <b>spire</b> in the fortress halls, a <b>chimney stack</b> rising into the
+industrial trusses, a <b>water tower</b> (a tank on a shaft) in the compounds, a <b>monolith</b> in the bunker's deep
+chamber. The new styles have theirs too: an obelisk (egyptian), a reactor core with floating rings (sci-fi), a
+crenellated keep (castle).</li>
+<li><b>Sized to the room.</b> A first version at 4×4 cells was lost in a 40 m hall full of decks and piers: one more
+block. Landmarks now scale with their room (8×8 at the base in the mega-halls).</li>
+<li><b>Seen and safe.</b> In the four themed presets (seeds 1–5) 19 of 20 levels have one, and all 19 can be seen
+from a way into their room (tested). It never blocks a doorway or splits the floor, and never breaks a vault. It's
+a named part you can replace (<code>.landmark</code> in the .glb, a TrenchBroom group in the .map).</li>
+<li>All levels validate, 105 tests pass, levels without a style are unchanged, and the crack check is clean (0 pink
+pixels in 73 shots).</li>
+</ul>
+
+<h3>What doesn't work yet</h3>
+<ul>
+<li><b>The bunker's monolith is small</b> (about 4 m). The deep chamber is narrower, and its rough cavern ceiling is
+low, so only the 1× shape fits. The chamber itself is the bunker's real landmark.</li>
+<li><b>The camera often has a pillar or wall in the foreground</b>: it stands at the far side of the room, where the
+walls and members are. The 3D preview shows the landmark better.</li>
+<li>Halls whose floor is already a forest of columns (hypostyle, mushroom, multispan) sometimes get no landmark:
+there's nowhere to put one without crowding.</li>
+</ul>
