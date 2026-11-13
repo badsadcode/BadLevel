@@ -329,7 +329,7 @@ def _stamp() -> str:
     return f"{datetime.date.today().isoformat()} by BadLevel {__version__} (generator at commit {sha})"
 
 
-def page(out: str, review_md: str = "", before: str = None, page_title: str = "architecture, step 1: hall cross-sections"):
+def page(out: str, review_md: str = "", before: str = None, page_title: str = None):
     """The showcase page. With ``before`` (an earlier showcase directory with the same levels),
     every screenshot is shown next to its predecessor, from the same camera rule."""
     index = json.load(open(os.path.join(out, "showcase.json")))
@@ -374,8 +374,11 @@ def page(out: str, review_md: str = "", before: str = None, page_title: str = "a
         shown = f"From the first review, before the architecture work: {note}" if before else note
         sections.append(f'<section><h2>{esc(title)}</h2><p class="note">{esc(shown)}</p>{"".join(cards)}</section>')
     with open(os.path.join(out, "index.html"), "w") as fh:
-        page_html = PAGE if not before else PAGE.replace("<main>", '<main class="compare">') \
-            .replace("architectural showcase</h1>", f"{html.escape(page_title)}</h1>")
+        page_html = PAGE if not before else PAGE.replace("<main>", '<main class="compare">')
+        if before and not page_title:
+            page_title = "architecture, step 1: hall cross-sections"
+        if page_title:
+            page_html = page_html.replace("architectural showcase</h1>", f"{html.escape(page_title)}</h1>")
         fh.write(page_html.replace("__STAMP__", _stamp()).replace("__REVIEW__", review_md).replace("__SECTIONS__", "".join(sections)))
     print(f"showcase page -> {out}/index.html")
 
