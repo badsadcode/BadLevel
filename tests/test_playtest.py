@@ -61,3 +61,10 @@ def test_quake_skill_levels_and_light():
     flags = re.findall(r'"spawnflags" "(256|768)"', m)
     assert 0.4 * len(monsters) < len(flags) < 0.6 * len(monsters)   # easy: 1/2, normal: 3/4
     assert '"wait" "0.5"' in m and '"light" "24"' in m
+
+
+def test_secrets_count_in_quake():
+    lv = generate(compile_recipe(PRESETS["classic"], 1))
+    secrets = [r for r in lv.rooms if r.kind == "secret"]
+    assert secrets
+    assert to_map(lv).count('"classname" "trigger_secret"') == len(secrets)

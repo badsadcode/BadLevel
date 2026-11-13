@@ -814,3 +814,7 @@ median 15, 68% of floor samples under 24.
   id's light and ericw-tools), and worldspawn `"light" "24"` (ericw-tools' minimum light).
 - Result: floor median 131, walls 85, 5% of floor samples under 24. Bounce lighting
   (`_bounce`) on top washed everything out to white, so it's left off.
+
+**Secrets.** Tom finished the level (37/41 kills on normal), but the end screen read "Secrets
+0/0": Quake counts a secret only when the player enters a `trigger_secret`. Each secret room now
+has one over its floor.

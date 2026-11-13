@@ -226,6 +226,19 @@ def to_map(level: Level) -> str:
         for k, v in e.props.items():
             p.setdefault(f"_badlevel_{k}", v)
         out.append(_entity(p))
+    # Quake counts a secret when the player walks into a trigger_secret: one over each secret
+    # room's floor (the end-of-level screen showed "Secrets 0/0" without it)
+    s = level.cell
+    for r in level.rooms:
+        if r.kind != "secret":
+            continue
+        cells = [c for c in r.cells() if c in level.spans and c not in level.diag]
+        if not cells:
+            continue
+        lo = (min(c[0] for c in cells) * s, min(c[1] for c in cells) * s, r.floor)
+        hi = ((max(c[0] for c in cells) + 1) * s, (max(c[1] for c in cells) + 1) * s, r.floor + 64)
+        out.append(_entity({"classname": "trigger_secret", "_badlevel_room": r.id},
+                           [brush_text(*box((lo, hi)), *(["trigger"] * 3))]))
     anchor = _hull_anchor(level)
     if anchor:
         out.append(_entity({"classname": "info_null", "origin": " ".join(_fmt(v) for v in at(anchor)),
