@@ -74,7 +74,10 @@ class RoomSpace(SpaceType):
                 dx = sum(d[0] for d in ctx.doors) / len(ctx.doors) + 0.5 - (c[0] + 0.5)
                 dy = sum(d[1] for d in ctx.doors) / len(ctx.doors) + 0.5 - (c[1] + 0.5)
                 angle = int(round(math.degrees(math.atan2(dy, dx)) / 45.0)) * 45 % 360
-            ents.append(Entity("player_start", _at(level, room, c), {"angle": angle}))
+            # 32 up, not 24: exactly 24 puts the origin on the boundary of qbsp's player and monster
+            # hulls, and a level whose other entities hug floors and ceilings then has no entity in
+            # open space for those hulls ("no filling performed"). The player drops 8 units at spawn.
+            ents.append(Entity("player_start", _at(level, room, c, z_off=32.0), {"angle": angle}))
             c2 = _pick_free(ctx, rng, taken)
             if c2:
                 ents.append(Entity("weapon", _at(level, room, c2, z_off=0), {"type": "shotgun"}))

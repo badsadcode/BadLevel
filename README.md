@@ -282,6 +282,17 @@ unique object to navigate by, shaped by the style: a spire, a keep, an obelisk, 
 stack, a reactor core with floating rings, a water tower, a monolith (or a great column
 where the room is too low).
 
+## Compiling for Quake
+
+The `.map` compiles with [ericw-tools](https://ericwa.github.io/ericw-tools/): no leaks, vis
+and light run cleanly (only "texture not found" warnings: BadLevel names its textures,
+`bl_wall`, `bl_floor`, ..., and ships no wad; add a `wad` key or retexture in TrenchBroom).
+To check a whole range of levels:
+
+```
+python scripts/compile_check.py /path/to/ericw-tools/bin --seeds 1-2 --vis --light
+```
+
 ## Editing the blockout part by part
 
 The output is meant to be kept, textured, or changed piece by piece. In the **.glb**,

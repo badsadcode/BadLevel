@@ -675,3 +675,28 @@ columns or piers: hypostyle, mushroom, multispan). The four themed presets with 
 styles, seeds 1-5: 19 of 20 (12 at 2x, 7 at 1x), and all 19 can be seen from a way into their room (a test
 checks the line of sight to the landmark's near face). A showcase camera rule frames it
 from the far side of its room.
+
+## D30. Compiled with ericw-tools: sealed, no leaks
+
+**What was run.** With Tom's permission, the official ericw-tools v0.18.1 Linux binaries
+(qbsp, vis, light) on BadLevel maps: the 12 step-8 showcase levels, the 8 styles-showcase
+levels, a plain level, then every preset x every style (and none) x seeds 1-2
+(`scripts/compile_check.py`, 112 maps). TrenchBroom is a desktop GUI with no batch mode, so it
+wasn't run; the .map format and its groups follow TrenchBroom's conventions, but opening one
+in the editor is still for a person to do.
+
+**Result.** Every map compiles; **no leaks** (the column model seals levels by construction,
+and that holds through smooth sloped brushes, TrenchBroom groups, recesses, roofscapes,
+overlooks); vis and light run cleanly (visibility data and lightmaps). The only warnings left
+are expected: missing textures (BadLevel names textures like `bl_wall` and ships no Quake
+wad), no wad key, and no deathmatch start in a single-player map.
+
+**Two fixes the compiler asked for.** qbsp fills the outside of each collision hull (point,
+player, shambler) from an entity standing in that hull's empty space, and warned "no
+entities in empty space, no filling performed" on some maps: BadLevel's entities hug floors
+and ceilings (pickups on the floor, lights 24 under the ceiling) and the player start stood
+exactly 24 up, on the player hull's boundary. Now the start is 32 up (the player drops 8
+units at spawn), and the .map gets an `info_null` (removed by the game at spawn) at the most
+open point of the biggest room, 2 cells from any wall, 48 above the floor and 96 under the
+ceiling. Both are in a unit test. These change every level's .map slightly (the start's
+height and one extra entity); the golden baseline is reset after this commit.

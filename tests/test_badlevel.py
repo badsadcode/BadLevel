@@ -347,3 +347,22 @@ def test_halls_are_in_the_ir_and_analysis(levels):
     rep = analyze(lv)
     ids = {r["id"] for r in rep["rooms"]}
     assert all(r in ids for h in lv.halls for r in h), "each region is still analysed as its own room"
+
+
+def test_map_compiles_cleanly_by_construction():
+    """What ericw-tools' qbsp needs (D30): the player start stands inside the player hull (32 up,
+    not on its 24-unit boundary), and an info_null anchor stands in wide open space so every
+    collision hull can be filled from outside."""
+    import re
+    from badlevel import generate
+    from badlevel.export import to_map
+    lv = generate(seed=3)
+    start = next(e for e in lv.entities if e.kind == "player_start")
+    floor = next(r.floor for r in lv.rooms if r.kind == "start")
+    assert start.pos[2] == floor + 32
+    m = to_map(lv)
+    origin = re.search(r'"classname" "info_null"\n"origin" "([-\d. ]+)"', m)
+    assert origin
+    x, y, z = (float(v) for v in origin.group(1).split())
+    c = (int(x // lv.cell), int(y // lv.cell))
+    assert any(f <= z - 48 and top >= z + 96 for f, top in lv.spans[c])

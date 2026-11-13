@@ -193,4 +193,27 @@ def to_map(level: Level) -> str:
         for k, v in e.props.items():
             p.setdefault(f"_badlevel_{k}", v)
         out.append(_entity(p))
+    anchor = _hull_anchor(level)
+    if anchor:
+        out.append(_entity({"classname": "info_null", "origin": " ".join(_fmt(v) for v in anchor),
+                            "_badlevel": "hull fill anchor (removed at spawn)"}))
     return "\n".join(out) + "\n"
+
+
+def _hull_anchor(level: Level):
+    """A point in wide open space, far from walls, floor and ceiling: qbsp fills the outside of
+    each collision hull from an entity standing in that hull's empty space, and the level's own
+    entities hug floors, walls and ceilings (lights, pickups, the start). The game removes an
+    info_null at spawn."""
+    s = level.cell
+    rooms = sorted(level.rooms, key=lambda r: -(r.w * r.h))
+    for room in rooms[:6]:
+        if room.ceil - room.floor < 192:
+            continue
+        z = room.floor + 72
+        cx, cy = room.center()
+        for c in sorted(room.cells(), key=lambda c: (c[0] + 0.5 - cx) ** 2 + (c[1] + 0.5 - cy) ** 2):
+            if all(any(f <= z - 48 and top >= z + 96 for f, top in level.spans.get((c[0] + dx, c[1] + dy), []))
+                   for dx in range(-2, 3) for dy in range(-2, 3)):
+                return ((c[0] + 0.5) * s, (c[1] + 0.5) * s, z)
+    return None
