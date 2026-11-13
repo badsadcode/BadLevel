@@ -35,3 +35,20 @@ people using older engines:
 - Optional curved and organic shapes, alongside the grid (an artist can already replace any
   named part in Blender; Quake 3 patches would be a native route).
 - Terrain stays outside BadLevel: a ground mesh from Blender laid over the map.
+- Spiral stairs as thin wedges and curved stairs along a round wall (D34 builds whole-cell
+  steps; finer steps need sub-cell geometry).
+
+## Idea: a dungeon mode (Noor's concept art, later)
+
+Abstract spaces that still make sense, creepy and readable: you see where to walk and what can
+kill you. Built mostly from what exists, on the castle style:
+- **Walkways over pits**: bridges and stepping stones over a drop (spikes, water, void). Bridges
+  at least 2 cells wide (the player box, D33); a fall is lethal or recoverable, never a softlock
+  (the validator checks both).
+- **Traps as engine-neutral markers**: swinging blade, spike pit, crusher, dart wall; each
+  exporter makes its own (Quake: a func_ trap or a trigger_hurt).
+- **Galleries for ambushes**: enemies on balconies over the pit room (galleries exist).
+- **Skylights**: a shaft of light through a grate in a vault (yards already open to the sky).
+- **Portcullis gates**: portal heads with doors that slide up (portals exist).
+- **Prop markers**: cages, braziers, banners, bones, placed where an artist drops real props.
+Inspired by the feel of 90s dungeon games, not a copy of any of them.
