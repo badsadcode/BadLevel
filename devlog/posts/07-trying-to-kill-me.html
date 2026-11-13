@@ -1,0 +1,26 @@
+<!--
+map: E1M7
+title: "Are you trying to kill me?"
+date: 2026-11-13
+time: Day 2, afternoon
+secrets: The player is a box, not a point
+kills: 132 monsters, down to 64
+-->
+<p>The first real playtest report, word for word: <i>"Sometimes I get stuck and can't get through,
+the pass is too narrow. And are you trying to kill me? So many monsters. I had to cheat. And it's
+pretty dark in places."</i> Three bugs, one sentence.</p>
+<ul>
+<li><b>Stuck:</b> the validator walked the level as a <i>point</i>. Quake's player is a 32-unit
+<i>box</i>, and a 32-unit gap closes to nothing for it. One bunker had 13 of 15 rooms a real player
+couldn't reach! Now BadLevel walks every level with a player-sized box and widens every squeeze it
+finds, without ever opening a shortcut round a locked door.</li>
+<li><b>Monsters:</b> they came per square metre, so a big room was a monster pit: 132 in one level, 28
+of them Ogres. Now big rooms thin out, and Quake's skill levels work: Easy gets half, Normal three
+quarters.</li>
+<li><b>Dark:</b> lights hung under 20-metre vaults lit nothing. Typical floor brightness went from 15
+to 126 (of 255).</li>
+</ul>
+<p>And then, this arrived:</p>
+<figure><img src="img/completed.jpg" alt="Quake end screen: Completed, kills 37 of 41, secrets 0 of 0">
+<figcaption>Completed! 37 kills out of 41 on Normal, no cheats. Spot the bug: "Secrets 0/0". The level
+had a secret room; Quake just wasn't told. Fixed the same evening.</figcaption></figure>

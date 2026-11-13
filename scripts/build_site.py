@@ -97,6 +97,10 @@ def main(out: str = "site") -> int:
     if os.path.isfile(os.path.join(src, "index.html")):
         import shutil
         shutil.copytree(src, os.path.join(out, "showcase"), dirs_exist_ok=True)
+    # the devlog: the story so far, one "map" per post (devlog/posts, scripts/build_devlog.py)
+    sys.path.insert(0, os.path.dirname(__file__))
+    import build_devlog
+    build_devlog.build(os.path.join(out, "devlog"))
 
     presets = "".join(f"<li><b>{html.escape(r.name)}</b> {html.escape(r.description)}</li>" for r in PRESETS.values())
     when = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
@@ -143,6 +147,7 @@ footer { color: var(--muted); font-size: 13px; margin-top: 40px; }
 <p class="sub">Procedural FPS level blockouts, generated fresh from the latest code on every push.
 Version __VERSION__ · commit __COMMIT__ · built __WHEN__</p>
 <div class="cards">
+  <a class="card" href="devlog/index.html"><b>Devlog: the story so far</b><span>How BadLevel learned architecture, one map at a time: invisible walls, 132 monsters, domes, spiral stairs, Quake 2. The fun version.</span></a>
   <div class="card"><b><a href="showcase/index.html">Architectural showcase</a></b><span>Design review: 12 levels (fortress, industrial, underground, compound) with player-height screenshots and an honest verdict. Frozen snapshots, not rebuilt, each step before and after:</span><ul class="steps"><li><a href="showcase/index.html">the first review</a></li><li><a href="showcase/step1/index.html">step 1: hall cross-sections</a></li><li><a href="showcase/step2/index.html">step 2: smooth vaults, small rooms, walls</a></li><li><a href="showcase/step3/index.html">step 3: portals and framed reveals</a></li><li><a href="showcase/step4/index.html">step 4: underground</a></li><li><a href="showcase/step5/index.html">step 5: the deep chamber seen from above</a></li><li><a href="showcase/step6/index.html">step 6: compounds, buildings in the yards</a></li><li><a href="showcase/step7/index.html">step 7: room around the yards, life in the buildings</a></li><li><a href="showcase/step8/index.html">step 8: one deliberate landmark per level</a></li><li><a href="showcase/styles/index.html">one layout in all eight styles (incl. egyptian, sci-fi, castle)</a></li><li><a href="showcase/step9/index.html">step 9: room options, bigger rooms, round rooms, domes, spiral stairs</a></li></ul></div>
   <a class="card" href="recipes/index.html"><b>Recipes side by side</b><span>Every preset, two seeds each: compact, classic, bunker, fortress, industrial, compound, explore.</span></a>
   <a class="card" href="compositions/index.html"><b>Compositions side by side</b><span>The four macro structures from above: tree, hub, central, linear, with their measured silhouette.</span></a>

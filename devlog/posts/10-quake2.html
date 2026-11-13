@@ -1,0 +1,16 @@
+<!--
+map: E2M2
+title: Ladders that work
+date: 2026-11-13
+time: Day 2, very late
+secrets: Quake 2 counts secrets with a target
+kills: 56 of 56 Quake 2 maps compiled
+-->
+<p>Quake 1 has no ladders. That was always a little embarrassing for a generator that loves ladders.
+Quake 2 has them. So: <b>Quake 2 export</b>.</p>
+<p>Same brushes, a different dialect: every face carries its Quake 2 flags (this one is sky, that one
+is glass, this one you can climb), textures ship as .wal files, and the cast changes: soldiers and
+gunners instead of grunts and ogres, keycards that open doors through a <code>trigger_key</code>, and
+secrets that actually count.</p>
+<pre>python3 -m badlevel generate --seed 7 --recipe bunker --formats q2map</pre>
+<p>Every preset in every style compiles clean for Quake 2. Now the scary part: a human has to play it.</p>

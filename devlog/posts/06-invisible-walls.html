@@ -1,0 +1,21 @@
+<!--
+map: E1M6
+title: The day the walls were invisible
+date: 2026-11-13
+time: Day 2, midday
+secrets: 768-texel skies upset WinQuake
+kills: 112 of 112 maps compiled
+-->
+<p>Big moment: the first BadLevel map compiled with real Quake tools (ericw-tools) and played in a real
+Quake. BadSad loaded it in the Quake rerelease and sent this:</p>
+<figure><img src="img/void.jpg" alt="Quake rerelease: an empty brown void with tiny monsters floating in the distance">
+<figcaption>"I can see monsters. I spawn far away. Not sure if outside the map." Spoiler: inside, just invisible.</figcaption></figure>
+<p>Then the original WinQuake had an opinion too:</p>
+<figure class="small"><img src="img/extents.png" alt="Quake Error: Bad surface extents">
+<figcaption>Classic.</figcaption></figure>
+<p>One root cause: the map named its textures but shipped no pixels. The rerelease drew those walls as
+nothing; WinQuake swapped in a placeholder that broke its sky. The fix: BadLevel now makes its own
+little <b>texture wad</b>, grey grids, one line per 32-unit cell, so your eyes can count distances. Also
+maps are now centred on the origin, because original Quake can't reach past ±4096 units.</p>
+<figure><img src="img/walls.jpg" alt="Quake rerelease: grey grid walls, defeated grunts on the floor">
+<figcaption>"Walls show now." (The grunts did not survive the celebration.)</figcaption></figure>

@@ -1,0 +1,20 @@
+<!--
+map: E1M1
+title: Grey boxes, big dreams
+date: 2026-11-12
+time: Day 1, morning
+secrets: Walls are just "not air"
+kills: 0 leaks, ever
+-->
+<p>Every level generator starts the same way: with grey boxes. BadLevel's boxes live on a grid of
+32-unit cells (one Quake "step" wide), and here's the trick that made everything after it possible:
+<b>BadLevel never builds walls.</b> It carves air. Whatever isn't air is solid, so every level is sealed
+by construction. No leaks. Not one, in 56 commits.</p>
+<p>The first morning gave us rooms and corridors, then rooms that aren't rectangles (with real 45-degree
+walls, not staircase jaggies), corridors three, five and seven cells wide, and a <i>validator</i>: a
+little ghost that walks every generated level and checks you can actually finish it. Keys before
+doors, no dead ends you can fall into and never leave, every room reachable.</p>
+<p>Then a combat analyser, because a level isn't a level until something can shoot you in it: line of
+sight in 3D, exposure heat maps, "this corridor is a shooting gallery" warnings.</p>
+<figure><img src="../showcase/fortress_1_overview.jpg" alt="A generated fortress level seen from above">
+<figcaption>Bird's-eye view of a generated fortress. Grey, honest, and finishable.</figcaption></figure>
