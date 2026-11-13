@@ -935,3 +935,22 @@ roomier default. The tight originals stay one flag away.
   qbsp compiles them clean; 16 in 32 is a 27-degree slope, easy walking in Quake.
 - Bigger levels can pass original WinQuake's +-4096 (D31): fine for every modern engine and
   Quake 2; `--space 0` levels still fit.
+
+## D38. Rooms along long corridors
+
+Tom, flying through a Quake 2 level in noclip: "those long corridors are nice, but they need some
+variety. Maybe some rooms along them, varied rooms, not just rectangular." Corridors already had
+beats (D10: a chamber, alcoves or a vault every 16 cells), all rectangular and modest.
+
+- **Four shaped rooms** join the beats: a **rotunda** (a round room the corridor runs through,
+  45-degree rim from the room shapes of D32, 96 higher), an **octagon** (sometimes four columns),
+  a **crossing** (the corridor crossed by a wide arm, a transept) and **aisles** (a hall with a
+  colonnade down each side). About 11-13 cells across against a 5-wide corridor.
+- **More of them**: a beat every 12 cells (was 16). If a shaped room doesn't fit beside its
+  neighbours, a smaller one is tried, then a plain chamber, before the beat is dropped. Over every
+  preset x 3 seeds: 41 -> 86 beats, 31 of them shaped. Fights take place in them like in chambers.
+- Opt-in through spaciousness (`beat_shapes`, set by `roomier`), so it comes with the roomy
+  default and `--space 0` levels stay byte for byte as they were (24 of 24 checked).
+- A bug it surfaced: a block base (D35) that a later terrace walled in became a pocket you could
+  drop onto and never leave (a softlock the validator caught, at the cost of retries). After the
+  features, a base with no way off it is now filled: the member deepens.

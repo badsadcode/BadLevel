@@ -20,6 +20,7 @@ class GenConfig:
     long_loop_chance: float = 0.25  # a loop may deliberately be long (a sniper alley, a flank run)
     corridor_beats: bool = True  # break long corridors up with chambers, alcoves, vaults
     beat_spacing: int = 16       # cells between beats along a long corridor
+    beat_shapes: float = 0.0     # share of beats that are shaped rooms (rotunda, octagon, crossing, aisles)
     keys: int = 1                # 0..2 key/locked-door pairs
     secret: bool = True          # add a secret room
 

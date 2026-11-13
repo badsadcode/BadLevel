@@ -446,6 +446,38 @@ def tidy_dress(level: Level, room: Room):
         rs = level.room_spans(c, room)
         if not rs or rs[0][0] - room.floor not in (BASE_RISE, BLOCK_RISE):
             del level.part_cells[c]
+    # a base that a later feature walled in (a terrace raised beside it) is a pocket: you could drop
+    # onto it and never climb out. Such a base (and the bases it joins) is filled: the member deepens
+    bases = {c for c, p in level.part_cells.items() if p == tag}
+    step = level.config.max_step
+    seen = set()
+    for c0 in sorted(bases):
+        if c0 in seen:
+            continue
+        group, stack = {c0}, [c0]
+        while stack:
+            a = stack.pop()
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                n = (a[0] + dx, a[1] + dy)
+                if n in bases and n not in group:
+                    group.add(n)
+                    stack.append(n)
+        seen |= group
+        out = False
+        for a in group:
+            fa = level.room_spans(a, room)[0][0]
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                n = (a[0] + dx, a[1] + dy)
+                if n in group or n in level.diag:
+                    continue
+                if any(sp[0] <= fa + step and sp[1] - max(sp[0], fa) >= level.config.player_height
+                       for sp in level.room_spans(n, room)):
+                    out = True                          # a way off it: level, a step up, or down
+        if not out:
+            for a in group:
+                level.replace_in(a, *room.slot, [])
+                del level.part_cells[a]
+                level.part_solid[a] = f"room:{room.id}/members"
     tag = f"room:{room.id}/capitals"
     for c in [c for c, p in level.part_ceiling.items() if p == tag]:
         if not level.room_spans(c, room):              # a feature filled the cell

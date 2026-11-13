@@ -108,3 +108,16 @@ def test_no_spirals_by_default():
     for s in (1, 2):
         cfg = compile_recipe(PRESETS["fortress"], s)
         assert not any(r.kind == "spiral" for r in generate(cfg).rooms)
+
+
+def test_rooms_along_long_corridors():
+    """Roomy levels break long corridors with shaped rooms: rotundas, octagons, crossings, aisles."""
+    from badlevel.clearance import clearance_report
+    kinds = collections.Counter()
+    for name in ("classic", "industrial", "compound"):
+        for s in (1, 2, 3):
+            lv = generate(compile_recipe(PRESETS[name], s))
+            assert validate(lv)["ok"] and not clearance_report(lv)
+            for c in lv.corridors:
+                kinds.update(b["type"] for b in c.beats)
+    assert sum(kinds[k] for k in ("rotunda", "octagon", "crossing", "aisles")) >= 4, kinds

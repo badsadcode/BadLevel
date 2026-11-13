@@ -97,6 +97,8 @@ def roomier(cfg: GenConfig, s: float) -> GenConfig:
     # trying to kill me?"), so the density falls with the floor area, same fight, more room
     cfg.enemy_density /= _lerp(1.0, 1.5, s) ** 2
     cfg.spaciousness = s
+    cfg.beat_shapes = max(getattr(cfg, "beat_shapes", 0.0), 1.0)   # rooms along long corridors
+    cfg.beat_spacing = min(cfg.beat_spacing, 12)                     # ... and more of them
     return cfg
 
 

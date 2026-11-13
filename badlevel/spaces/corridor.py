@@ -104,46 +104,90 @@ def add_beats(level: Level, router: "Router", corr: Corridor, rng: random.Random
     own = f"corridor:{corr.id}"
     L2 = 3
     targets = list(range(sp, n - sp // 2, sp))
+    shaped = getattr(cfg, "beat_shapes", 0.0)
     for t in targets:
-        cands = [i for i in range(max(L2 + 3, t - 4), min(n - L2 - 3, t + 5))
-                 if _straight(path, i, L2 + 1, axis_only=True) and len(set(floors[i - L2 - 1:i + L2 + 2])) == 1]
-        if not cands:
-            continue
-        i = min(cands, key=lambda j: abs(j - t))
-        f = floors[i]
-        d = _dir(path, i)
-        pd = _perp(d)
-        cx, cy = path[i]
-        kind = rng.choices(["chamber", "alcoves", "vault"], [0.5, 0.3, 0.2])[0]
-        if kind == "chamber":
-            R, top = r + 2, f + h + 64
-            zone = [(cx + d[0] * u + pd[0] * v, cy + d[1] * u + pd[1] * v)
-                    for u in range(-L2, L2 + 1) for v in range(-R, R + 1)]
-            pillars = []
-            if rng.random() < 0.6:
-                pillars = [(cx + pd[0] * v, cy + pd[1] * v) for v in (-(r + 1), r + 1)]
-        elif kind == "alcoves":
-            top = f + h
-            sides = rng.choice([(-1,), (1,), (-1, 1)])
-            zone = [(cx + d[0] * u + pd[0] * s * v, cy + d[1] * u + pd[1] * s * v)
-                    for s in sides for u in (-1, 0, 1) for v in range(-r, r + 3)]
-            pillars = []
-        else:
-            top = f + h + 96
-            zone = [(cx + d[0] * u + pd[0] * v, cy + d[1] * u + pd[1] * v)
-                    for u in range(-L2, L2 + 1) for v in range(-r, r + 1)]
-            pillars = []
-        # everything new must be solid now (or ours, flat at f) and keep a wall to other areas
-        ok = True
-        for c in zone:
-            spans = level.spans.get(c, [])
-            mine = [s_ for s_ in spans if level.owner_of(c, s_) == own]
-            near_diag = any((c[0] + dx, c[1] + dy) in level.diag for dx in (-1, 0, 1) for dy in (-1, 0, 1))
-            if near_diag or any(s_ not in mine and s_[0] < top + SLAB and f - SLAB < s_[1] for s_ in spans):
-                ok = False
-                break
-            if any(m[0] != f for m in mine) or _others_near(level, c, f, top, own):
-                ok = False
+        shaped_kind = None
+        if shaped > 0 and rng.random() < shaped * 0.6:    # rooms along the way (Tom: "some variety")
+            shaped_kind = rng.choice(["rotunda", "octagon", "crossing", "aisles"])
+        plan = [(None, None)]                            # (None: the classic beat, drawn below as before)
+        if shaped_kind:
+            plan = [(shaped_kind, None), (shaped_kind, -1), ("chamber", None)]   # too big: smaller, a chamber
+        ok = False
+        for kind, shrink in plan:
+            R = r + rng.randint(3, 4) if kind in ("rotunda", "octagon", "crossing") else 0
+            if shrink:
+                R = max(r + 2, R - 1)
+            reach = max(L2, R) + (2 if kind == "aisles" else 0)
+            cands = [i for i in range(max(reach + 3, t - 4), min(n - reach - 3, t + 5))
+                     if _straight(path, i, reach + 1, axis_only=True) and len(set(floors[i - reach - 1:i + reach + 2])) == 1]
+            if not cands:
+                continue                                     # (try the next, smaller plan)
+            i = min(cands, key=lambda j: abs(j - t))
+            if kind is None:
+                kind = rng.choices(["chamber", "alcoves", "vault"], [0.5, 0.3, 0.2])[0]
+            f = floors[i]
+            d = _dir(path, i)
+            pd = _perp(d)
+            cx, cy = path[i]
+            diag = {}
+            if kind in ("rotunda", "octagon"):
+                # a round or octagonal room the corridor runs through (the room shapes, 45-degree walls)
+                from ..shapes import make_shape
+                D = 2 * R + 1
+                shp = make_shape(D, D, "round" if kind == "rotunda" else "octagon", rng)
+                zone = [(cx - R + x, cy - R + y) for (x, y) in shp.cells]
+                diag = {(cx - R + x, cy - R + y): corner for (x, y), corner in shp.diag.items()}
+                top = f + h + (96 if kind == "rotunda" else 64)
+                pillars = []
+                p_ = R - 2
+                if kind == "octagon" and p_ > r + 1 and rng.random() < 0.6:
+                    pillars = [(cx + a * p_, cy + b * p_) for a in (-1, 1) for b in (-1, 1)]
+            elif kind == "crossing":
+                # a transept: the corridor crossed by a wide arm
+                top = f + h + 64
+                arm = r + 1
+                zone = [(cx + d[0] * u + pd[0] * v, cy + d[1] * u + pd[1] * v)
+                        for u in range(-R, R + 1) for v in range(-R, R + 1) if abs(u) <= arm or abs(v) <= arm]
+                pillars = []
+            elif kind == "aisles":
+                # a hall with a colonnade down each side of the corridor
+                top = f + h + 96
+                A = L2 + 2
+                zone = [(cx + d[0] * u + pd[0] * v, cy + d[1] * u + pd[1] * v)
+                        for u in range(-A, A + 1) for v in range(-(r + 3), r + 4)]
+                pillars = [(cx + d[0] * u + pd[0] * v, cy + d[1] * u + pd[1] * v)
+                           for u in range(-A + 1, A, 2) for v in (-(r + 1), r + 1)]
+            elif kind == "chamber":
+                R, top = r + 2, f + h + 64
+                zone = [(cx + d[0] * u + pd[0] * v, cy + d[1] * u + pd[1] * v)
+                        for u in range(-L2, L2 + 1) for v in range(-R, R + 1)]
+                pillars = []
+                if rng.random() < 0.6:
+                    pillars = [(cx + pd[0] * v, cy + pd[1] * v) for v in (-(r + 1), r + 1)]
+            elif kind == "alcoves":
+                top = f + h
+                sides = rng.choice([(-1,), (1,), (-1, 1)])
+                zone = [(cx + d[0] * u + pd[0] * s * v, cy + d[1] * u + pd[1] * s * v)
+                        for s in sides for u in (-1, 0, 1) for v in range(-r, r + 3)]
+                pillars = []
+            else:
+                top = f + h + 96
+                zone = [(cx + d[0] * u + pd[0] * v, cy + d[1] * u + pd[1] * v)
+                        for u in range(-L2, L2 + 1) for v in range(-r, r + 1)]
+                pillars = []
+            # everything new must be solid now (or ours, flat at f) and keep a wall to other areas
+            ok = True
+            for c in zone:
+                spans = level.spans.get(c, [])
+                mine = [s_ for s_ in spans if level.owner_of(c, s_) == own]
+                near_diag = any((c[0] + dx, c[1] + dy) in level.diag for dx in (-1, 0, 1) for dy in (-1, 0, 1))
+                if near_diag or any(s_ not in mine and s_[0] < top + SLAB and f - SLAB < s_[1] for s_ in spans):
+                    ok = False
+                    break
+                if any(m[0] != f for m in mine) or _others_near(level, c, f, top, own):
+                    ok = False
+                    break
+            if ok:
                 break
         if not ok:
             continue
@@ -151,9 +195,14 @@ def add_beats(level: Level, router: "Router", corr: Corridor, rng: random.Random
         for c in zone:
             if c in pillars:
                 continue
+            had = bool(level.spans_in(c, f, f + 1))
             level.replace_in(c, f - 1, f + h, [])           # our own span (if any) ...
             level.add_span(c, (f, top), own if not level.owner_at(c, f) else None)  # ... now taller / new
-            cells.append(c)
+            if c in diag and not had:                       # the rim: a 45-degree half cell
+                level.diag[c] = diag[c]
+                level.diag_span[c] = (f, top)
+            else:
+                cells.append(c)
         for c in pillars:
             level.replace_in(c, f - 1, top, [])
         for c in cells:
@@ -185,7 +234,8 @@ def populate(level: Level, corr: Corridor, rng: random.Random, info: dict):
         side = [c for c in cells if c not in path_cells]
         at = lambda c, z: ((c[0] + 0.5) * s, (c[1] + 0.5) * s, z)
         ents.append(Entity("light", (beat["pos"][0], beat["pos"][1], top - 24), {"intensity": 260}))
-        if beat["type"] == "chamber" and side and rng.random() < min(1.0, level.config.enemy_density):
+        if beat["type"] in ("chamber", "rotunda", "octagon", "crossing", "aisles") and side \
+                and rng.random() < min(1.0, level.config.enemy_density):
             for c in rng.sample(side, min(len(side), rng.randint(1, 2))):
                 ents.append(Entity("enemy", at(c, f + 24), {"tier": tier}))
         elif beat["type"] == "alcoves" and side:
