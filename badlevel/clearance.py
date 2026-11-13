@@ -203,11 +203,16 @@ def _try_open(level: Level, b: Cell, F: int, ceil: int, owner: str, allowed: Set
         for o2 in near:
             if o1 != o2 and (o1, o2) not in allowed:
                 return False
+    yard = [r for r in level.rooms if r.contains(*b) and r.kind == "courtyard"]
+    if yard and ceil != yard[0].ceil:              # in a yard only at full height, open to the sky
+        return False
     inside = [f"room:{r.id}" for r in level.rooms if r.contains(*b)]
     pick = [o for o in near if o in inside] or [o for o in near if not o.startswith("room:")] or [owner]
     owner = sorted(pick)[0]                         # a room's cell only inside its footprint
     level.add_span(b, (F, ceil), owner)
     level.part_solid.pop(b, None)
+    if yard:
+        level.sky.add(b)
     return True
 
 
@@ -277,6 +282,7 @@ def widen_pinches(level: Level, max_rounds: int = 40) -> int:
                         break
                     for c, part in trial:              # undo a half-cleared box
                         level.replace_in(c, F, ceil, [])
+                        level.sky.discard(c)
                         level.owners[c] = [o for o in level.owners[c] if o[:2] != (F, ceil)]
                         if not level.owners[c]:
                             level.owners.pop(c)
