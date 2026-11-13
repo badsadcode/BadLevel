@@ -1,0 +1,38 @@
+<h2>Step 6: compounds, buildings in the yards</h2>
+
+<p><b>Same 12 seeds and categories.</b> Left: step 5. Right: step 6 (D24). The compound levels changed. The
+fortress and industrial yards can also get buildings now, as one feature option among the others. A new
+<i>rooftop</i> camera rule stands on a building's roof.</p>
+
+<h3>What works</h3>
+<ul>
+<li><b>Buildings you can walk into.</b> Compound yards now get 1–3 free-standing buildings: walls, a roof and a
+doorway facing the middle of the yard, with a room inside. Seeds 1–8: 14 of 16 yards have them. A test checks
+that every interior is reachable.</li>
+<li><b>Rooftops as vantage points.</b> About two-thirds of the buildings have a ladder (25 over seeds 1–8). Up
+there you look across the yard at the other buildings (the new <i>rooftop</i> shots), and the generator puts a
+sniper and a reward on the roof. That's compound gameplay: fight on the ground, or climb for the high
+ground.</li>
+<li><b>Safe by construction.</b> The roofs carved around the yard are scenery. They're only cut where nothing
+else is within one cell, and they're out of step reach of anything a player stands on. A test checks that no
+roof is reachable from the start. All levels validate, 92 tests pass, levels without a style are unchanged,
+and the crack check is clean (0 pink pixels in 63 shots).</li>
+</ul>
+
+<h3>What doesn't work yet</h3>
+<ul>
+<li><b>The roofscape barely shows from the ground.</b> Compound yards are packed tightly against halls and
+rooms, and wherever another space is near, the rock correctly stays full height. So most yard walls still look
+tall, with a stepped skyline only in places. It shows much better from the rooftops. To really fix it, the
+yard needs space around it at layout time (a "set back" from neighbouring rooms), not just at
+decoration.</li>
+<li><b>Buildings are plain boxes:</b> one doorway, no windows, nothing inside, no second storey.</li>
+<li><b>Ladders show as brown posts</b> in the preview (the entity marker). In an engine they're a
+ladder volume against the wall.</li>
+</ul>
+
+<h3>Questions</h3>
+<ol>
+<li>Give yards breathing room at layout time (a set-back), so the skyline can actually be seen?</li>
+<li>Windows and a little interior in the buildings, or leave them as simple blocks for artists?</li>
+</ol>
