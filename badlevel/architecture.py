@@ -660,13 +660,20 @@ def dome(fr: Frame, rng: random.Random) -> Optional[Section]:
     rise = min(q(H - HEAD - 16), q(min(L, W) * rng.uniform(10, 14)))
     if rise < 48:
         return None
+    # courses about 1.5 cells wide, each a multiple of 16 high: clean concentric rings, not a
+    # scatter of cubes (thin 16-unit courses break up on a 32-unit grid)
+    n = max(3, min(rise // 16, int(min(L, W) / 3), 7))
+    step = 16 * math.ceil(rise / n / 16)
+    n = max(1, rise // step)
+    rise = n * step
     spring = H - rise
     cu, cv = L / 2.0, W / 2.0
     for u in range(L):
         for v in range(W):
             r2 = ((u + 0.5 - cu) / cu) ** 2 + ((v + 0.5 - cv) / cv) ** 2
-            s.set(u, v, spring + rise * math.sqrt(max(0.0, 1.0 - r2)))
-    s.info = {"spring": spring, "rise": rise}
+            k = min(n, int(n * math.sqrt(max(0.0, 1.0 - r2)) + 0.5)) if r2 < 1 else 0
+            s.set(u, v, spring + k * step)
+    s.info = {"spring": spring, "rise": rise, "courses": n}
     return s
 
 

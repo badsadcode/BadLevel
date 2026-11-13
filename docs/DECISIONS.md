@@ -765,8 +765,11 @@ half cell, so the wall reads as a polygon of 8+ sides, not a staircase. Grid-sou
 shape (connected, no thin walls; tested at five sizes).
 
 **Domes.** Rising from a springing line to a crown over the middle, `spring + rise * sqrt(1 - r^2)`.
-A dome curves both ways, which planar ceiling corners can't follow, so it is built in 16-unit
-courses: a corbelled or beehive dome, which reads as a dome in a blockout and is easy to keep or
+A dome curves both ways, which planar ceiling corners can't follow, so it is built in
+courses (3 to 7 rings, each about 1.5 cells wide and a multiple of 16 high): a corbelled or
+beehive dome, which reads as a dome in a blockout and is easy to keep or
 replace (it's the room's named ceiling part). Needs height to spare (rise 48 units or more above
 headroom) and a room at least 7 cells across. A smooth dome is for curved patches (Quake 3) or a
 mesh, noted for later.
+A first version used 16-unit courses everywhere; on a 32-unit grid they broke up into a scatter
+of cubes, so the rings are now fewer and wider.
