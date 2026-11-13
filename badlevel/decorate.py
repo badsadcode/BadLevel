@@ -375,6 +375,10 @@ def decorate(level: Level, rng: random.Random):
         surface_entrance(level)
     sections = architecture.plan(level)        # {} without an arch_style: nothing changes
     tiers = architecture.rank_tiers(level) if sections or level.config.arch_style else {}
+    # one deliberate landmark per level, in its biggest space (landmark.py)
+    grand = [r for r in level.rooms if tiers.get(r.id) == "grand"]
+    landmark_room = max(grand, key=lambda r: len(list(r.cells())) * (r.ceil - r.floor)).id \
+        if grand and getattr(level.config, "arch_landmark", True) else None
     for room in level.rooms:
         ctx = RoomCtx(level, room)
         ctxs[room.id] = ctx
@@ -384,6 +388,10 @@ def decorate(level: Level, rng: random.Random):
             wall = walls.articulate(level, room, ctx, sec, tiers[room.id])
             if wall:
                 room.meta["walls"] = wall
+        if room.id == landmark_room:
+            from . import landmark
+            landmark.place(level, room, ctx, sec, level.config.arch_style,
+                           random.Random(f"{level.config.seed}/{level.config.variant}/landmark/{room.id}"))
         space_for(room.kind).decorate(level, room, ctx, rng)
         if sec:
             lowered = architecture.apply_ceilings(level, room, sec)

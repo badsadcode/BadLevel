@@ -277,6 +277,11 @@ yard reads as a place between buildings instead of a pit. The roofs are scenery
 counter and a small reward inside; compound yards are 10 m high (`yard_height`) and keep
 other rooms 4 cells further away (`yard_setback`).
 
+**Landmarks** (`arch_landmark`): a styled level's biggest space gets one deliberate,
+unique object to navigate by, shaped by the style: a spire, a keep, an obelisk, a chimney
+stack, a reactor core with floating rings, a water tower, a monolith (or a great column
+where the room is too low).
+
 ## Editing the blockout part by part
 
 The output is meant to be kept, textured, or changed piece by piece. In the **.glb**,

@@ -214,6 +214,29 @@ def viewpoints(level, report):
                           "target": gl(cx * s, cy * s, r.floor + 64)})
             break
 
+    # 9. the level's landmark, from the far side of its room
+    for r in rooms:
+        lm = r.meta.get("landmark")
+        if lm:
+            lx, ly = lm["centre"]
+            base = [c for c in r.cells() if c not in level.diag and any(
+                (c[0], c[1], i) in reach and sp[0] == r.floor for i, sp in enumerate(level.spans.get(c, [])))]
+            if base:
+                far = sorted(base, key=lambda c: -((c[0] - lx) ** 2 + (c[1] - ly) ** 2))[:40]
+                tz = (r.floor + lm["top"]) / 2
+                def sees(c):     # a clear line to the landmark's near side (its centre is solid)
+                    ex, ey = (c[0] + 0.5) * s, (c[1] + 0.5) * s
+                    dx, dy = ex - lx * s, ey - ly * s
+                    n = max(1e-6, (dx * dx + dy * dy) ** 0.5)
+                    return occ.visible(np.array([[ex, ey, r.floor + EYE]]),
+                                       np.array([[lx * s + dx / n * 3.2 * s, ly * s + dy / n * 3.2 * s, tz]]))[0]
+                pick = next((c for c in far if sees(c)), far[0])
+                shots.append({"name": "landmark", "caption": f"The landmark: a {lm['shape']} in the {r.kind}, "
+                              f"{(lm['top'] - r.floor) / 32:.0f} m tall",
+                              "eye": gl((pick[0] + 0.5) * s, (pick[1] + 0.5) * s, r.floor + EYE),
+                              "target": gl(lx * s, ly * s, tz)})
+            break
+
     # 4. the most interesting sight link: across storeys first, then the longest
     links = report.get("visual", {}).get("links", [])
     if links:

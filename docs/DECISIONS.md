@@ -646,3 +646,29 @@ the room's, so the validator saw a 48-unit room span instead of a window. The ge
 then retried with a new layout. Windows now put their owner entry first. Checked over every
 preset x every style x seeds 1-3 (147 levels): styled and unstyled levels now take the same
 attempt and have the same layout; a test keeps it so. Unstyled levels unchanged.
+
+## D29. One deliberate landmark per level
+
+**Problem.** The first architectural review: "landmarks" were only the most visible rooms,
+measured. Nothing in a level was a thing you'd point at ("meet me by the obelisk").
+
+**Decision** (`badlevel/landmark.py`). A styled level's biggest grand space gets one
+landmark, shaped by the style: gothic spire (stepped, corner pinnacles), castle keep
+(crenellated), egyptian obelisk (on a plinth), industrial stack (a chimney through the roof),
+sci-fi core (a column floor to ceiling with floating rings), compound water tower (a tank on a
+shaft, open underneath), bunker monolith. Where the room is too low for the style's shape, a
+great column on a plinth (floor to ceiling) takes its place.
+
+It is placed after the room's piers and walls and before its features (they avoid it), as
+near the middle as fits: a 2-cell walkable ring, 3 cells from any doorway, undone if the
+floor would split. A free-standing top stays HEAD + 16 under the lowest ceiling of the
+section around it, so a vault is never broken; full-height shapes are solid floor to
+ceiling. It is a named part (`room:N/landmark`, a TrenchBroom group and a .glb object).
+`arch_landmark: false` turns it off.
+
+**Measured.** Every style x fortress, industrial, classic, bunker, compound, seeds 1-2: 66
+of 70 levels have a landmark (the misses are halls whose floor is already a forest of
+columns or piers: hypostyle, mushroom, multispan). The four themed presets with their own
+styles, seeds 1-5: 19 of 20, and all 19 can be seen from a way into their room (a test
+checks the line of sight to the landmark's near face). A showcase camera rule frames it
+from the far side of its room.

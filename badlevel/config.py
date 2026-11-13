@@ -54,6 +54,7 @@ class GenConfig:
     arch_walls: bool = True      # structure along the walls: members, recesses, end features (walls.py)
     arch_portals: bool = True    # framed corridor openings: jambs, arched / lintelled heads (portals.py)
     arch_axial: float = 0.65     # share of big halls whose end feature faces the way in (the rest: oblique)
+    arch_landmark: bool = True   # one deliberate landmark in a styled level's biggest space (landmark.py)
     arch_smooth: bool = True     # vaults and roofs as sloped planes (False: 16-unit steps, a strict grid)
 
     # --- merged halls -------------------------------------------------------

@@ -513,3 +513,47 @@ def test_architecture_never_changes_the_layout(preset):
             cfg.arch_style = st
             lv = generate(cfg)
             assert lv.notes[-1] == ref.notes[-1] and len(lv.rooms) == len(ref.rooms), (preset, seed, st)
+
+
+# ----------------------------------------------------------------------
+# landmarks
+# ----------------------------------------------------------------------
+def test_one_landmark_per_styled_level(styled):
+    import numpy as np
+    from badlevel.analysis.occupancy import Occupancy
+    from badlevel.portals import openings
+    found = seen = 0
+    total = 0
+    for levels in styled.values():
+        for lv in levels:
+            total += 1
+            rooms = [r for r in lv.rooms if "landmark" in r.meta]
+            assert len(rooms) <= 1
+            if not rooms:
+                continue
+            found += 1
+            r = rooms[0]
+            lm = r.meta["landmark"]
+            assert lm["top"] > r.floor and validate(lv)["ok"]
+            assert any(p.startswith(f"room:{r.id}/landmark") for p in lv.part_solid.values())
+            # it can be seen from a way into its room
+            occ = Occupancy(lv, glass_opaque=False)
+            s = lv.cell
+            lx, ly = lm["centre"]
+            z = (r.floor + lm["top"]) / 2
+            eyes = [((c[0] + 0.5) * s, (c[1] + 0.5) * s, r.floor + 46) for op in openings(lv, r) for c in op["cells"]]
+
+            def face(e):        # a point on the landmark's side facing the eye (its centre is solid)
+                dx, dy = e[0] - lx * s, e[1] - ly * s
+                n = max(1e-6, (dx * dx + dy * dy) ** 0.5)
+                return np.array([[lx * s + dx / n * 3.2 * s, ly * s + dy / n * 3.2 * s, z]])
+            if eyes and any(occ.visible(np.array([e]), face(e))[0] for e in eyes):
+                seen += 1
+    assert found >= 0.8 * total, (found, total)
+    assert seen >= 0.7 * found, (seen, found)
+
+
+def test_landmark_switch():
+    cfg = compile_recipe(PRESETS["fortress"], 1)
+    cfg.arch_landmark = False
+    assert not any("landmark" in r.meta for r in generate(cfg).rooms)
