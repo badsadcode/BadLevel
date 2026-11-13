@@ -4,6 +4,7 @@ from __future__ import annotations
 import random
 
 from .clearance import widen_pinches
+from .ramps import make_ramps
 from .config import GenConfig
 from .decorate import decorate
 from .graph import build_graph
@@ -32,6 +33,7 @@ def generate(cfg: GenConfig = None, **overrides) -> Level:
             cleanup_diagonals(level)
             add_windows(level, rng, cfg.windows, cfg.glazed_chance)
             widen_pinches(level)                 # the player is a box: no 32-unit squeezes
+            make_ramps(level)                    # stair corridors as smooth ramps (cfg.ramps)
         except LayoutError as e:
             last = str(e)
             continue

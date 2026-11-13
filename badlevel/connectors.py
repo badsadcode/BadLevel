@@ -110,16 +110,18 @@ def spiral_plan(rise: int, rng: random.Random):
     return None
 
 
-def connector_size(kind: str, rise: int, rng: random.Random):
-    """(w, h, meta) of the room footprint, or None if this rise can't be built."""
+def connector_size(kind: str, rise: int, rng: random.Random, wide: bool = False):
+    """(w, h, meta) of the room footprint, or None if this rise can't be built. ``wide`` (with
+    spaciousness): flights and shafts 5 cells wide instead of 3, and so are their doors."""
     axis = rng.choice("xy")
+    fw = 5 if wide else 3                        # flight width (and landing depth)
     if kind == "stairwell":
         plan = stairwell_plan(rise)
         if plan is None:
             return None
         cycles, F = plan
-        L, W = F + 6, 7
-        meta = {"axis": axis, "cycles": cycles, "flight": F, "L": L, "W": W}
+        L, W = F + 2 * fw, 2 * fw + 1
+        meta = {"axis": axis, "cycles": cycles, "flight": F, "L": L, "W": W, "fw": fw}
     elif kind == "spiral":
         plan = spiral_plan(rise, rng)
         if plan is None:
@@ -128,11 +130,11 @@ def connector_size(kind: str, rise: int, rng: random.Random):
         S = SPIRAL_SIZE
         return S, S, {"axis": "x", "turns": turns, "start": start, "cw": cw, "L": S, "W": S}
     elif kind == "lift":
-        L, W = LIFT_L, LIFT_W
-        meta = {"axis": axis, "L": L, "W": W}
+        L, W = LIFT_L, LIFT_W + (2 if wide else 0)
+        meta = {"axis": axis, "L": L, "W": W, "fw": fw}
     else:
-        L, W = LADDER_L, LADDER_W
-        meta = {"axis": axis, "L": L, "W": W}
+        L, W = LADDER_L, LADDER_W + (3 if wide else 0)
+        meta = {"axis": axis, "L": L, "W": W, "fw": fw}
     w, h = (L, W) if axis == "x" else (W, L)
     return w, h, meta
 
@@ -158,8 +160,9 @@ def ports(room: Room) -> Dict[str, Tuple[set, int]]:
                 if (u + 0.5 - c) * side[0] + (v + 0.5 - c) * side[1] > best - 0.5}
         return {"low": (door, room.floor), "high": (door, room.top_floor)}
     if room.kind == "stairwell":
-        low = {to_cell(room, L - 1, 1), to_cell(room, L - 2, 0)}
-        high = {to_cell(room, L - 1, W - 2), to_cell(room, L - 2, W - 1)}
+        h = m.get("fw", 3) // 2                   # the door's centre, half a flight in from the side
+        low = {to_cell(room, L - 1, h), to_cell(room, L - 1 - h, 0)}
+        high = {to_cell(room, L - 1, W - 1 - h), to_cell(room, L - 1 - h, W - 1)}
     else:
         mid = [W // 2] if W % 2 else [W // 2 - 1, W // 2]
         low = {to_cell(room, L - 1, v) for v in mid}
@@ -194,21 +197,22 @@ def build_connector(level: Level, room: Room, step: int = 16):
 
     if room.kind == "stairwell":
         cycles, F = m["cycles"], m["flight"]
+        fw = m.get("fw", 3)
         rise_c = 2 * F * step
         for u in range(L):
             for v in range(W):
                 c = to_cell(room, u, v)
-                if v == W // 2 and 3 <= u <= L - 4:
+                if v == W // 2 and fw <= u <= L - fw - 1:
                     continue                                  # the spine between the flights
-                if u >= L - 3:                                # far landing: start of every cycle
+                if u >= L - fw:                               # far landing: start of every cycle
                     floors = [low + k * rise_c for k in range(cycles + 1)]
-                elif u <= 2:                                  # turnaround landing
+                elif u <= fw - 1:                             # turnaround landing
                     floors = [low + k * rise_c + F * step for k in range(cycles)]
                 elif v < W // 2:                              # flight A climbs towards u = 0
-                    j = (L - 4) - u
+                    j = (L - fw - 1) - u
                     floors = [low + k * rise_c + (j + 1) * step for k in range(cycles)]
                 else:                                         # flight B climbs back towards u = L
-                    j = u - 3
+                    j = u - fw
                     floors = [low + k * rise_c + F * step + (j + 1) * step for k in range(cycles)]
                 _column(level, room, c, floors)
         return

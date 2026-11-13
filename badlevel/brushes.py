@@ -33,6 +33,9 @@ class Brush:
     # set for a sloped bottom (smooth vaults and roofs): heights of the bottom face at the
     # rectangle's corners (x0y0, x1y0, x1y1, x0y1); mins z is their lowest
     slope: Optional[Tuple[int, int, int, int]] = None
+    # set for a sloped top (ramps, battered bases): heights of the top face at the rectangle's
+    # corners; maxs z is their highest
+    top_slope: Optional[Tuple[int, int, int, int]] = None
     # the named part this brush belongs to (an element: "room:5/vault"); None = plain world
     part: Optional[str] = None
 
@@ -60,16 +63,21 @@ def build_brushes(level: Level) -> List[Brush]:
 
     groups: Dict[tuple, Set[Cell]] = {}
     sloped: Dict[tuple, Set[Cell]] = {}
+    floors: Dict[tuple, Set[Cell]] = {}
     for c in cols:
         spans = level.spans.get(c, [])
         sky = c in level.sky and spans
         slope = level.ceil_slope.get(c) if spans else None
+        fslope = level.floor_slope.get(c) if spans else None
         for (z0, z1, top, bottom) in solid_intervals(spans, zmin, zmax):
             if sky and z0 == spans[-1][1]:
                 bottom = SKY                  # the solid above an open area is sky
             part = _part(level, c, spans, z0, z1)
             if slope and z0 == spans[-1][1] and min(slope) >= z0:
                 sloped.setdefault((slope, z1, top, part), set()).add(c)   # the roof above a sloped ceiling
+                continue
+            if fslope and z1 == spans[0][0] and min(fslope) > z0:
+                floors.setdefault((fslope, z0, bottom, part), set()).add(c)   # the ground under a ramp
                 continue
             groups.setdefault((z0, z1, top, bottom, part), set()).add(c)
 
@@ -85,6 +93,13 @@ def build_brushes(level: Level) -> List[Brush]:
                                       along_y=(z00 == z01 and z10 == z11)):
             brushes.append(Brush((x0 * s, y0 * s, min(slope)), (x1 * s, y1 * s, z1), top, CEIL, WALL,
                                  slope=slope, part=part))
+    # sloped floors: the same, with the slope on top
+    for (fslope, z0, bottom, part), cells in sorted(floors.items(), key=lambda kv: (kv[0][:3], kv[0][3] or "")):
+        z00, z10, z11, z01 = fslope
+        for (x0, y0, x1, y1) in _runs(cells, along_x=(z00 == z10 and z01 == z11),
+                                      along_y=(z00 == z01 and z10 == z11)):
+            brushes.append(Brush((x0 * s, y0 * s, z0), (x1 * s, y1 * s, max(fslope)), FLOOR, bottom, WALL,
+                                 top_slope=fslope, part=part))
     # half-solid diagonal cells: one triangular prism filling the solid half of the open span
     for (x, y), corner in sorted(level.diag.items()):
         f, c = level.spans[(x, y)][0]

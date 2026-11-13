@@ -37,7 +37,12 @@ def _cfg_from_args(args, seed: int, recipe=None) -> GenConfig:
     from .recipes import compile_recipe, get_recipe
     cfg = GenConfig(seed=seed)
     recipe = recipe or (get_recipe(args.recipe) if getattr(args, "recipe", None) else None)
+    space = getattr(args, "space", None)
     if recipe is not None:
+        if space is not None:                                    # with a recipe, --space sets its dial
+            import dataclasses
+            recipe = dataclasses.replace(recipe, spaciousness=max(0.0, min(1.0, space)))
+            space = None
         cfg = compile_recipe(recipe, seed)
     if args.config:
         with open(args.config) as fh:
@@ -48,10 +53,9 @@ def _cfg_from_args(args, seed: int, recipe=None) -> GenConfig:
             setattr(cfg, name, v)
     if args.no_secret:
         cfg.secret = False
-    space = getattr(args, "space", None)
     if space is not None:
         from .recipes import roomier
-        roomier(cfg, space)                                      # on top of any recipe
+        roomier(cfg, space)                                      # (no recipe: on top of the defaults)
     variety = getattr(args, "variety", None)
     if variety is not None:
         from .recipes import varied

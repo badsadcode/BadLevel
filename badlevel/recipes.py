@@ -49,7 +49,8 @@ class Recipe:
     exploration: float = 0.5
     loopiness: float = 0.5
     regularity: float = 0.35
-    spaciousness: float = 0.0     # 0 = the presets as they are; up to 1 = roomier at fast-FPS speed
+    spaciousness: float = 0.5     # Tom, after Quake 2: "in general, wider corridors and more spacious
+                                  # rooms". 0 = the tight Quake-1 originals; up to 1 = roomier still
     variety: float = 0.0          # 0 = as they are; up to 1 = sizes from closets to halls, more shapes
     overrides: Dict[str, object] = field(default_factory=dict)
 
@@ -83,7 +84,8 @@ def roomier(cfg: GenConfig, s: float) -> GenConfig:
     cfg.room_scale *= _lerp(1.0, 1.5, s)
     cfg.height_scale *= _lerp(1.0, 1.25, s)
     cfg.corridor_width_bias = dict(cfg.corridor_width_bias or {1: 1.0, 2: 1.0, 3: 1.0})
-    cfg.corridor_width_bias[1] = cfg.corridor_width_bias.get(1, 1.0) * _lerp(1.0, 0.1, s)
+    # 3-wide corridors fade out by s = 0.5 (secret passages and connector doors stay 3 wide)
+    cfg.corridor_width_bias[1] = cfg.corridor_width_bias.get(1, 1.0) * max(0.0, 1.0 - 2.0 * s)
     cfg.corridor_width_bias[2] = cfg.corridor_width_bias.get(2, 1.0) * _lerp(1.0, 1.5, s)
     cfg.corridor_width_bias[3] = cfg.corridor_width_bias.get(3, 1.0) * _lerp(1.0, 3.0, s)
     # on multi-storey levels the storey caps a room's height, whatever height_scale says
@@ -110,6 +112,7 @@ def varied(cfg: GenConfig, v: float) -> GenConfig:
     cfg.shape_weights = dict(cfg.shape_weights or {"rect": 1.0})
     for name, w in (("round", 1.5), ("hex", 1.5), ("diamond", 1.0), ("Z", 1.2), ("H", 1.2)):
         cfg.shape_weights[name] = cfg.shape_weights.get(name, 0.0) + w * v
+    cfg.ramps = max(cfg.ramps, 0.6 * v)                                       # ramps for stairs
     cfg.connector_weights = dict(cfg.connector_weights)
     cfg.connector_weights["spiral"] = cfg.connector_weights.get("spiral", 0.0) + 0.35 * v   # spiral stairs
     cfg.arch_weights = dict(cfg.arch_weights or {})

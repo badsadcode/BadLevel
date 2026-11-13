@@ -22,7 +22,8 @@ class ConnectorSpace(SpaceType):
     def propose(self, node, floor: int, cfg, rng: random.Random, multi: bool) -> Optional[Room]:
         from ..connectors import connector_size
         top = node.top
-        size = connector_size(node.kind, top - floor, rng)
+        wide = getattr(cfg, "spaciousness", 0.0) >= 0.5 and node.kind in ("stairwell", "lift", "ladder")
+        size = connector_size(node.kind, top - floor, rng, wide)
         if size is None:
             return None
         w, h, meta = size

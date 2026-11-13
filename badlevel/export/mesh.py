@@ -135,6 +135,7 @@ def build_mesh(level: Level) -> MeshBuilder:
     diag = level.diag
     u = UV_SCALE
     slopes = level.ceil_slope
+    fslopes = level.floor_slope
     for (x, y), spans in level.spans.items():
         corner = diag.get((x, y))
         if corner:
@@ -143,9 +144,13 @@ def build_mesh(level: Level) -> MeshBuilder:
         if (x, y) in slopes:
             mb.part = part_of(level, (x, y), spans[-1], "ceiling")
             _sloped_ceiling(mb, level, x, y)
+        if (x, y) in fslopes and not corner:
+            mb.part = part_of(level, (x, y), spans[0], "floor")
+            _sloped_floor(mb, level, x, y)
         for (f, c) in spans:
             if not corner:
-                flats.setdefault((part_of(level, (x, y), (f, c), "floor"), "floor", f), set()).add((x, y))
+                if not ((x, y) in fslopes and (f, c) == spans[0]):
+                    flats.setdefault((part_of(level, (x, y), (f, c), "floor"), "floor", f), set()).add((x, y))
                 top = (x, y) in level.sky and (f, c) == spans[-1]
                 if not ((x, y) in slopes and (f, c) == spans[-1]):
                     flats.setdefault((part_of(level, (x, y), (f, c), "ceiling"), "sky" if top else "ceiling", c),
@@ -157,7 +162,7 @@ def build_mesh(level: Level) -> MeshBuilder:
                 nspans = level.spans.get(n, [])
                 if n in diag and (-dx, -dy) in SOLID_SIDES[diag[n]]:
                     nspans = []  # neighbour's solid half faces us
-                if (x, y) in slopes or n in slopes:
+                if (x, y) in slopes or n in slopes or (x, y) in fslopes or n in fslopes:
                     mb.part = part_of(level, (x, y), (f, c), "wall", n)
                     _sloped_edge(mb, level, (x, y), (f, c), spans, d, (dx, dy), nspans)
                     continue
@@ -222,6 +227,29 @@ def _sloped_ceiling(mb: MeshBuilder, level: Level, x: int, y: int):
     mb.quad("ceiling", pts, (nx / ln, ny / ln, nz / ln), [(p[0] / u, p[1] / u) for p in pts])
 
 
+def _sloped_floor(mb: MeshBuilder, level: Level, x: int, y: int):
+    s, u = level.cell, UV_SCALE
+    z00, z10, z11, z01 = level.floor_slope[(x, y)]
+    X0, Y0, X1, Y1 = x * s, y * s, (x + 1) * s, (y + 1) * s
+    pts = [(X0, Y0, z00), (X1, Y0, z10), (X1, Y1, z11), (X0, Y1, z01)]
+    ax, az = X1 - X0, z10 - z00
+    by, bz = Y1 - Y0, z01 - z00
+    nx, ny, nz = -az * by, -ax * bz, ax * by          # (a x b) for a = (ax, 0, az), b = (0, by, bz)
+    if nz < 0:
+        nx, ny, nz = -nx, -ny, -nz
+    ln = (nx * nx + ny * ny + nz * nz) ** 0.5
+    mb.quad("floor", pts, (nx / ln, ny / ln, nz / ln), [(p[0] / u, p[1] / u) for p in pts])
+
+
+def _floor_line(level: Level, c, span, spans, d: int):
+    """The bottom of ``span`` along the cell edge in direction d (a sloped floor, or flat)."""
+    sl = level.floor_slope.get(c)
+    if sl is None or span != spans[0] or c in level.diag:
+        return (span[0], span[0])
+    z00, z10, z11, z01 = sl
+    return [(z10, z11), (z00, z01), (z01, z11), (z00, z10)][d]
+
+
 def _edge_line(level: Level, c, span, spans, d: int):
     """The top of ``span`` along the cell edge in direction d, as (z at along=0, z at along=1)."""
     sl = level.ceil_slope.get(c)
@@ -240,9 +268,10 @@ def _sloped_edge(mb: MeshBuilder, level: Level, c, span, spans, d: int, dxy, nsp
     dx, dy = dxy
     n = (x + dx, y + dy)
     nd = {0: 1, 1: 0, 2: 3, 3: 2}[d]
-    lo_c = (span[0], span[0])
+    lo_c = _floor_line(level, c, span, spans, d)
     hi_c = _edge_line(level, c, span, spans, d)
-    others = [((nf, nf), _edge_line(level, n, (nf, nc), nspans, nd)) for (nf, nc) in nspans]
+    others = [(_floor_line(level, n, (nf, nc), nspans, nd), _edge_line(level, n, (nf, nc), nspans, nd))
+              for (nf, nc) in nspans]
     lines = [lo_c, hi_c] + [l for o in others for l in o]
 
     def at(l, t):

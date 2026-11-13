@@ -54,8 +54,9 @@ def _corridor_style(g: MissionGraph, e, a: Room, b: Room, cfg: GenConfig, rng: r
         # narrow and low into a big space; with spaciousness 5 wide (still a squeeze next to a hall)
         r = 2 if getattr(cfg, "spaciousness", 0.0) >= 0.5 else 1
         return max(1, min(r, (min(a.w, a.h, b.w, b.h) - 3) // 2)), False
-    if a.is_connector or b.is_connector:
-        return 1, False                  # connector ports are 3 cells wide
+    if a.is_connector or b.is_connector:          # connector doors: 3 cells wide, or 5 when wide (fw)
+        fw = max(r.meta.get("fw", 3) for r in (a, b) if r.is_connector)
+        return (2 if fw >= 5 else 1), False
     if e.kind == "secret":
         r, diag = 1, False
     else:

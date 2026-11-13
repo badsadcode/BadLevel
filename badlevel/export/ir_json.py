@@ -38,6 +38,8 @@ def to_dict(level: Level, include_spans: bool = True) -> dict:
         d["spans"] = [[x, y, spans] for (x, y), spans in sorted(level.spans.items())]
         d["diagonal"] = [[x, y, c] for (x, y), c in sorted(level.diag.items())]
         d["sky"] = [list(c) for c in sorted(level.sky)]
+        if level.floor_slope:  # ramps, battered bases: corner heights of a bottom span's floor
+            d["floor_slopes"] = [[x, y, *z] for (x, y), z in sorted(level.floor_slope.items())]
         if level.ceil_slope:   # smooth vaults: corner heights (x0y0, x1y0, x1y1, x0y1) of a top span's ceiling
             d["ceiling_slopes"] = [[x, y, *z] for (x, y), z in sorted(level.ceil_slope.items())]
     return d

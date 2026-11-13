@@ -52,6 +52,7 @@ class GenConfig:
     arch_style: str = ""         # "" (plain boxes) | gothic | industrial | bunker | compound: hall cross-sections
     arch_weights: dict = field(default_factory=dict)  # bias the profiles: {"basilica": 2.0, "sawtooth": 0.0}
     arch_walls: bool = True      # structure along the walls: members, recesses, end features (walls.py)
+    ramps: float = 0.0           # chance per stair corridor that its steps become a smooth ramp (ramps.py)
     arch_dress: bool = True      # bases and capitals on the wall members (walls.py)
     arch_portals: bool = True    # framed corridor openings: jambs, arched / lintelled heads (portals.py)
     arch_axial: float = 0.65     # share of big halls whose end feature faces the way in (the rest: oblique)

@@ -120,6 +120,22 @@ def sloped_text(b: Brush, top: str, bottom: str, side: str) -> str:
     return faces_text(faces, inside)
 
 
+def top_sloped_text(b: Brush, top: str, bottom: str, side: str) -> str:
+    """A box whose top is a sloped plane through its corner heights (a ramp cell)."""
+    (x1, y1, z1), (x2, y2, _) = b.mins, b.maxs
+    z00, z10, z11, _ = b.top_slope
+    faces = [
+        ((x1, y1, z1), (x1, y1 + 1, z1), (x1, y1, z1 + 1), side),     # -X
+        ((x1, y1, z1), (x1, y1, z1 + 1), (x1 + 1, y1, z1), side),     # -Y
+        ((x1, y1, z1), (x1 + 1, y1, z1), (x1, y1 + 1, z1), bottom),   # -Z
+        ((x2, y2, z1), (x2 + 1, y2, z1), (x2, y2, z1 + 1), side),     # +Y
+        ((x2, y2, z1), (x2, y2, z1 + 1), (x2, y2 + 1, z1), side),     # +X
+        ((x1, y1, z00), (x2, y1, z10), (x2, y2, z11), top),           # the top: three of the four corners
+    ]
+    inside = ((x1 + x2) / 2, (y1 + y2) / 2, (z1 + min(b.top_slope)) / 2)
+    return faces_text(faces, inside)
+
+
 def prism_text(b: Brush, tex: str) -> str:
     """Triangular prism for a 45-degree wall cell."""
     (x1, y1, z1), (x2, y2, z2) = b.mins, b.maxs
@@ -174,6 +190,7 @@ def to_map(level: Level, game: str = "quake") -> str:
     def text(b):
         return (prism_text(b, TEXTURES[b.side]) if b.corner else
                 sloped_text(b, TEXTURES[b.top], TEXTURES[b.bottom], TEXTURES[b.side]) if b.slope else
+                top_sloped_text(b, TEXTURES[b.top], TEXTURES[b.bottom], TEXTURES[b.side]) if b.top_slope else
                 brush_text(b.mins, b.maxs, TEXTURES[b.top], TEXTURES[b.bottom], TEXTURES[b.side]))
     world = [text(b) for b in brushes if not b.part]
     # named elements (a vault, piers, a portal, a building) as TrenchBroom groups: func_group, which
