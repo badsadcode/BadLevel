@@ -1,0 +1,38 @@
+<h2>Step 7: room around the yards, and a little life in the buildings</h2>
+
+<p><b>Same 12 seeds and categories.</b> Left: step 6. Right: step 7 (D25). Only the compound levels
+changed. Their layouts shifted a little, because yards now keep more distance from other rooms, so some
+viewpoints moved. Nothing was picked or touched up.</p>
+
+<h3>What works</h3>
+<ul>
+<li><b>A sky over the yard.</b> I measured why step 6's roofs didn't show, and it wasn't a lack of room: 88% of
+the band around each yard was already carved. The problem was the shape. The roofs rose outwards in steps, which
+from the ground read as one tall stepped wall, and the sky started up to 14 m up. Now the roofs are mostly flat
+blocks of different heights, and compound yards open to the sky at 10 m. In compound_2 and compound_3 you see low
+building fronts with a wide sky above them: a yard between buildings, not a pit.</li>
+<li><b>Room around the yards.</b> Other rooms now keep 4 extra cells away from a yard at layout time, so the
+roofs have rock to carve even when a level is crowded.</li>
+<li><b>Life inside.</b> Every building now has window openings in its side walls (too low to climb through, like
+firing slits, so you see and shoot through them), a light, a counter against the back wall in the bigger ones,
+and a health or ammo pickup inside: a reason to go in. Seeds 1–8: 16 of 16 yards have buildings, 112 window
+openings in total.</li>
+<li>All levels validate, 94 tests pass (including: windows too low for a player, every building reward
+reachable), levels without a style are unchanged, and the crack check is clean (0 pink pixels in 63 shots).</li>
+</ul>
+
+<h3>What doesn't work yet</h3>
+<ul>
+<li><b>The free-standing buildings are taller than the roofs around them</b> (up to 7 m against 5.5–8 m), so from
+some corners they look like pillars rather than houses. Lower or wider buildings would read better.</li>
+<li><b>Interiors are minimal:</b> one room, one counter, one pickup. No second floor, no stairs inside.</li>
+<li><b>The skyline is only one band deep (4 cells).</b> Beyond it the rock rises to the sky plane, so the far edge
+is a low wall rather than a distant horizon.</li>
+</ul>
+
+<h3>Questions</h3>
+<ol>
+<li>Lower, wider buildings in yards (more house, less tower)?</li>
+<li>What next? Candidates: richer wall members (buttresses, capitals), one landmark per level, or a pass over
+everything with a lit compile (still needs your OK to run the downloaded tools).</li>
+</ol>
