@@ -1,0 +1,28 @@
+<h2>One layout, eight architectures</h2>
+
+<p>The fortress preset, seed 3, generated eight times. The only thing that changes is <code>--style</code>:
+none, the four styles from the review steps, and the three new vocabularies, <b>egyptian</b>, <b>sci-fi</b> and
+<b>castle</b> (D28). The layout is the same in all eight: 19 rooms, same corridors, same storeys. That's
+guaranteed now. Building this page found a bug where a style could make the first attempt invalid and so
+change the layout, and a test now prevents it. Camera positions come from the same rules for every style.</p>
+
+<h3>What to look at</h3>
+<ul>
+<li><b>The biggest space</b> (the fortress's great hall) changes the most. Gothic gets a basilica arcade, industrial
+roof trusses, bunker mushroom piers with drop panels, egyptian a forest of hypostyle columns, sci-fi a
+chamfered hull with frames, castle a trussed roof with tie-beams.</li>
+<li><b>Walls and doorways</b> follow the style too: lancet niches or false doors or panel bays; pointed, round, flat
+or chamfered portal heads; fireplaces, sanctuaries and bulkhead doors as end features. Open the 3D previews and walk
+around.</li>
+<li><b>Any recipe takes any style</b>: <code>badlevel generate --recipe classic --style castle</code>.</li>
+</ul>
+
+<h3>What doesn't work yet</h3>
+<ul>
+<li><b>Courtyards look the same in every style.</b> Architecture doesn't reach open areas yet (they have no ceiling to
+shape, and their walls aren't articulated by the style). Yard buildings and the roofscape are compound-only.</li>
+<li><b>The egyptian "biggest" shot is half blocked by a column.</b> The camera rule picks a far corner, and in a
+hypostyle hall there's always a column nearby. The preview shows the hall better.</li>
+<li><b>Styles share a few profiles</b> (barrel, undercroft and haunched appear in several), so small rooms in different
+styles can look alike. The grand halls are where styles differ most.</li>
+</ul>
