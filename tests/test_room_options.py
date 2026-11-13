@@ -16,9 +16,13 @@ from badlevel.validate import validate
 
 
 def test_dials_default_to_nothing():
+    """A dial at 0 changes nothing (the presets now start at spaciousness 0.5, Tom's call after
+    Quake 2; at 0 they are the original tight levels)."""
+    import dataclasses
     for name in ("classic", "fortress"):
-        a = compile_recipe(PRESETS[name], 4)
-        b = compile_recipe(PRESETS[name], 4)
+        r = dataclasses.replace(PRESETS[name], spaciousness=0.0)
+        a = compile_recipe(r, 4)
+        b = compile_recipe(r, 4)
         roomier(b, 0.0)
         varied(b, 0.0)
         assert to_map(generate(a)) == to_map(generate(b))
@@ -26,10 +30,11 @@ def test_dials_default_to_nothing():
 
 
 def _levels(space=0.0, variety=0.0, presets=("classic", "fortress", "compound"), seeds=(1, 2)):
+    import dataclasses
     out = []
     for name in presets:
         for s in seeds:
-            cfg = compile_recipe(PRESETS[name], s)
+            cfg = compile_recipe(dataclasses.replace(PRESETS[name], spaciousness=0.0), s)
             roomier(cfg, space)
             varied(cfg, variety)
             lv = generate(cfg)

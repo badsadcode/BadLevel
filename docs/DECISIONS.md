@@ -908,3 +908,30 @@ Quake 1 .map (`to_map(level, "quake2")`); what differs:
   version 38, the sky flag, ladder contents, Quake 2 classnames. ericw-tools 0.18 can only
   convert to Quake 2, 2.0.0-alpha10 compiles it.
 - Not played in Quake 2 yet (Tom).
+
+## D37. Roomier by default; wide stairwells and shafts; ramps
+
+**Why.** Tom played the Quake 2 bunker: "I wasn't able to go through, it's too narrow", then "in
+general, we'll need wider corridors, and more spacious rooms". D32 kept the compact levels as the
+default ("I don't want to lose what we have"); after playing in two engines, Tom asked for the
+roomier default. The tight originals stay one flag away.
+
+- **Recipes start at spaciousness 0.5** (`Recipe.spaciousness`). With a recipe, `--space X` now
+  sets the dial instead of adding to it: `--space 0` gives the original levels, byte for byte
+  (checked on 24 levels); plain `GenConfig` levels (no recipe) are unchanged too.
+- **No 3-wide corridors from s = 0.5**: their weight fades out to 0 by 0.5 (was x0.1 at 1).
+  Measured over every preset x 3 seeds: corridors 3/5/7 wide 86/13/1% -> 10/88/2%, room side
+  13.2 -> 16.3 cells, monsters per level 48 -> 42 (the density follows the floor area, D33).
+- **Wide connectors**: most remaining 3-wide corridors were the doors of stairwells, lifts and
+  ladder shafts, built 3 wide. With spaciousness 0.5+ a stairwell's flights and landings are 5
+  wide (the well 11 across), lift and ladder shafts 7 wide, and their doors and corridors 5 wide.
+  The spiral stays as it is (D34).
+- **Ramps** (`ramps.py`, `cfg.ramps`, on with variety: 0.6 x v): a stair corridor's steps become
+  one slope. New in the data: `level.floor_slope` (corner heights of a bottom span's floor; the
+  span keeps the highest point, so the validator, the player box and the analysis see what they
+  saw before). Exported as brushes with a sloped top (.map, Quake 1 and 2), sloped floor quads
+  and edges (mesh, .glb, preview) and `floor_slopes` in the IR. Where nothing is stacked above,
+  the ceiling slopes with the floor (its span one step lower; lights under it come down too).
+  qbsp compiles them clean; 16 in 32 is a 27-degree slope, easy walking in Quake.
+- Bigger levels can pass original WinQuake's +-4096 (D31): fine for every modern engine and
+  Quake 2; `--space 0` levels still fit.

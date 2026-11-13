@@ -382,8 +382,12 @@ def test_maps_ship_their_textures_and_fit_original_quake():
     magic, n, dirofs = struct.unpack_from("<4sii", wad, 0)
     names = {struct.unpack_from("<16s", wad, dirofs + 32 * i + 16)[0].split(b"\0")[0].decode() for i in range(n)}
     assert magic == b"WAD2"
-    for lv in (generate(seed=3), generate(compile_recipe(PRESETS["fortress"], 1)),
-               generate(compile_recipe(PRESETS["compound"], 2))):
+    import dataclasses
+    tight = {n: dataclasses.replace(PRESETS[n], spaciousness=0.0) for n in ("fortress", "compound")}
+    # (the roomier default levels can be bigger than 8192 units: fine for every modern engine,
+    # only original WinQuake's protocol is limited; the tight ones still fit)
+    for lv in (generate(seed=3), generate(compile_recipe(tight["fortress"], 1)),
+               generate(compile_recipe(tight["compound"], 2))):
         m = to_map(lv)
         assert f'"wad" "{WAD_NAME}"' in m
         used = set(re.findall(r"\) (\w+) 0 0 0 1 1", m))
