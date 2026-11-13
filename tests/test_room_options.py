@@ -75,3 +75,31 @@ def test_room_options_from_the_command_line(tmp_path):
     assert cli(["generate", "--seed", "2", "--recipe", "classic", "--space", "0.8", "--variety", "0.8",
                 "--out", str(tmp_path), "--formats", "map", "--no-analysis"]) == 0
     assert list(tmp_path.glob("*.map"))
+
+
+def test_spiral_stairs():
+    """Spiral stairs (variety): a round tower round a solid newel, walkable, roomy enough."""
+    from badlevel.clearance import clearance_report
+    from badlevel.connectors import spiral_plan
+    assert all(spiral_plan(r, random.Random(1)) for r in range(128, 768, 32))
+    found = 0
+    for name in ("fortress", "classic"):
+        for s in (1, 2, 3):
+            cfg = compile_recipe(PRESETS[name], s)
+            varied(cfg, 1.0)
+            cfg.storeys = max(cfg.storeys, 2)
+            lv = generate(cfg)
+            assert validate(lv)["ok"] and not clearance_report(lv)
+            for r in lv.rooms:
+                if r.kind == "spiral":
+                    found += 1
+                    assert any(p == f"room:{r.id}/newel" for p in lv.part_solid.values())
+                    tops = {lv.spans[c][-1][0] for c in r.cells()}
+                    assert r.top_floor in tops and r.floor in {lv.spans[c][0][0] for c in r.cells()}
+    assert found
+
+
+def test_no_spirals_by_default():
+    for s in (1, 2):
+        cfg = compile_recipe(PRESETS["fortress"], s)
+        assert not any(r.kind == "spiral" for r in generate(cfg).rooms)

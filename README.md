@@ -80,7 +80,7 @@ settings. A recipe is ten dials from 0 to 1 plus optional raw overrides:
 | `loopiness` | loops and alternative routes |
 | `regularity` | rectangles and right angles (vs octagons, rings, 45° corridors) |
 | `spaciousness` | bigger, taller rooms, wider and higher corridors, more headroom (0 = the compact Quake feel) |
-| `variety` | a wider spread of room sizes, extra footprints (round, hex, diamond, Z, H), domes in big rooms |
+| `variety` | a wider spread of room sizes, extra footprints (round, hex, diamond, Z, H), domes in big rooms, spiral stairs |
 
 Presets: `compact`, `classic`, `bunker`, `fortress`, `industrial`, `compound`, `explore`.
 

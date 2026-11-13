@@ -110,6 +110,8 @@ def varied(cfg: GenConfig, v: float) -> GenConfig:
     cfg.shape_weights = dict(cfg.shape_weights or {"rect": 1.0})
     for name, w in (("round", 1.5), ("hex", 1.5), ("diamond", 1.0), ("Z", 1.2), ("H", 1.2)):
         cfg.shape_weights[name] = cfg.shape_weights.get(name, 0.0) + w * v
+    cfg.connector_weights = dict(cfg.connector_weights)
+    cfg.connector_weights["spiral"] = cfg.connector_weights.get("spiral", 0.0) + 0.35 * v   # spiral stairs
     cfg.arch_weights = dict(cfg.arch_weights or {})
     cfg.arch_weights["dome"] = cfg.arch_weights.get("dome", 0.0) + 1.5 * v      # domes in big rooms
     return cfg

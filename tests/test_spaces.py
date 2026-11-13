@@ -7,9 +7,9 @@ from badlevel.validate import validate
 
 
 def test_every_room_kind_has_a_space_type():
-    for kind in ROLES + ("stairwell", "lift", "ladder"):
+    for kind in ROLES + ("stairwell", "lift", "ladder", "spiral"):
         assert isinstance(space_for(kind), SpaceType)
-    assert set(vertical_kinds()) == {"stairwell", "lift", "ladder"}
+    assert set(vertical_kinds()) == {"stairwell", "lift", "ladder", "spiral"}
     for lv in (generate(seed=3), generate(GenConfig(seed=3, storeys=3))):
         for room in lv.rooms:
             assert room.kind in REGISTRY

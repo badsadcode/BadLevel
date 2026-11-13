@@ -224,7 +224,7 @@ class Level:
             "diagonal_cells": len(self.diag),
             "shapes": sorted({r.shape for r in self.rooms if not r.is_connector}),
             "storeys": len({r.storey for r in self.rooms}),
-            "connectors": {k: sum(1 for r in self.rooms if r.kind == k) for k in ("stairwell", "lift", "ladder")},
+            "connectors": {k: sum(1 for r in self.rooms if r.kind == k) for k in ("stairwell", "lift", "ladder", "spiral")},
             "links": len(self.links),
             "drops": sum(1 for c in self.corridors if getattr(c, "connector", None) == "drop"),
             "windows": sum(1 for e in self.entities if e.kind == "window"),

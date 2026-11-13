@@ -188,7 +188,7 @@ def build_graph(cfg: GenConfig, rng: random.Random) -> MissionGraph:
     return g
 
 
-CONNECTOR_KINDS = ("stairwell", "lift", "ladder")
+CONNECTOR_KINDS = ("stairwell", "lift", "ladder", "spiral")
 
 
 def make_mega_rooms(g: MissionGraph, cfg: GenConfig, rng: random.Random):

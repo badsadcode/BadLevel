@@ -16,7 +16,7 @@ ENT_COLORS = {
     "lift": "#f59e0b", "ladder": "#a16207", "window": "#7dd3fc",
 }
 KIND_LABEL = {"start": "START", "exit": "EXIT", "arena": "ARENA", "hub": "hub", "combat": "fight",
-              "supply": "supply", "key": "KEY", "secret": "secret", "stairwell": "stairs ⇅",
+              "supply": "supply", "key": "KEY", "secret": "secret", "stairwell": "stairs ⇅", "spiral": "spiral ⇅",
               "lift": "lift ⇅", "ladder": "ladder ⇅", "courtyard": "YARD ☀", "megaroom": "MEGA"}
 
 

@@ -818,3 +818,28 @@ median 15, 68% of floor samples under 24.
 **Secrets.** Tom finished the level (37/41 kills on normal), but the end screen read "Secrets
 0/0": Quake counts a secret only when the player enters a `trigger_secret`. Each secret room now
 has one over its floor.
+
+## D34. Spiral stairs
+
+Tom: "How about some spiral stairs? Or curved stairs." A fourth vertical connector, `spiral`,
+beside the switchback stairwell, the lift and the ladder.
+
+- **A round tower** 11 cells across (352 units), the round footprint of D32, with a solid
+  **newel** in the middle (cells nearer than 2 cells to the axis; a named part,
+  `room:N/newel`). The stair is the ring around it, about 4 cells wide, so a player box
+  passes everywhere (D33).
+- **Each cell's floor follows its angle round the axis.** The stair is a helix along a path
+  parameter t: flat at the bottom landing for the first 0.15 turn, a straight climb, flat at the
+  top landing for the last 0.15 turn. A cell holds one floor per turn (stacked spans, 16-unit
+  slabs), so the upper turn passes over the lower one. Both landings are on the same side, where
+  the doors are; the side (4 choices) and the direction (clockwise or not) are random.
+- **Checked before it is used.** `spiral_floors` rejects a plan if any step between neighbours
+  is over 16 units, or a turn leaves under 80 units clear over the one below (the player is 56).
+  `spiral_plan` takes the fewest turns that pass (1 turn for 128-224 units, up to 4 for 700).
+  Every rise from 128 to 736 has one. The top landing's edge drops to the turn below; that is a
+  drop, not a step up, and allowed.
+- **Opt-in**: `variety` adds it to the connector choices (0.35 x v), so it shows up on levels
+  with storeys. Off by default: every preset is unchanged.
+- Steps are whole cells (32 units deep, 16 high), so the helix reads as a stepped spiral.
+  Thin wedge steps would need sub-cell geometry, as would a curved stair along a wall; both are
+  for later.

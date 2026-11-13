@@ -10,11 +10,13 @@ Traversal semantics (stored in ``level.links`` and on the entities):
   stairwell  walk, two-way, accessible; plain stairs, so it needs no link
   lift       ride, two-way, accessible; a moving platform (Quake func_plat)
   ladder     climb, two-way, not accessible (hands needed, slow, exposed)
+  spiral     walk, two-way, accessible; a spiral stair round a newel in a round tower
 """
 from __future__ import annotations
 
 import random
-from typing import Dict, Optional, Tuple
+import math
+from typing import Dict, List, Optional, Tuple
 
 from .level import Cell, Entity, Level, Room
 
@@ -38,6 +40,76 @@ def stairwell_plan(rise: int, step: int = 16) -> Optional[Tuple[int, int]]:
     return None
 
 
+SPIRAL_SIZE = 11            # tower footprint in cells (a circle 352 units across)
+SPIRAL_CORE = 2.0           # cells whose centre is nearer than this to the axis are the newel
+SPIRAL_LANDING = 0.15       # turns of flat landing at the bottom and the top
+SPIRAL_HEADROOM = 80        # least clear height over a step, under the turn above (player: 56)
+
+
+def _spiral_cells(S: int):
+    """Open cells of the tower ring: (u, v) -> angle in turns (0..1, counter-clockwise from +u)."""
+    c = S / 2.0
+    out = {}
+    for u in range(S):
+        for v in range(S):
+            du, dv = u + 0.5 - c, v + 0.5 - c
+            r = math.hypot(du, dv)
+            if SPIRAL_CORE <= r <= c:
+                out[(u, v)] = (math.atan2(dv, du) / (2 * math.pi)) % 1.0
+    return out
+
+
+def spiral_floors(S: int, rise: int, turns: int, start: float, cw: bool,
+                  step: int = 16) -> Optional[Dict[Tuple[int, int], List[int]]]:
+    """Each ring cell's stacked floors (relative to the bottom landing) for a spiral of ``turns``
+    turns, or None if a step would be too high or a turn too low over the one below it.
+    The path parameter t runs 0 .. turns + landing: flat at 0 for the first ``SPIRAL_LANDING``
+    turns, flat at ``rise`` for the last, a straight climb between."""
+    a = SPIRAL_LANDING
+    span = turns - a
+    if span <= 0:
+        return None
+    cells = _spiral_cells(S)
+    floors = {}
+    for uv, ang in cells.items():
+        phi = ((start - ang) if cw else (ang - start)) % 1.0
+        phi = (phi + a / 2) % 1.0                         # the landing sector is centred on ``start``
+        fl = []
+        for k in range(turns + 1):
+            t = k + phi
+            if t > turns + a:
+                break
+            h = 0.0 if t <= a else rise if t >= turns else (t - a) / span * rise
+            fl.append(int(round(h / step)) * step)
+        floors[uv] = sorted(set(fl))
+    # check: steps between neighbours (matched turn by turn) and headroom between turns
+    for (u, v), fl in floors.items():
+        if any(b - a_ < SPIRAL_HEADROOM + 16 for a_, b in zip(fl, fl[1:])):
+            return None
+        for n in ((u + 1, v), (u, v + 1)):
+            if n not in floors:
+                continue
+            for f in fl:
+                if f == rise:                          # the top landing's edge drops to the turn below
+                    continue
+                near = min(floors[n], key=lambda g: abs(g - f))
+                if abs(near - f) > step and near != rise:
+                    return None
+    return floors
+
+
+def spiral_plan(rise: int, rng: random.Random):
+    if rise < 128 or rise % 16:
+        return None
+    sides = [(s, cw) for s in (0.0, 0.25, 0.5, 0.75) for cw in (False, True)]   # door side, direction
+    rng.shuffle(sides)
+    for turns in range(1, 8):
+        for start, cw in sides:
+            if spiral_floors(SPIRAL_SIZE, rise, turns, start, cw) is not None:
+                return turns, start, cw
+    return None
+
+
 def connector_size(kind: str, rise: int, rng: random.Random):
     """(w, h, meta) of the room footprint, or None if this rise can't be built."""
     axis = rng.choice("xy")
@@ -48,6 +120,13 @@ def connector_size(kind: str, rise: int, rng: random.Random):
         cycles, F = plan
         L, W = F + 6, 7
         meta = {"axis": axis, "cycles": cycles, "flight": F, "L": L, "W": W}
+    elif kind == "spiral":
+        plan = spiral_plan(rise, rng)
+        if plan is None:
+            return None
+        turns, start, cw = plan
+        S = SPIRAL_SIZE
+        return S, S, {"axis": "x", "turns": turns, "start": start, "cw": cw, "L": S, "W": S}
     elif kind == "lift":
         L, W = LIFT_L, LIFT_W
         meta = {"axis": axis, "L": L, "W": W}
@@ -68,6 +147,16 @@ def ports(room: Room) -> Dict[str, Tuple[set, int]]:
     """Perimeter cells where corridors may attach: {"low": (cells, floor), "high": (cells, floor)}."""
     m = room.meta
     L, W = m["L"], m["W"]
+    if room.kind == "spiral":
+        # the doors: perimeter cells on the landing side (both landings are on the same side)
+        ring = _spiral_cells(L)
+        c = L / 2.0
+        ang = m["start"] * 2 * math.pi
+        side = (math.cos(ang), math.sin(ang))
+        best = max((u + 0.5 - c) * side[0] + (v + 0.5 - c) * side[1] for (u, v) in ring)
+        door = {to_cell(room, u, v) for (u, v) in ring
+                if (u + 0.5 - c) * side[0] + (v + 0.5 - c) * side[1] > best - 0.5}
+        return {"low": (door, room.floor), "high": (door, room.top_floor)}
     if room.kind == "stairwell":
         low = {to_cell(room, L - 1, 1), to_cell(room, L - 2, 0)}
         high = {to_cell(room, L - 1, W - 2), to_cell(room, L - 2, W - 1)}
@@ -92,6 +181,16 @@ def build_connector(level: Level, room: Room, step: int = 16):
     L, W = m["L"], m["W"]
     low, top = room.floor, room.top_floor
     s = level.cell
+
+    if room.kind == "spiral":
+        floors = spiral_floors(L, top - low, m["turns"], m["start"], m["cw"], step)
+        for (u, v), fl in floors.items():
+            _column(level, room, to_cell(room, u, v), [low + f for f in fl])
+        newel = {to_cell(room, u, v) for u in range(L) for v in range(W) if (u, v) not in floors
+                 and math.hypot(u + 0.5 - L / 2, v + 0.5 - W / 2) < SPIRAL_CORE}
+        for c in newel:
+            level.part_solid[c] = f"room:{room.id}/newel"
+        return
 
     if room.kind == "stairwell":
         cycles, F = m["cycles"], m["flight"]

@@ -1,4 +1,4 @@
-"""Vertical connectors as space types: switchback stairwells, lift shafts, ladder shafts.
+"""Vertical connectors as space types: switchback stairwells, lift shafts, ladder shafts, spiral stairs.
 
 The geometry itself lives in ``badlevel.connectors`` (local frame, ports, spans,
 traversal links); this module plugs it into the space-type interface.
@@ -26,8 +26,13 @@ class ConnectorSpace(SpaceType):
         if size is None:
             return None
         w, h, meta = size
-        return Room(-1, node.id, node.kind, 0, 0, w, h, floor, top + 160, storey=node.storey,
+        room = Room(-1, node.id, node.kind, 0, 0, w, h, floor, top + 160, storey=node.storey,
                     top_floor=top, meta=meta)
+        if node.kind == "spiral":                     # a round tower round a solid newel
+            from ..connectors import _spiral_cells
+            room.mask = set(_spiral_cells(w))
+            room.shape = "round"
+        return room
 
     def build(self, level: Level, room: Room, cfg):
         from ..connectors import build_connector
@@ -44,5 +49,5 @@ class ConnectorSpace(SpaceType):
         place_lights(level, room)        # no fights or pickups on the stairs
 
 
-for _kind in ("stairwell", "lift", "ladder"):
+for _kind in ("stairwell", "lift", "ladder", "spiral"):
     register(ConnectorSpace(_kind))
