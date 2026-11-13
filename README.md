@@ -64,6 +64,16 @@ level = generate(GenConfig(seed=7, main_rooms=8, keys=2))
 open("e1m1.map", "w").write(to_map(level))
 ```
 
+## Quake 2
+
+```bash
+python3 -m badlevel generate --seed 7 --recipe bunker --formats q2map
+```
+
+writes `badlevel_7.q2.map` and `textures/badlevel/*.wal`. Compile it with ericw-tools 2.0
+(`qbsp -q2bsp`, `vis`, `light`), then copy the `.bsp` to `baseq2/maps/` and the `textures`
+folder into `baseq2/`. Ladders work in Quake 2.
+
 ## Recipes and presets
 
 Say what kind of place you want in design terms; BadLevel compiles it into its

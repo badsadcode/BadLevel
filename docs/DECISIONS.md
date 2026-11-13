@@ -884,3 +884,27 @@ the wall. Their idea is the slope, where D35 had square blocks. Added:
   connected.
 - Not yet: a battered base or a wash (needs sloped floors), a tapering shaft (needs leaning
   walls). Both are on the roadmap.
+
+## D36. Quake 2 export
+
+`--formats q2map` writes `<stem>.q2.map` and `textures/badlevel/*.wal`. The same brushes as the
+Quake 1 .map (`to_map(level, "quake2")`); what differs:
+- **Faces** carry three more numbers: contents, surface flags, value. Sky faces get SURF_SKY,
+  glass CONTENTS_WINDOW and SURF_TRANS33, triggers SURF_NODRAW.
+- **Textures** are .wal files (the same grey grids as `badlevel.wad`; Quake 2's palette also
+  starts with a 16-step grey ramp), named `badlevel/wall` etc. A Quake 2 .bsp does not embed
+  textures, so the folder ships with the map: unzip both into `baseq2` (or a mod folder).
+- **Ladders work**: a solid brush with CONTENTS_LADDER, flush with the landing at the top, so
+  every level (bunker and industrial ladders included) can be finished in Quake 2. In Quake 1
+  ladders stay a `func_ladder` marker (D31).
+- **Entities**: soldiers (light, normal) and gunners for the three tiers, `key_red_key` /
+  `key_blue_key`, `item_health_mega`, `item_armor_jacket`, `ammo_shells`. A locked door has a
+  name; a trigger round it fires a `trigger_key` with the key's item, which opens the door (and
+  takes the key, so the door stays open: wait -1). The exit is a `trigger_multiple` targeting a
+  `target_changelevel`; each secret room a `trigger_once` targeting a `target_secret`. Skill
+  flags and lights as in Quake 1 (D33).
+- **Checked**: `scripts/compile_check.py <ericw-tools 2.0> --game quake2` compiles every preset
+  x style with qbsp -q2bsp, vis and light: 56 of 56 clean, no leaks; reading a .bsp back: IBSP
+  version 38, the sky flag, ladder contents, Quake 2 classnames. ericw-tools 0.18 can only
+  convert to Quake 2, 2.0.0-alpha10 compiles it.
+- Not played in Quake 2 yet (Tom).

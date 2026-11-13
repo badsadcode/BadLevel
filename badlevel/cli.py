@@ -70,6 +70,7 @@ def write_level(level, out_dir: str, formats, stem: str = None, analysis: dict =
     stem = stem or f"badlevel_{level.seed}"
     written = []
     ext = {"analysis": ".analysis.json"}
+    ext["q2map"] = ".q2.map"
     downloads = [stem + ext.get(f, "." + f) for f in formats if f != "html" and (f != "analysis" or analysis)]
     if recipe_file:
         downloads.append(os.path.basename(recipe_file))
@@ -81,6 +82,11 @@ def write_level(level, out_dir: str, formats, stem: str = None, analysis: dict =
             wad = os.path.join(out_dir, WAD_NAME)
             if not os.path.exists(wad):            # the .map's textures, next to it (for qbsp, TrenchBroom)
                 write_wad(wad)
+        elif fmt == "q2map":                       # Quake 2: <stem>.q2.map and textures/badlevel/*.wal
+            path = os.path.join(out_dir, f"{stem}.q2.map")
+            data = to_map(level, "quake2").encode()
+            from .export.wad import write_wals
+            write_wals(out_dir)
         elif fmt == "glb":
             data = to_glb(level)
         elif fmt == "json":

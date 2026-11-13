@@ -78,3 +78,38 @@ def make_wad() -> bytes:
 def write_wad(path: str):
     with open(path, "wb") as fh:
         fh.write(make_wad())
+
+
+# --- Quake 2: the same textures as .wal files (textures/badlevel/<name>.wal). Quake 2's palette also
+# starts with a 16-step grey ramp, so the same indices give the same greys.
+Q2_NAMES = {"bl_floor": "floor", "bl_wall": "wall", "bl_ceiling": "ceiling", "bl_door": "door",
+            "bl_glass": "glass", "trigger": "trigger", "bl_lift": "lift", "bl_ladder": "ladder", "sky1": "sky"}
+
+
+def make_wal(name: str) -> bytes:
+    """One .wal: a 100-byte header (name, size, 4 mip offsets, next frame, flags, contents, value)
+    and the 4 mip levels."""
+    size, base, line, pattern = TEXTURES[name]
+    w, h = size
+    px = _pixels(size, base, line, pattern)
+    mips = [_mip(px, w, h, f) for f in (1, 2, 4, 8)]
+    offsets, pos = [], 100
+    for m in mips:
+        offsets.append(pos)
+        pos += len(m)
+    head = struct.pack("<32sII4I32siii", f"badlevel/{Q2_NAMES[name]}".encode(), w, h, *offsets, b"", 0, 0, 0)
+    return head + b"".join(mips)
+
+
+def write_wals(out_dir: str) -> List[str]:
+    """textures/badlevel/*.wal under out_dir (a Quake 2 game directory, or next to the .map)."""
+    import os
+    folder = os.path.join(out_dir, "textures", "badlevel")
+    os.makedirs(folder, exist_ok=True)
+    paths = []
+    for name, short in Q2_NAMES.items():
+        path = os.path.join(folder, short + ".wal")
+        with open(path, "wb") as fh:
+            fh.write(make_wal(name))
+        paths.append(path)
+    return paths

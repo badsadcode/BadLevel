@@ -390,3 +390,37 @@ def test_maps_ship_their_textures_and_fit_original_quake():
         assert used <= names, used - names
         coords = [abs(float(v)) for v in re.findall(r"\( (-?\d+) (-?\d+) -?\d+ \)", m) for v in v]
         assert max(coords) <= 4096
+
+
+def test_quake2_map(tmp_path):
+    """Quake 2 dialect: three more numbers per face, .wal textures, ladders you can climb, keys
+    through trigger_key, the exit and secrets through targets."""
+    import re
+    import struct
+    from badlevel.export.quake_map import Q2_CONTENTS_LADDER, Q2_SURF_SKY
+    from badlevel.export.wad import Q2_NAMES, write_wals
+    from badlevel.recipes import PRESETS, compile_recipe
+    lv = generate(compile_recipe(PRESETS["bunker"], 1))
+    m = to_map(lv, "quake2")
+    faces = re.findall(r"^\( .* \) (\S+) 0 0 0 1 1 (\d+) (\d+) 0$", m, re.M)
+    assert faces and len(faces) == len(re.findall(r"^\( ", m, re.M))
+    assert all(t.startswith("badlevel/") for t, _, _ in faces)
+    assert any(t == "badlevel/sky" and int(f) & Q2_SURF_SKY for t, _, f in faces)
+    assert any(int(c) & Q2_CONTENTS_LADDER for t, c, _ in faces if t == "badlevel/ladder")
+    for cls in ("trigger_key", "target_changelevel", "target_secret", "monster_soldier", "key_red_key"):
+        assert f'"classname" "{cls}"' in m, cls
+    assert '"wad"' not in m and "monster_army" not in m
+    assert to_map(lv) != m and " 0 0 0 1 1\n" in to_map(lv)        # Quake 1 unchanged
+    paths = write_wals(str(tmp_path))
+    assert len(paths) == len(Q2_NAMES)
+    for p in paths:
+        data = open(p, "rb").read()
+        name, w, h, o0 = struct.unpack_from("<32sII4I", data, 0)[:4]
+        assert name.startswith(b"badlevel/") and len(data) == 100 + w * h * (1 + 1 / 4 + 1 / 16 + 1 / 64)
+
+
+def test_quake2_from_the_command_line(tmp_path):
+    from badlevel.cli import main as cli
+    assert cli(["generate", "--seed", "3", "--out", str(tmp_path), "--formats", "q2map", "--no-analysis"]) == 0
+    assert (tmp_path / "badlevel_3.q2.map").exists()
+    assert (tmp_path / "textures" / "badlevel" / "wall.wal").exists()
