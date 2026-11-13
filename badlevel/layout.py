@@ -45,6 +45,13 @@ def _room_size(cfg: GenConfig, size: str, rng: random.Random):
     w = rng.randint(lo, hi)
     h = rng.randint(lo, hi)
     height = rng.randrange(hmin, hmax + 1, 16)
+    v = getattr(cfg, "size_variety", 0.0)
+    if v > 0 and size in ("small", "medium", "large"):
+        # a wider spread of sizes: from a closet to a hall in the same level (0.66x - 2x at 1)
+        f = 2 ** rng.uniform(-0.6 * v, 1.0 * v)
+        w = max(6, min(40, int(round(w * f))))
+        h = max(6, min(40, int(round(h * f))))
+        height = int(round(height * f ** 0.5 / 16)) * 16
     height = max(128, int(round(height * cfg.height_scale / 16)) * 16)
     return w, h, height
 

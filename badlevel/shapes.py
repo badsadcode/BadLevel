@@ -153,8 +153,54 @@ def make_shape(w: int, h: int, name: str, rng: random.Random) -> Shape:
                 s.cells.add((x, y))
                 s.diag[(x, y)] = corner
         _chamfer_corners(s, rng, max(1, min(3, ring - 1)))
+    elif name == "round":                                 # a circle (an ellipse) on the grid
+        cx, cy, rx, ry = w / 2.0, h / 2.0, w / 2.0, h / 2.0
+
+        def inside(x, y):
+            return ((x + 0.5 - cx) / rx) ** 2 + ((y + 0.5 - cy) / ry) ** 2 <= 1.0
+        cells = {(x, y) for x in range(w) for y in range(h) if inside(x, y)}
+        diag = {}
+        for x in range(w):                                # steps of the outline become 45-degree half cells
+            for y in range(h):
+                if (x, y) in cells:
+                    continue
+                hx = x + (1 if x + 0.5 < cx else -1)
+                vy = y + (1 if y + 0.5 < cy else -1)
+                if (hx, y) in cells and (x, vy) in cells:
+                    diag[(x, y)] = ("n" if y + 0.5 > cy else "s") + ("e" if x + 0.5 > cx else "w")
+        s.cells = cells | set(diag)
+        s.diag = diag
+    elif name == "hex":                                   # pointed at both ends
+        k = max(2, min(m // 2, max(w, h) // 3))
+        for corner in CORNERS:
+            s.chamfer(corner, k)
+    elif name == "diamond":                               # a square turned 45 degrees
+        k = max(2, m // 2)
+        for corner in CORNERS:
+            s.chamfer(corner, k)
+    elif name == "Z":                                     # two offset halls joined in the middle
+        nw, nh = rng.randint(w // 3, w // 2), rng.randint(h // 3, max(h // 3, h // 2 - 1))
+        flip = rng.random() < 0.5
+        s.remove_rect(0, 0 if flip else h - nh, nw, nh if flip else h)
+        s.remove_rect(w - nw, h - nh if flip else 0, w, h if flip else nh)
+    elif name == "H":                                     # two parallel halls and a bridge
+        if w >= h:
+            gap = rng.randint(max(2, w // 4), max(2, w // 3))
+            depth = rng.randint(h // 4, max(h // 4, h // 3))
+            x0 = (w - gap) // 2
+            s.remove_rect(x0, 0, x0 + gap, depth)
+            s.remove_rect(x0, h - depth, x0 + gap, h)
+        else:
+            gap = rng.randint(max(2, h // 4), max(2, h // 3))
+            depth = rng.randint(w // 4, max(w // 4, w // 3))
+            y0 = (h - gap) // 2
+            s.remove_rect(0, y0, depth, y0 + gap)
+            s.remove_rect(w - depth, y0, w, y0 + gap)
     return s
 
+
+# offered only when a recipe asks for them (the variety dial): existing levels stay as they were
+EXTRA_SHAPES = ("round", "hex", "diamond", "Z", "H")
 
 SHAPES_BY_SIZE = {
     "small": ["rect", "rect", "chamfer", "chamfer", "octagon"],
@@ -174,6 +220,8 @@ def pick_shape(w: int, h: int, size: str, kind: str, rng: random.Random, weights
     options = list(SHAPES_BY_KIND.get(kind, SHAPES_BY_SIZE.get(size, ["rect"])))
     if weights and "rect" in weights and "rect" not in options:
         options.append("rect")      # a regular recipe may square off any room
+    if weights and kind != "secret":
+        options += [n for n in EXTRA_SHAPES if weights.get(n, 0) > 0 and n not in options]
     for _ in range(8):
         s = make_shape(w, h, weighted(rng, options, weights), rng)
         if s.ok():

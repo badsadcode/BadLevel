@@ -649,11 +649,32 @@ def trussed(fr: Frame, rng: random.Random) -> Optional[Section]:
     return s
 
 
+def dome(fr: Frame, rng: random.Random) -> Optional[Section]:
+    """A dome over the room: rising from the walls to a crown in the middle. It curves both ways,
+    so it is built in 16-unit courses (a corbelled or beehive dome); a smooth one is for curved
+    patches (Quake 3). Best over centred plans: round, hex, octagon, diamond."""
+    L, W, H = fr.L, fr.W, fr.H
+    if H < HEAD + 64 or min(L, W) < 7:
+        return None
+    s = Section("dome", fr)
+    rise = min(q(H - HEAD - 16), q(min(L, W) * rng.uniform(10, 14)))
+    if rise < 48:
+        return None
+    spring = H - rise
+    cu, cv = L / 2.0, W / 2.0
+    for u in range(L):
+        for v in range(W):
+            r2 = ((u + 0.5 - cu) / cu) ** 2 + ((v + 0.5 - cv) / cv) ** 2
+            s.set(u, v, spring + rise * math.sqrt(max(0.0, 1.0 - r2)))
+    s.info = {"spring": spring, "rise": rise}
+    return s
+
+
 PROFILES: Dict[str, Callable] = {
     "basilica": basilica, "single-aisle": single_aisle, "vault": vault, "undercroft": undercroft,
     "gable": gable, "shed": shed, "portal": portal, "clearspan": clearspan, "sawtooth": sawtooth,
     "multispan": multispan, "ribbed": ribbed, "barrel": barrel, "mushroom": mushroom, "haunched": haunched,
-    "tray": tray, "coffered": coffered, "cavern": cavern,
+    "tray": tray, "coffered": coffered, "cavern": cavern, "dome": dome,
     "hypostyle": hypostyle, "lintel": lintel, "corbelled": corbelled, "battered": battered,
     "chamfered": chamfered, "hull": ribbed_hull, "lightwell": lightwell, "timber": timber, "trussed": trussed,
     "plain": lambda fr, rng: None,
@@ -741,6 +762,13 @@ def plan(level: Level) -> Dict[int, Section]:
         palette = PALETTES[style][tier]
         if getattr(cfg, "underground", False) and tier == "grand":
             palette = {"cavern": 4.0, "barrel": 1.0}            # the deep chamber is cut from the rock
+        palette = dict(palette)
+        if tier in ("grand", "major"):                     # profiles a recipe adds (variety: "dome")
+            for k, w in bias.items():
+                if k in PROFILES and k not in palette and float(w) > 0:
+                    palette[k] = 1.0
+        if "dome" in palette and room.shape in ("round", "hex", "octagon", "diamond"):
+            palette["dome"] *= 3.0                        # a dome belongs over a centred plan
         pal = {k: w * float(bias.get(k, 1.0)) * 0.5 ** used.get(k, 0) for k, w in palette.items()}
         pal = {k: w for k, w in pal.items() if w > 0}
         fr = Frame(room, flip_v=rng.random() < 0.5)
@@ -841,7 +869,7 @@ def apply_ceilings(level: Level, room: Room, sec: Section):
         if h is None:
             continue
         f_top = spans[-1][0]
-        need = f_top + HEAD
+        need = f_top + max(HEAD, getattr(level.config, "arch_headroom", HEAD))
         for n in ((c[0] + 1, c[1]), (c[0] - 1, c[1]), (c[0], c[1] + 1), (c[0], c[1] - 1)):
             if room.contains(*n):
                 continue

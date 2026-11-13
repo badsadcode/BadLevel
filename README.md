@@ -67,7 +67,7 @@ open("e1m1.map", "w").write(to_map(level))
 ## Recipes and presets
 
 Say what kind of place you want in design terms; BadLevel compiles it into its
-settings. A recipe is eight dials from 0 to 1 plus optional raw overrides:
+settings. A recipe is ten dials from 0 to 1 plus optional raw overrides:
 
 | dial | turns up |
 |---|---|
@@ -79,8 +79,17 @@ settings. A recipe is eight dials from 0 to 1 plus optional raw overrides:
 | `exploration` | side rooms, secrets, views ahead, pickups |
 | `loopiness` | loops and alternative routes |
 | `regularity` | rectangles and right angles (vs octagons, rings, 45° corridors) |
+| `spaciousness` | bigger, taller rooms, wider and higher corridors, more headroom (0 = the compact Quake feel) |
+| `variety` | a wider spread of room sizes, extra footprints (round, hex, diamond, Z, H), domes in big rooms |
 
 Presets: `compact`, `classic`, `bunker`, `fortress`, `industrial`, `compound`, `explore`.
+
+`spaciousness` and `variety` default to 0, which changes nothing: every preset stays
+as it was. Turn them up on top of any recipe from the command line:
+
+```bash
+python3 -m badlevel generate --seed 7 --recipe fortress --space 0.8 --variety 1
+```
 
 ```bash
 python3 -m badlevel presets

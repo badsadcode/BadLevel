@@ -737,3 +737,36 @@ notexture rule) on the .bsp reproduces the crash exactly.
 Half-Life), which Quake 1 ignores, so a level whose critical path uses a ladder connector
 (bunker, industrial) can't be finished in Quake 1, and yard rooftops can't be reached. A
 Quake 1 target would replace ladders (connectors with lifts or stairs, rooftops without).
+
+## D32. Room options: spaciousness, variety, round rooms, domes
+
+**Why.** Tom, playing a compiled map: "sometimes the rooms feel a little bit cramped... I don't
+want to lose it, what we have", then "it feels like a Quake 1 map, so I love it. But maybe some
+features that allow you to also make bigger rooms, different sizes and shapes", "hexagonal,
+more rounded rooms, dome ceilings". So the compact feel stays the default and the rest is opt-in.
+
+**Two new dials, both 0 by default** (0 changes nothing: every preset, styled or not, is byte
+for byte the same map; checked on 38 golden levels and tested).
+- `spaciousness` (`--space`): rooms up to 1.5x wider and 1.25x taller, storeys 1.25x, corridors
+  up to 1.5x higher and biased to 2-3 cells wide (narrow ones rare), compressed corridors less
+  pinched, fewer crates, and architecture keeps more headroom over the floor (112 -> 192
+  units, `arch_headroom`) so vaults and trusses don't eat the extra height. Measured over 5
+  presets x 2 seeds: average room side 13.8 -> 19.7 cells, average headroom 6.2 -> 7.8 m,
+  corridors 3.3 x 128 -> 4.3 x 196. Bigger rooms are harder to fit, so layout can take more
+  attempts (up to 12 seen); every level still validates.
+- `variety` (`--variety`): ordinary rooms are scaled by 2^u, u in [-0.6v, 1.0v] (cells 6-40,
+  height by the square root), so small closets and big rooms sit side by side (room areas 49-406
+  -> 32-957 cells); extra footprints join the preset's own: round, hex, diamond, Z, H; and a
+  `dome` profile joins the palette of grand and major rooms in any style, three times as likely
+  over centred plans (round, hex, octagon, diamond).
+
+**Round rooms.** An ellipse tested at cell centres; each step of its outline becomes a 45-degree
+half cell, so the wall reads as a polygon of 8+ sides, not a staircase. Grid-sound like every
+shape (connected, no thin walls; tested at five sizes).
+
+**Domes.** Rising from a springing line to a crown over the middle, `spring + rise * sqrt(1 - r^2)`.
+A dome curves both ways, which planar ceiling corners can't follow, so it is built in 16-unit
+courses: a corbelled or beehive dome, which reads as a dome in a blockout and is easy to keep or
+replace (it's the room's named ceiling part). Needs height to spare (rise 48 units or more above
+headroom) and a room at least 7 cells across. A smooth dome is for curved patches (Quake 3) or a
+mesh, noted for later.

@@ -42,15 +42,18 @@ def compressed(cfg: GenConfig, a: Room, b: Room) -> bool:
 
 def corridor_height(cfg: GenConfig, a: Room, b: Room, r: int) -> int:
     from ..layout import CORRIDOR_HEIGHT
+    f = cfg.corridor_height / 128.0          # spaciousness raises it (128 by default: unchanged)
     if compressed(cfg, a, b):
-        return 112
-    return CORRIDOR_HEIGHT.get(r, 128 + 32 * (r - 1))
+        return int(round(112 * f / 16)) * 16
+    return int(round(CORRIDOR_HEIGHT.get(r, 128 + 32 * (r - 1)) * f / 16)) * 16
 
 
 def _corridor_style(g: MissionGraph, e, a: Room, b: Room, cfg: GenConfig, rng: random.Random):
     kinds = {g.nodes[e.a].kind, g.nodes[e.b].kind}
     if compressed(cfg, a, b):
-        return 1, False
+        # narrow and low into a big space; with spaciousness 5 wide (still a squeeze next to a hall)
+        r = 2 if getattr(cfg, "spaciousness", 0.0) >= 0.5 else 1
+        return max(1, min(r, (min(a.w, a.h, b.w, b.h) - 3) // 2)), False
     if a.is_connector or b.is_connector:
         return 1, False                  # connector ports are 3 cells wide
     if e.kind == "secret":

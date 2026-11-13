@@ -54,6 +54,8 @@ class GenConfig:
     arch_walls: bool = True      # structure along the walls: members, recesses, end features (walls.py)
     arch_portals: bool = True    # framed corridor openings: jambs, arched / lintelled heads (portals.py)
     arch_axial: float = 0.65     # share of big halls whose end feature faces the way in (the rest: oblique)
+    arch_headroom: int = 112     # least headroom a shaped ceiling keeps (spaciousness raises it)
+    spaciousness: float = 0.0    # set by the recipe dial (recipes.roomier); for the record
     arch_landmark: bool = True   # one deliberate landmark in a styled level's biggest space (landmark.py)
     arch_smooth: bool = True     # vaults and roofs as sloped planes (False: 16-unit steps, a strict grid)
 
@@ -92,6 +94,7 @@ class GenConfig:
     enemy_density: float = 1.0   # 0 = no combat at all (exploration, architecture, survival...)
     pickup_density: float = 1.0
     height_scale: float = 1.0    # room ceiling heights (low = claustrophobic, high = monumental)
+    size_variety: float = 0.0    # spread of room sizes (0 = the size table as is; 1 = 0.66x - 2x per room)
     room_scale: float = 1.0      # room footprints (cells): small and tight vs vast halls
     recipe: str = ""             # the recipe this config was compiled from (for the record)
 

@@ -16,6 +16,12 @@ Dials:
   loopiness       loops and alternative routes
   regularity      architectural order: rectangles and right angles (1) vs octagons,
                   rings and 45-degree corridors (0)
+  spaciousness    room to move at fast-FPS speed: bigger rooms, wider corridors, higher
+                  ceilings, more headroom kept under vaults and beams, less clutter.
+                  0 (default) leaves every preset exactly as it was
+  variety         a wider spread of room sizes (closets to halls in one level) and more
+                  footprint shapes (round, hex, diamond, Z, H), and domes in big rooms.
+                  0 (default) changes nothing
 
 Recipes are JSON files (see ``save_recipe``), kept beside the exported level.
 """
@@ -27,7 +33,8 @@ from typing import Dict
 
 from .config import GenConfig
 
-DIALS = ("scale", "openness", "verticality", "claustrophobia", "combat", "exploration", "loopiness", "regularity")
+DIALS = ("scale", "openness", "verticality", "claustrophobia", "combat", "exploration", "loopiness", "regularity",
+         "spaciousness", "variety")
 
 
 @dataclass
@@ -42,6 +49,8 @@ class Recipe:
     exploration: float = 0.5
     loopiness: float = 0.5
     regularity: float = 0.35
+    spaciousness: float = 0.0     # 0 = the presets as they are; up to 1 = roomier at fast-FPS speed
+    variety: float = 0.0          # 0 = as they are; up to 1 = sizes from closets to halls, more shapes
     overrides: Dict[str, object] = field(default_factory=dict)
 
     def dials(self) -> Dict[str, float]:
@@ -62,10 +71,51 @@ def _lerp(a: float, b: float, t: float) -> float:
     return a + (b - a) * t
 
 
+def roomier(cfg: GenConfig, s: float) -> GenConfig:
+    """Spaciousness: Tom found the rooms "a little bit cramped" in the Quake rerelease (fast
+    movement, 320 units/s, in rooms of 384-448 units and 96-unit corridors). s = 0 changes
+    nothing; s = 1 makes rooms 1.5x bigger and 1.25x higher (and storeys 1.25x taller, which cap
+    room heights on multi-storey levels), corridors 1.5x higher and mostly 5 or 7 wide, keeps
+    192 units of headroom under shaped ceilings instead of 112, and thins the clutter."""
+    s = max(0.0, min(1.0, float(s)))
+    if s <= 0:
+        return cfg
+    cfg.room_scale *= _lerp(1.0, 1.5, s)
+    cfg.height_scale *= _lerp(1.0, 1.25, s)
+    cfg.corridor_width_bias = dict(cfg.corridor_width_bias or {1: 1.0, 2: 1.0, 3: 1.0})
+    cfg.corridor_width_bias[1] = cfg.corridor_width_bias.get(1, 1.0) * _lerp(1.0, 0.1, s)
+    cfg.corridor_width_bias[2] = cfg.corridor_width_bias.get(2, 1.0) * _lerp(1.0, 1.5, s)
+    cfg.corridor_width_bias[3] = cfg.corridor_width_bias.get(3, 1.0) * _lerp(1.0, 3.0, s)
+    # on multi-storey levels the storey caps a room's height, whatever height_scale says
+    cfg.storey_height = int(round(cfg.storey_height * _lerp(1.0, 1.25, s) / 32)) * 32
+    cfg.corridor_height = int(round(cfg.corridor_height * _lerp(1.0, 1.5, s) / 16)) * 16   # id maps: 128-192
+    cfg.crate_scale *= _lerp(1.0, 0.6, s)
+    cfg.arch_headroom = int(round(_lerp(112, 192, s) / 16)) * 16
+    cfg.spaciousness = s
+    return cfg
+
+
+def varied(cfg: GenConfig, v: float) -> GenConfig:
+    """Variety: Tom wants "bigger rooms, different sizes and shapes" as options, keeping the
+    Quake-1-tight default. v = 0 changes nothing; v = 1 spreads room sizes 0.66x - 2x per room
+    and offers the extra footprints (round, hex, diamond, Z, H) alongside the preset's own, and
+    domes in big rooms of any style (more likely over round, hex and octagonal plans)."""
+    v = max(0.0, min(1.0, float(v)))
+    if v <= 0:
+        return cfg
+    cfg.size_variety = v
+    cfg.shape_weights = dict(cfg.shape_weights or {"rect": 1.0})
+    for name, w in (("round", 1.5), ("hex", 1.5), ("diamond", 1.0), ("Z", 1.2), ("H", 1.2)):
+        cfg.shape_weights[name] = cfg.shape_weights.get(name, 0.0) + w * v
+    cfg.arch_weights = dict(cfg.arch_weights or {})
+    cfg.arch_weights["dome"] = cfg.arch_weights.get("dome", 0.0) + 1.5 * v      # domes in big rooms
+    return cfg
+
+
 def compile_recipe(recipe: Recipe, seed: int = 1) -> GenConfig:
     """Dials -> GenConfig. Every mapping is monotonic and documented in docs/DECISIONS.md."""
     t = {d: max(0.0, min(1.0, float(getattr(recipe, d)))) for d in DIALS}
-    sc, op, ve, cl, co, ex, lo, rg = (t[d] for d in DIALS)
+    sc, op, ve, cl, co, ex, lo, rg, sp, va = (t[d] for d in DIALS)
     cfg = GenConfig(seed=seed, recipe=recipe.name)
 
     # scale
@@ -120,6 +170,8 @@ def compile_recipe(recipe: Recipe, seed: int = 1) -> GenConfig:
             merged.update(v)
             v = merged
         setattr(cfg, k, v)
+    roomier(cfg, sp)                 # after the overrides: it scales whatever the preset chose
+    varied(cfg, va)
     # decided last, from what the level ends up containing (overrides may add big spaces):
     # big spaces get a compressed approach, and the level is organised around them
     big = cfg.mega_rooms > 0 or cfg.open_areas > 0
