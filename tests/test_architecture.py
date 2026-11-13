@@ -562,7 +562,7 @@ def test_landmark_switch():
 
 def test_members_get_bases_and_capitals(styled):
     """Pilasters get a plinth (one walkable step) and a capital (under the ceiling), one order per room."""
-    from badlevel.walls import BASE_RISE
+    from badlevel.walls import BASE_RISE, BLOCK_RISE
     seen = set()
     for levels in styled.values():
         for lv in levels:
@@ -573,7 +573,8 @@ def test_members_get_bases_and_capitals(styled):
                 seen.add((d["base"], d["capital"]))
                 for c, p in lv.part_cells.items():
                     if p == f"room:{r.id}/bases":
-                        assert lv.room_spans(c, r)[0][0] == r.floor + BASE_RISE <= r.floor + lv.config.max_step
+                        rise = lv.room_spans(c, r)[0][0] - r.floor
+                        assert rise == (BLOCK_RISE if d["base"] == "block" else BASE_RISE)
                 for c, p in lv.part_ceiling.items():
                     if p == f"room:{r.id}/capitals":
                         f, ce = lv.room_spans(c, r)[-1]
@@ -588,3 +589,21 @@ def test_dress_switch():
     lv = generate(cfg)
     assert not any("dress" in r.meta.get("walls", {}) for r in lv.rooms)
     assert not any(p.endswith(("/bases", "/capitals")) for p in list(lv.part_cells.values()) + list(lv.part_ceiling.values()))
+
+
+def test_sloped_capitals():
+    """Splayed capitals and corbels (after Tom's Blender pilasters): the ceiling slopes from low at
+    the wall side up to the room's ceiling; the span keeps the low point."""
+    sloped = 0
+    for st in ("gothic", "castle", "egyptian"):
+        for s in (1, 2):
+            cfg = compile_recipe(PRESETS["fortress"], s)
+            cfg.arch_style = st
+            lv = generate(cfg)
+            assert validate(lv)["ok"]
+            for c, p in lv.part_ceiling.items():
+                if p.endswith("/capitals") and c in lv.ceil_slope:
+                    zs = lv.ceil_slope[c]
+                    assert min(zs) == lv.spans[c][-1][1] < max(zs)
+                    sloped += 1
+    assert sloped

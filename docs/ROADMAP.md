@@ -52,3 +52,6 @@ kill you. Built mostly from what exists, on the castle style:
 - **Portcullis gates**: portal heads with doors that slide up (portals exist).
 - **Prop markers**: cages, braziers, banners, bones, placed where an artist drops real props.
 Inspired by the feel of 90s dungeon games, not a copy of any of them.
+- Sloped floors and leaning walls (Tom's pilasters, D35): battered bases, a wash on a plinth, a
+  shaft that tapers into the wall; also ramps. Needs sloped floor brushes and a walkable-slope rule
+  in the validator.

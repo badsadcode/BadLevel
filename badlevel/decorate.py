@@ -397,7 +397,9 @@ def decorate(level: Level, rng: random.Random):
             walls.tidy_dress(level, room)
         if sec:
             lowered = architecture.apply_ceilings(level, room, sec)
-            room.meta["arch"] = dict(sec.info, style=level.config.arch_style, profile=sec.name,
+            walls.apply_splays(level, room, sec)
+            info = {k: v for k, v in sec.info.items() if k not in ("placed", "splays")}
+            room.meta["arch"] = dict(info, style=level.config.arch_style, profile=sec.name,
                                      axis="x" if sec.frame.along_x else "y", piers=piers, shaped_cells=lowered)
             room.features.append(sec.name)
     info = {"max_depth": max(n.depth for n in level.graph.nodes) or 1}
@@ -408,3 +410,6 @@ def decorate(level: Level, rng: random.Random):
     if tiers:
         from . import portals
         portals.build(level, tiers)            # frames the openings, last: it sees doors and entities
+        for room in level.rooms:               # a jamb may have taken a base cell
+            if room.meta.get("walls", {}).get("dress"):
+                walls.tidy_dress(level, room)

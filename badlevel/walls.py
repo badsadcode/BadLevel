@@ -34,7 +34,7 @@ from __future__ import annotations
 import random
 from typing import Dict, List, Optional, Tuple
 
-from .architecture import HEAD, Frame, Section, bay_lines, bay_size, place_piers, q
+from .architecture import HEAD, Frame, Section, _base_connected, bay_lines, bay_size, place_piers, q
 from .level import Cell, Level, Room
 
 # style -> (bay factor, bay min, bay max)
@@ -304,20 +304,29 @@ def articulate(level: Level, room: Room, ctx, sec: Optional[Section], tier: str)
 
 
 # style -> [(base, capital, weight)]: one order per room. base: None | "front" | "pedestal"
-# (front and both sides); capital: None | (cells, drop) with cells "front" | "flared" (front and
-# sides, the same drop) | "stepped" (the front drops, the sides half as far: a two-tier corbel)
+# (front and both sides) | "block" (the front cell, 48 high: walked round, after Tom's examples);
+# capital: None | (cells, drop) with cells "front" | "flared" (front and sides, the same drop) |
+# "stepped" (the front drops, the sides half as far: a two-tier corbel) | "splay" (the front
+# ceiling slopes from low at the wall up to the ceiling) | "splay-flared" (front and sides) |
+# "corbel" (two cells deep: flat under the member, then sloping back up). The sloped kinds follow
+# Tom's Blender pilasters: capitals that flare on an angle rather than in blocks.
 ORDERS = {
     "gothic": [("pedestal", ("front", 48), 2), ("front", ("flared", 32), 1), ("pedestal", None, 1),
-               ("pedestal", ("stepped", 64), 1)],
+               ("pedestal", ("stepped", 64), 1), ("pedestal", ("splay", 48), 2), ("block", ("splay-flared", 48), 1)],
     "castle": [("front", ("front", 64), 2), ("pedestal", ("front", 48), 1), (None, ("flared", 32), 1),
-               ("front", ("stepped", 64), 1)],
-    "egyptian": [("pedestal", ("flared", 32), 2), ("pedestal", ("front", 64), 1), ("pedestal", ("stepped", 64), 1)],
-    "compound": [("front", ("front", 32), 2), (None, ("front", 48), 1), ("pedestal", None, 1)],
-    "industrial": [("front", None, 2), (None, ("front", 32), 1), ("front", ("front", 48), 1)],
-    "bunker": [("pedestal", None, 2), ("front", ("flared", 32), 1)],
-    "scifi": [("front", ("front", 32), 2), ("pedestal", ("flared", 32), 1), (None, ("front", 48), 1)],
+               ("front", ("stepped", 64), 1), ("block", ("corbel", 48), 2), ("front", ("splay", 64), 1)],
+    "egyptian": [("pedestal", ("flared", 32), 2), ("pedestal", ("front", 64), 1), ("pedestal", ("stepped", 64), 1),
+                 ("block", ("splay", 64), 2)],
+    "compound": [("front", ("front", 32), 2), (None, ("front", 48), 1), ("pedestal", None, 1),
+                 ("front", ("splay", 32), 1)],
+    "industrial": [("front", None, 2), (None, ("front", 32), 1), ("front", ("front", 48), 1),
+                   ("block", ("corbel", 48), 1)],
+    "bunker": [("pedestal", None, 2), ("front", ("flared", 32), 1), ("block", None, 1)],
+    "scifi": [("front", ("front", 32), 2), ("pedestal", ("flared", 32), 1), (None, ("front", 48), 1),
+              ("front", ("splay-flared", 32), 1)],
 }
 BASE_RISE = 16                     # one step: walkable (Quake steps up to 18)
+BLOCK_RISE = 48                    # a block base: too tall to step on, walked round
 
 
 def _inward(fr: Frame, group) -> Optional[Tuple[int, int]]:
@@ -355,18 +364,33 @@ def dress_members(level: Level, room: Room, fr: Frame, sec: Optional[Section], g
         if base:
             cells = front + (sides if base == "pedestal" else [])
             world = [fr.cell(u, v) for u, v in cells if 0 <= u < fr.L and 0 <= v < fr.W]
+            rise = BLOCK_RISE if base == "block" else BASE_RISE
+            clear = []
+            if base == "block":            # a path two cells wide stays in front of the block
+                deep = fr.W if d[1] else fr.L
+                clear = [fr.cell(u + d[0] * k, v + d[1] * k) for u, v in g for k in (2, 3)]
+                if deep < 8 or not all(0 <= fr.uv(c)[0] < fr.L and 0 <= fr.uv(c)[1] < fr.W for c in clear):
+                    world = []
             if world and all(room.contains(*c) and not room.is_diag(*c) and c not in near_door
-                             and level.room_spans(c, room) == [(room.floor, room.ceil)] for c in world):
+                             and level.room_spans(c, room) == [(room.floor, room.ceil)] for c in world + clear):
                 for c in world:
-                    level.replace_in(c, *room.slot, [(room.floor + BASE_RISE, room.ceil)])
+                    level.replace_in(c, *room.slot, [(room.floor + rise, room.ceil)])
                     level.part_cells[c] = f"room:{room.id}/bases"
-                bases += 1
+                if base == "block" and not _base_connected(level, room):
+                    for c in world:
+                        level.replace_in(c, *room.slot, [(room.floor, room.ceil)])
+                        del level.part_cells[c]
+                else:
+                    bases += 1
         # a capital: the ceiling in front (and beside) the member, dropped under the member's top
         if cap and sec is not None:
             which, drop = cap
             cells = [(uv, drop) for uv in front]
-            if which in ("flared", "stepped"):
-                cells += [(uv, drop if which == "flared" else drop // 2) for uv in sides]
+            if which in ("flared", "stepped", "splay-flared"):
+                cells += [(uv, drop if which != "stepped" else drop // 2) for uv in sides]
+            slope = which in ("splay", "splay-flared")
+            if which == "corbel":          # the second cell out slopes back up: an angled underside
+                cells += [((u + d[0], v + d[1]), drop) for u, v in front]
             cells = [(uv, dr) for uv, dr in cells if 0 <= uv[0] < fr.L and 0 <= uv[1] < fr.W]
             lows = []
             for uv, dr in cells:
@@ -376,24 +400,57 @@ def dress_members(level: Level, room: Room, fr: Frame, sec: Optional[Section], g
                     lows = []
                     break
                 lows.append((uv, low))
+            wall = fr.cell(0, 0), fr.cell(-d[0], -d[1])      # the world direction towards the wall
+            to_wall = (wall[1][0] - wall[0][0], wall[1][1] - wall[0][1])
+            outer = {(u + d[0], v + d[1]) for u, v in front} if which == "corbel" else set()
             for uv, low in lows:
                 sec.ceil[uv] = low
                 sec.forced.add(uv)
                 level.part_ceiling[fr.cell(*uv)] = f"room:{room.id}/capitals"
+                if slope or uv in outer:          # sloped after apply_ceilings, low at the wall side
+                    sec.info.setdefault("splays", []).append((fr.cell(*uv), to_wall, low, low + drop))
             caps += bool(lows)
     if not (bases or caps):
         return {}
     return {"base": base, "capital": f"{cap[0]} {cap[1]}" if cap else None, "bases": bases, "capitals": caps}
 
 
+def apply_splays(level: Level, room: Room, sec: Section):
+    """After apply_ceilings: the sloped capitals. A cell's ceiling stays at its low point (what
+    gameplay sees); the slope rises from the wall side to the room's ceiling, as a sloped brush."""
+    splays = sec.info.pop("splays", [])
+    if not getattr(level.config, "arch_smooth", True):
+        return                                         # a strict grid: the capitals stay flat blocks
+    for c, to_wall, low, high in splays:
+        rs = level.room_spans(c, room)
+        if not rs or c in level.ceil_slope or c in level.diag:
+            continue
+        f, top = rs[-1]
+        if top != room.floor + low or level.spans[c][-1] != (f, top):
+            continue                                   # a feature or a storey changed it: leave it flat
+        hi = room.floor + high
+        zs = []
+        for dx, dy in ((0, 0), (1, 0), (1, 1), (0, 1)):
+            near_wall = (to_wall[0] == 1 and dx == 1) or (to_wall[0] == -1 and dx == 0) or \
+                        (to_wall[1] == 1 and dy == 1) or (to_wall[1] == -1 and dy == 0)
+            zs.append(top if near_wall else hi)
+        level.ceil_slope[c] = tuple(zs)
+
+
 def tidy_dress(level: Level, room: Room):
-    """After the room's features: a base that a feature built over (a terrace, a platform) is no
-    longer a base, so it loses the name."""
+    """After the room's features (and again after the portals): a base that a feature built over
+    (a terrace, a platform, a jamb) is no longer a base, and a capital whose cell was filled is no
+    longer a capital, so they lose the name."""
     tag = f"room:{room.id}/bases"
     for c in [c for c, p in level.part_cells.items() if p == tag]:
         rs = level.room_spans(c, room)
-        if not rs or rs[0][0] != room.floor + BASE_RISE:
+        if not rs or rs[0][0] - room.floor not in (BASE_RISE, BLOCK_RISE):
             del level.part_cells[c]
+    tag = f"room:{room.id}/capitals"
+    for c in [c for c, p in level.part_ceiling.items() if p == tag]:
+        if not level.room_spans(c, room):              # a feature filled the cell
+            del level.part_ceiling[c]
+            level.ceil_slope.pop(c, None)
 
 
 def _incoming_axis(level: Level, room: Room, fr: Frame, ctx) -> Optional[Tuple[str, float]]:

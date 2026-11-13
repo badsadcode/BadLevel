@@ -869,3 +869,18 @@ the capital (a corbel when it juts out to carry something).
   change where a member is dressed.
 - In a 32-unit grid a base is a full cell deep: chunky, like the rest of the blockout. Finer
   mouldings (a torus, an abacus) are for the artist's pass, on the named parts.
+
+**Tom's pilasters (a .glb from Blender, 6 variants).** Read from the file: a shaft about 1 unit
+deep on a 2-unit block base with a sloping top (a wash) or a battered base (one slope from the
+floor); tops plain, splayed (flaring out on a slope over the top 12-20%), or a corbel (an angled
+underside out to over twice the shaft's depth, then straight up); one shaft tapering back into
+the wall. Their idea is the slope, where D35 had square blocks. Added:
+- capitals `splay` (the front cell's ceiling slopes from low at the wall up to the room's
+  ceiling, a sloped brush, like the portal splays of D22), `splay-flared` (front and sides) and
+  `corbel` (two cells deep: flat under the member, then sloping back up). The span keeps the low
+  point, so gameplay sees the conservative ceiling. 545 sloped capital cells over the test sweep.
+- a `block` base: the front cell 48 units up (walked round, not stepped on), only where the room
+  is at least 8 cells deep there and the two cells in front stay plain floor, and the floor stays
+  connected.
+- Not yet: a battered base or a wash (needs sloped floors), a tapering shaft (needs leaning
+  walls). Both are on the roadmap.
