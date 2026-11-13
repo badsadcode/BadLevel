@@ -33,6 +33,8 @@ class Brush:
     # set for a sloped bottom (smooth vaults and roofs): heights of the bottom face at the
     # rectangle's corners (x0y0, x1y0, x1y1, x0y1); mins z is their lowest
     slope: Optional[Tuple[int, int, int, int]] = None
+    # the named part this brush belongs to (an element: "room:5/vault"); None = plain world
+    part: Optional[str] = None
 
 
 def solid_intervals(spans, zmin, zmax):
@@ -56,7 +58,7 @@ def build_brushes(level: Level) -> List[Brush]:
             for dx in (-1, 0, 1):
                 cols.add((x + dx, y + dy))
 
-    groups: Dict[Tuple[int, int, str, str], Set[Cell]] = {}
+    groups: Dict[tuple, Set[Cell]] = {}
     sloped: Dict[tuple, Set[Cell]] = {}
     for c in cols:
         spans = level.spans.get(c, [])
@@ -65,28 +67,42 @@ def build_brushes(level: Level) -> List[Brush]:
         for (z0, z1, top, bottom) in solid_intervals(spans, zmin, zmax):
             if sky and z0 == spans[-1][1]:
                 bottom = SKY                  # the solid above an open area is sky
+            part = _part(level, c, spans, z0, z1)
             if slope and z0 == spans[-1][1] and min(slope) >= z0:
-                sloped.setdefault((slope, z1, top), set()).add(c)   # the roof above a sloped ceiling
+                sloped.setdefault((slope, z1, top, part), set()).add(c)   # the roof above a sloped ceiling
                 continue
-            groups.setdefault((z0, z1, top, bottom), set()).add(c)
+            groups.setdefault((z0, z1, top, bottom, part), set()).add(c)
 
     s = level.cell
     brushes: List[Brush] = []
-    for (z0, z1, top, bottom), cells in sorted(groups.items()):
+    for (z0, z1, top, bottom, part), cells in sorted(groups.items(), key=lambda kv: (kv[0][:4], kv[0][4] or "")):
         for (x0, y0, x1, y1) in greedy_rects(cells):
-            brushes.append(Brush((x0 * s, y0 * s, z0), (x1 * s, y1 * s, z1), top, bottom))
+            brushes.append(Brush((x0 * s, y0 * s, z0), (x1 * s, y1 * s, z1), top, bottom, part=part))
     # sloped roofs: cells with the same corners merge along the axis the slope doesn't change on
-    for (slope, z1, top), cells in sorted(sloped.items()):
+    for (slope, z1, top, part), cells in sorted(sloped.items(), key=lambda kv: (kv[0][:3], kv[0][3] or "")):
         z00, z10, z11, z01 = slope
         for (x0, y0, x1, y1) in _runs(cells, along_x=(z00 == z10 and z01 == z11),
                                       along_y=(z00 == z01 and z10 == z11)):
             brushes.append(Brush((x0 * s, y0 * s, min(slope)), (x1 * s, y1 * s, z1), top, CEIL, WALL,
-                                 slope=slope))
+                                 slope=slope, part=part))
     # half-solid diagonal cells: one triangular prism filling the solid half of the open span
     for (x, y), corner in sorted(level.diag.items()):
         f, c = level.spans[(x, y)][0]
         brushes.append(Brush((x * s, y * s, f), ((x + 1) * s, (y + 1) * s, c), WALL, WALL, WALL, corner))
     return brushes
+
+
+def _part(level: Level, c: Cell, spans, z0: int, z1: int) -> Optional[str]:
+    """Which named part a solid interval of a column belongs to (see Level.part_*)."""
+    if not (level.part_solid or level.part_cells or level.part_ceiling):
+        return None
+    if not spans:
+        return level.part_solid.get(c)                          # a pier, a member, a jamb
+    if z0 == spans[-1][1]:
+        return level.part_ceiling.get(c) or level.part_cells.get(c)   # a vault, a roof
+    if z1 == spans[0][0]:
+        return level.part_solid.get(c) or level.part_cells.get(c)     # a building wall, a niche floor
+    return level.part_cells.get(c)                               # between spans: a building's roof slab
 
 
 def _runs(cells: Set[Cell], along_x: bool, along_y: bool) -> List[Tuple[int, int, int, int]]:

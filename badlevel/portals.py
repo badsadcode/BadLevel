@@ -151,6 +151,8 @@ def _jambs(level: Level, room: Room, op: dict, style: str, taken: set, mouths: s
             for c, spans in snap.items():
                 level.spans[c] = spans
             continue
+        for c in cells:
+            level.part_solid[c] = f"room:{room.id}/portals"
         placed += 1
     return placed
 
@@ -202,6 +204,7 @@ def _head(level: Level, room: Room, op: dict, style: str, doors: set, smooth: bo
                 owners[i] = (lo, max(hi, peak), name)
         if max(zs) > flat:
             level.ceil_slope[m] = zs
+        level.part_cells[m] = f"corridor:{op['corridor']}/portal"
     _splay(level, room, mouth, d, f, top, q(top + rise // 2) if arch else peak, doors, smooth)
     return rise
 
@@ -254,5 +257,6 @@ def _splay(level: Level, room: Room, mouth: List[Cell], d, f: int, top: int, h_s
                     owners[i] = (lo, max(hi, h_s), name)
             if max(zs) > flat:
                 level.ceil_slope[c] = zs
+            level.part_cells[c] = (level.part_cells.get(mouth[0]) or "corridor/portal")
         return n
     return 0

@@ -424,3 +424,41 @@ def test_compound_yards_are_low_with_room_around():
     lv = generate(cfg)
     for y in (r for r in lv.rooms if r.kind == "courtyard"):
         assert y.ceil - y.floor == 320
+
+
+# ----------------------------------------------------------------------
+# named, replaceable parts (.glb objects and .map TrenchBroom groups)
+# ----------------------------------------------------------------------
+def _glb_json(lv):
+    import json
+    import struct
+    from badlevel.export.gltf import to_glb
+    b = to_glb(lv)
+    n = struct.unpack("<I", b[12:16])[0]
+    return json.loads(b[20:20 + n])
+
+
+def test_glb_objects_per_room_and_element(styled):
+    lv = styled["fortress"][2]
+    j = _glb_json(lv)
+    names = {n["name"] for n in j["nodes"]}
+    geo = next(n for n in j["nodes"] if n["name"] == "level_geometry")
+    areas = [j["nodes"][i] for i in geo["children"]]
+    assert any(a["name"].startswith("room_") for a in areas) and any(a["name"].startswith("corridor_") for a in areas)
+    # every architectural element is its own object, with what it is in its extras
+    elements = {n["extras"]["element"] for n in j["nodes"] if "mesh" in n and "element" in n.get("extras", {})}
+    assert {"structure", "members"} <= elements and elements & {"vault", "basilica", "gable", "undercroft"}
+    mega = next(r for r in lv.rooms if r.kind == "megaroom")
+    assert f"room_{mega.id}_megaroom.{mega.meta['arch']['profile']}" in names
+
+
+def test_map_groups_per_element(styled):
+    import re
+    from badlevel.export import to_map
+    lv = styled["compound"][0]
+    m = to_map(lv)
+    groups = re.findall(r'"_tb_name" "([^"]+)"', m)
+    assert any(": building" in g for g in groups) and any(": roofscape" in g for g in groups)
+    assert m.count('"classname" "func_group"') == len(groups)
+    # a level without architecture has no groups: its .map is unchanged
+    assert "func_group" not in to_map(generate(seed=2))

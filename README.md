@@ -277,6 +277,16 @@ yard reads as a place between buildings instead of a pit. The roofs are scenery
 counter and a small reward inside; compound yards are 10 m high (`yard_height`) and keep
 other rooms 4 cells further away (`yard_setback`).
 
+## Editing the blockout part by part
+
+The output is meant to be kept, textured, or changed piece by piece. In the **.glb**,
+`level_geometry` holds one object per room and corridor (`room_5_megaroom`,
+`corridor_3`), each with its elements as children: `.structure`, `.vault`, `.piers`,
+`.members`, `.niches`, `.end feature`, `.portals`, `.building 2`, `.roofscape`... In
+Blender, select `room_5_megaroom.vault`, delete it and drop in a curved vault of your own.
+In the **.map**, each element is a TrenchBroom group (`func_group`, which compilers treat as
+world), so the same element is one click in the editor.
+
 ## Mega-rooms
 
 A level within the level (`mega_rooms` in the config; recipes turn it on through scale).

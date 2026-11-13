@@ -605,7 +605,7 @@ def _base_connected(level: Level, room: Room) -> bool:
     return len(seen) == len(bs)
 
 
-def place_piers(level: Level, room: Room, sec: Section, ctx) -> int:
+def place_piers(level: Level, room: Room, sec: Section, ctx, tag: str = "piers") -> int:
     """Before the room's features: piers become solid, with a free ring kept around each."""
     fr = sec.frame
     placed = 0
@@ -630,6 +630,8 @@ def place_piers(level: Level, room: Room, sec: Section, ctx) -> int:
             continue
         ctx.used.update(cells)
         ctx.used.update(ring)
+        for c in cells:
+            level.part_solid[c] = f"room:{room.id}/{tag}"
         placed += 1
     return placed
 
@@ -682,6 +684,7 @@ def apply_ceilings(level: Level, room: Room, sec: Section):
                 flat = max(need, (min(zi) // 16) * 16)
                 level.replace_in(c, f_top, room.ceil, [(f_top, flat)])
                 level.ceil_slope[c] = zi
+                level.part_ceiling[c] = f"room:{room.id}/{sec.name}"
                 lowered += 1
                 continue
         if room.floor + h >= room.ceil:     # (the apex of a smooth vault is handled above)
@@ -692,5 +695,6 @@ def apply_ceilings(level: Level, room: Room, sec: Section):
         level.replace_in(c, f_top, room.ceil, [(f_top, new)])
         if c in level.diag_span and level.diag_span[c][1] == room.ceil:
             level.diag_span[c] = (level.diag_span[c][0], new)
+        level.part_ceiling[c] = f"room:{room.id}/{sec.name}"
         lowered += 1
     return lowered

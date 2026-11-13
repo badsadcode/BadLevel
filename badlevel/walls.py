@@ -65,7 +65,7 @@ def _neighbours8(c: Cell):
 
 
 def carve_recess(level: Level, room: Room, ctx, cells: List[Cell], d: Tuple[int, int], depth: int,
-                 z0: int, z1: int, head=None, near_door=frozenset()) -> bool:
+                 z0: int, z1: int, head=None, near_door=frozenset(), label: str = "niches") -> bool:
     """Cut a recess ``depth`` cells into the wall behind the room cells ``cells`` (in a row),
     open from room.floor + z0 to room.floor + z1. ``head(along) -> z`` (absolute) gives the
     recess a sloped top. All or nothing."""
@@ -88,6 +88,7 @@ def carve_recess(level: Level, room: Room, ctx, cells: List[Cell], d: Tuple[int,
                 return False
     lo, hi = room.floor + z0, room.floor + z1
     for o in out:
+        level.part_cells[o] = f"room:{room.id}/{label}"
         if head is None:
             level.add_span(o, (lo, hi), f"room:{room.id}", slot=room.slot)
             continue
@@ -134,7 +135,7 @@ def articulate(level: Level, room: Room, ctx, sec: Optional[Section], tier: str)
                 ceil_here = min(_local_ceiling(sec, fr, side.inner(x)) for x in range(a, a + w))
                 top = min(q(rng.uniform(96, H * 0.7)), ceil_here - 16)
                 if top >= 96 and carve_recess(level, room, ctx, cells, side.out_dir(), rng.choice([1, 1, 2]), 0,
-                                              top, None, near_door):
+                                              top, None, near_door, "rough walls"):
                     counts["recesses"] += 1
                 a += w + rng.randint(1, 4)
         counts["rough"] = 1
@@ -183,9 +184,10 @@ def articulate(level: Level, room: Room, ctx, sec: Optional[Section], tier: str)
                     head = (lambda A, base=base, rise=rise, centre=centre, half=half:
                             base + rise * max(0.0, 1 - abs(A - centre) / half))
             depth = end["depth"]
-            if carve_recess(level, room, ctx, cells, side.out_dir(), depth, end["z0"], top, head, near_door) or \
+            if carve_recess(level, room, ctx, cells, side.out_dir(), depth, end["z0"], top, head, near_door,
+                            "end feature") or \
                     (depth > 1 and carve_recess(level, room, ctx, cells, side.out_dir(), 1, end["z0"], top, head,
-                                                near_door)):
+                                                near_door, "end feature")):
                 counts["end"] += 1
                 counts["axial"] = int(axial)
                 ctx.used.update(cells)                           # its opening stays clear of members
@@ -216,7 +218,7 @@ def articulate(level: Level, room: Room, ctx, sec: Optional[Section], tier: str)
                 groups.append([(u + i, v) for i in range(member_w)])
         tmp = Section("members", fr)
         tmp.piers = groups
-        counts["members"] = place_piers(level, room, tmp, ctx)
+        counts["members"] = place_piers(level, room, tmp, ctx, "members")
 
     # --- outward: recesses between the members, on the long walls
     spec = {
@@ -263,7 +265,7 @@ def articulate(level: Level, room: Room, ctx, sec: Optional[Section], tier: str)
                   for u in (0, fr.L - 1)]
         tmp = Section("members", fr)
         tmp.piers = groups
-        counts["members"] += place_piers(level, room, tmp, ctx)
+        counts["members"] += place_piers(level, room, tmp, ctx, "members")
 
     # --- above: crane corbels along the long walls of a tall industrial hall
     if style == "industrial" and sec is not None and H >= 352 and tier in ("grand", "major"):

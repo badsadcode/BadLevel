@@ -585,3 +585,29 @@ kinds of levels?"). After eight steps of architecture work aimed at four categor
 - levels without a style are byte-identical to before all of it (golden 26/26).
 What the generator still can't make is listed in the answer to Tom, and is the input for
 deciding what comes next.
+
+## D27. A blockout you can edit part by part
+
+**Why.** Tom: BadLevel's output is "a blockout that I could leave as is, just texture it,
+or change some elements (in Blender: make a nice curved arc and replace part of the
+level)", with curves and organic shapes as an option, not the only way. Until now the
+.glb was one object split only by material, and the .map one undivided worldspawn: you
+couldn't click "the vault of the great hall" and swap in your own.
+
+**Decision.** Every architectural element is tagged where it is made (`Level.part_solid`
+for solid elements such as piers, members, jambs and building walls; `part_cells` for
+spaces such as niches, building interiors and portal mouths; `part_ceiling` for vaults and
+roofs). Exporters file every face and brush under a part:
+- **.glb**: `level_geometry` has one object per room and corridor (`room_5_megaroom`,
+  `corridor_3`), each with children: `.structure` and one per element (`.vault`,
+  `.piers`, `.members`, `.niches`, `.end feature`, `.portals`, `.building 2`,
+  `.roofscape`...). Extras carry the area, kind, storey and the section's parameters.
+  In Blender: select `room_5_megaroom.vault`, delete it, drop in your curved vault.
+- **.map**: each element's brushes are a TrenchBroom group (`func_group` with
+  `_tb_type`/`_tb_name`/`_tb_id`; compilers merge func_group into the world, so it compiles
+  the same). Plain structure stays in worldspawn.
+
+**Costs.** Faces and brushes no longer merge across parts: +0.5% triangles, the .glb ~15%
+bigger from per-object overhead, and about 40% more brushes in a styled fortress (1,400 ->
+2,000). Levels without architecture have no tags: their .map is byte-identical (golden
+26/26) and their .glb only gains the per-room objects.

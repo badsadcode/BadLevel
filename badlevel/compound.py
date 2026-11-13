@@ -60,11 +60,14 @@ def f_buildings(ctx, rng: random.Random) -> bool:
             xx = x0 + bw - 1 if side == "e" else x0
             door = [(xx, y0 + bh // 2 - 1), (xx, y0 + bh // 2)]
         walls = [c for c in rect if (c[0] in (x0, x0 + bw - 1) or c[1] in (y0, y0 + bh - 1)) and c not in door]
+        name = f"room:{room.id}/building {made + 1}"
         for c in rect:
             if c in walls:
                 level.replace_in(c, *room.slot, [(top, room.ceil)])
+                level.part_solid[c] = name
             else:
                 level.replace_in(c, *room.slot, [(room.floor, inner_top), (top, room.ceil)])
+            level.part_cells[c] = name
         ctx.used.update(ring)
         made += 1
         info = {"rect": [x0, y0, bw, bh], "top": top, "door": side, "ladder": False}
@@ -205,6 +208,7 @@ def roofscape(level: Level, room: Room, rng: random.Random, band: int = 4) -> in
             continue
         level.add_span(c, (roof, sky_top), f"roof:{room.id}")
         level.sky.add(c)
+        level.part_cells[c] = f"room:{room.id}/roofscape"
         carved += 1
     if carved:
         room.meta["roofscape"] = carved

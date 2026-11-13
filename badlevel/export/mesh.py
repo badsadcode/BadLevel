@@ -16,11 +16,30 @@ UV_SCALE = 64.0
 
 
 class MeshBuilder:
+    """Triangles grouped by part (a room, a corridor, an element like "room:5/vault") and material."""
+
     def __init__(self):
-        self.groups: Dict[str, dict] = {}
+        self.parts: Dict[str, Dict[str, dict]] = {}
+        self.part = "level"                      # the part new faces go to
+
+    @property
+    def groups(self) -> Dict[str, dict]:
+        """All parts merged by material (for single-part builders: entity boxes)."""
+        if len(self.parts) == 1:
+            return next(iter(self.parts.values()))
+        out: Dict[str, dict] = {}
+        for groups in self.parts.values():
+            for mat, g in groups.items():
+                o = out.setdefault(mat, {"pos": [], "nrm": [], "uv": [], "idx": []})
+                base = len(o["pos"])
+                o["pos"] += g["pos"]
+                o["nrm"] += g["nrm"]
+                o["uv"] += g["uv"]
+                o["idx"] += [i + base for i in g["idx"]]
+        return out
 
     def _g(self, mat):
-        return self.groups.setdefault(mat, {"pos": [], "nrm": [], "uv": [], "idx": []})
+        return self.parts.setdefault(self.part, {}).setdefault(mat, {"pos": [], "nrm": [], "uv": [], "idx": []})
 
     def quad(self, mat: str, corners: List[Vec3], normal: Vec3, uvs):
         g = self._g(mat)
@@ -88,26 +107,49 @@ def _subtract(interval, others):
     return out
 
 
+def area_of(level: Level, c, sp) -> str:
+    """The room / corridor a span belongs to ("room:5", "corridor:3"), for naming parts."""
+    o = level.owner_of(c, sp) or ""
+    if o.startswith("roof:"):
+        return f"room:{o[5:]}/roofscape"
+    if o.startswith("window:"):
+        return "windows"
+    return o or "level"
+
+
+def part_of(level: Level, c, sp, face: str, n=None) -> str:
+    """Which named part a face belongs to: an element the face looks into (a pier, a building
+    wall), an element ceiling (a vault), an element space (a niche), or else its room / corridor."""
+    if face == "wall" and n is not None and n in level.part_solid:
+        return level.part_solid[n]
+    if face == "ceiling" and c in level.part_ceiling and level.spans[c][-1] == sp:
+        return level.part_ceiling[c]
+    return level.part_cells.get(c) or area_of(level, c, sp)
+
+
 def build_mesh(level: Level) -> MeshBuilder:
     s = level.cell
     mb = MeshBuilder()
-    flats: Dict[Tuple[str, int], set] = {}
-    walls: Dict[Tuple[int, int, int, int, int], List[int]] = {}
+    flats: Dict[Tuple[str, str, int], set] = {}
+    walls: Dict[Tuple[str, int, int, int, int, int], List[int]] = {}
     diag = level.diag
     u = UV_SCALE
     slopes = level.ceil_slope
     for (x, y), spans in level.spans.items():
         corner = diag.get((x, y))
         if corner:
+            mb.part = part_of(level, (x, y), spans[0], "floor")
             _diag_faces(mb, level, x, y, corner, spans[0])
         if (x, y) in slopes:
+            mb.part = part_of(level, (x, y), spans[-1], "ceiling")
             _sloped_ceiling(mb, level, x, y)
         for (f, c) in spans:
             if not corner:
-                flats.setdefault(("floor", f), set()).add((x, y))
+                flats.setdefault((part_of(level, (x, y), (f, c), "floor"), "floor", f), set()).add((x, y))
                 top = (x, y) in level.sky and (f, c) == spans[-1]
                 if not ((x, y) in slopes and (f, c) == spans[-1]):
-                    flats.setdefault(("sky" if top else "ceiling", c), set()).add((x, y))
+                    flats.setdefault((part_of(level, (x, y), (f, c), "ceiling"), "sky" if top else "ceiling", c),
+                                     set()).add((x, y))
             for d, (dx, dy) in enumerate(((1, 0), (-1, 0), (0, 1), (0, -1))):
                 if corner and (dx, dy) in SOLID_SIDES[corner]:
                     continue  # covered by this cell's own diagonal wall
@@ -116,6 +158,7 @@ def build_mesh(level: Level) -> MeshBuilder:
                 if n in diag and (-dx, -dy) in SOLID_SIDES[diag[n]]:
                     nspans = []  # neighbour's solid half faces us
                 if (x, y) in slopes or n in slopes:
+                    mb.part = part_of(level, (x, y), (f, c), "wall", n)
                     _sloped_edge(mb, level, (x, y), (f, c), spans, d, (dx, dy), nspans)
                     continue
                 for (a, b) in _subtract((f, c), nspans):
@@ -126,16 +169,19 @@ def build_mesh(level: Level) -> MeshBuilder:
                         line, along = y + (1 if dy > 0 else 0), x
                     # faces where the ceiling steps (above a lower neighbour ceiling) are ceiling parts
                     is_ceil = b == c and any(nc <= a and nf < a for (nf, nc) in nspans)
-                    walls.setdefault((d, line, a, b, int(is_ceil)), []).append(along)
+                    part = part_of(level, (x, y), (f, c), "ceiling" if is_ceil else "wall", n)
+                    walls.setdefault((part, d, line, a, b, int(is_ceil)), []).append(along)
 
-    for (mat, z), cells in flats.items():
+    for (part, mat, z), cells in flats.items():
+        mb.part = part
         n = (0, 0, 1) if mat == "floor" else (0, 0, -1)
         for (x0, y0, x1, y1) in greedy_rects(cells):
             X0, Y0, X1, Y1 = x0 * s, y0 * s, x1 * s, y1 * s
             mb.quad(mat, [(X0, Y0, z), (X1, Y0, z), (X1, Y1, z), (X0, Y1, z)], n,
                     [(X0 / u, Y0 / u), (X1 / u, Y0 / u), (X1 / u, Y1 / u), (X0 / u, Y1 / u)])
 
-    for (d, line, a, b, is_ceil), alongs in walls.items():
+    for (part, d, line, a, b, is_ceil), alongs in walls.items():
+        mb.part = part
         alongs.sort()
         runs = []
         start = prev = alongs[0]

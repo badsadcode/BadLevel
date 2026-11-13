@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import json
 import struct
-from typing import List
+from typing import List, Dict
 
 from ..level import Level
 from .mesh import MeshBuilder, build_mesh
@@ -78,9 +78,9 @@ class _Glb:
         return len(self.accessors) - 1
 
 
-def _primitives(glb: _Glb, mb: MeshBuilder, mat_index) -> list:
+def _primitives(glb: _Glb, mb: MeshBuilder, mat_index, groups=None) -> list:
     prims = []
-    for mat, g in sorted(mb.groups.items()):
+    for mat, g in sorted((groups if groups is not None else mb.groups).items()):
         if not g["idx"]:
             continue
         pos = [to_yup(p) for p in g["pos"]]
@@ -97,6 +97,31 @@ def _primitives(glb: _Glb, mb: MeshBuilder, mat_index) -> list:
     return prims
 
 
+def _area_sort(area: str):
+    kind, _, n = area.partition(":")
+    return (kind, int(n) if n.isdigit() else -1, area)
+
+
+def _area_label(level: Level, area: str) -> str:
+    kind, _, n = area.partition(":")
+    if kind == "room" and n.isdigit() and int(n) < len(level.rooms):
+        return f"room_{n}_{level.rooms[int(n)].kind}"
+    if kind == "corridor" and n.isdigit():
+        return f"corridor_{n}"
+    return area.replace(":", "_")
+
+
+def _area_extras(level: Level, area: str) -> dict:
+    kind, _, n = area.partition(":")
+    out = {"area": area}
+    if kind == "room" and n.isdigit() and int(n) < len(level.rooms):
+        r = level.rooms[int(n)]
+        out.update({"kind": r.kind, "storey": r.storey})
+        if "arch" in r.meta:
+            out["architecture"] = {k: v for k, v in r.meta["arch"].items() if isinstance(v, (str, int, float, bool))}
+    return out
+
+
 def to_glb(level: Level) -> bytes:
     glb = _Glb()
     materials, mat_index = [], {}
@@ -109,9 +134,31 @@ def to_glb(level: Level) -> bytes:
         mat_index[key] = len(materials)
         materials.append(m)
 
-    meshes = [{"name": "level_geometry", "primitives": _primitives(glb, build_mesh(level), mat_index)}]
-    nodes = [{"name": "level_geometry", "mesh": 0}]
-    children = [0]
+    # the geometry, as named parts: one object per room / corridor, its architectural elements
+    # (vault, piers, niches, portal, buildings...) as children, so they can be found and replaced
+    mb = build_mesh(level)
+    meshes, nodes = [], []
+    areas: Dict[str, list] = {}
+    for part in sorted(mb.parts):
+        area, _, element = part.partition("/")
+        areas.setdefault(area, []).append((element, part))
+    geo_children = []
+    for area, items in sorted(areas.items(), key=lambda kv: _area_sort(kv[0])):
+        label = _area_label(level, area)
+        kids = []
+        for element, part in items:
+            prims = _primitives(glb, mb, mat_index, mb.parts[part])
+            if not prims:
+                continue
+            meshes.append({"name": f"{label}.{element}" if element else label, "primitives": prims})
+            nodes.append({"name": f"{label}.{element}" if element else f"{label}.structure", "mesh": len(meshes) - 1,
+                          "extras": {"area": area, "element": element or "structure"}})
+            kids.append(len(nodes) - 1)
+        if kids:
+            nodes.append({"name": label, "children": kids, "extras": _area_extras(level, area)})
+            geo_children.append(len(nodes) - 1)
+    nodes.append({"name": "level_geometry", "children": geo_children})
+    children = [len(nodes) - 1]
     counts = {}
     for e in level.entities:
         n = counts.get(e.kind, 0)

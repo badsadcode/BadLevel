@@ -9,7 +9,7 @@ their role so artists can bulk-replace them.
 """
 from __future__ import annotations
 
-from typing import List
+from typing import Dict, List
 
 from ..brushes import Brush, build_brushes
 from ..shapes import corner_vertices
@@ -109,10 +109,17 @@ def _ibox(bounds):
 
 def to_map(level: Level) -> str:
     brushes: List[Brush] = build_brushes(level)
-    world = [prism_text(b, TEXTURES[b.side]) if b.corner else
-             sloped_text(b, TEXTURES[b.top], TEXTURES[b.bottom], TEXTURES[b.side]) if b.slope else
-             brush_text(b.mins, b.maxs, TEXTURES[b.top], TEXTURES[b.bottom], TEXTURES[b.side])
-             for b in brushes]
+    def text(b):
+        return (prism_text(b, TEXTURES[b.side]) if b.corner else
+                sloped_text(b, TEXTURES[b.top], TEXTURES[b.bottom], TEXTURES[b.side]) if b.slope else
+                brush_text(b.mins, b.maxs, TEXTURES[b.top], TEXTURES[b.bottom], TEXTURES[b.side]))
+    world = [text(b) for b in brushes if not b.part]
+    # named elements (a vault, piers, a portal, a building) as TrenchBroom groups: func_group, which
+    # compilers merge into the world, so the map compiles the same; in the editor each is one click
+    parts: Dict[str, List[str]] = {}
+    for b in brushes:
+        if b.part:
+            parts.setdefault(b.part, []).append(text(b))
     out = [
         "// Game: Quake",
         "// Format: Standard",
@@ -120,6 +127,13 @@ def to_map(level: Level) -> str:
         _entity({"classname": "worldspawn", "message": f"BadLevel seed {level.seed}",
                  "_badlevel_seed": level.seed}, world),
     ]
+    for gid, (part, texts) in enumerate(sorted(parts.items()), start=1):
+        area, _, element = part.partition("/")
+        kind, _, n = area.partition(":")
+        label = (f"{kind} {n} {level.rooms[int(n)].kind}" if kind == "room" and n.isdigit()
+                 and int(n) < len(level.rooms) else area.replace(":", " "))
+        out.append(_entity({"classname": "func_group", "_tb_type": "_tb_group", "_tb_name": f"{label}: {element}",
+                            "_tb_id": gid, "_badlevel_part": part}, texts))
     for e in level.entities:
         p = {}
         origin = " ".join(_fmt(v) for v in e.pos)

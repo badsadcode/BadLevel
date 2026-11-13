@@ -136,6 +136,13 @@ class Level:
     # sloped ceilings (smooth vaults and roofs): cell -> corner heights (x0y0, x1y0, x1y1, x0y1) of
     # the top span's ceiling; the span itself keeps the lowest point, so gameplay stays conservative
     ceil_slope: Dict[Cell, Tuple[int, int, int, int]] = field(default_factory=dict)
+    # named parts, so an artist can find and replace an element ("room:5/vault", "room:7/building 1"):
+    #   part_solid    solid cells that are an element (piers, members, jambs, building walls)
+    #   part_cells    open cells that are an element (niches, building interiors, portal mouths)
+    #   part_ceiling  cells whose ceiling (and the solid above it) is an element (vaults, roofs)
+    part_solid: Dict[Cell, str] = field(default_factory=dict)
+    part_cells: Dict[Cell, str] = field(default_factory=dict)
+    part_ceiling: Dict[Cell, str] = field(default_factory=dict)
     # traversal links that are not plain walking: lifts, ladders (two-way, with an interaction)
     links: List[dict] = field(default_factory=list)
     # merged halls: each a list of room ids that form one continuous space (semantic regions)
