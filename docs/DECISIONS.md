@@ -542,3 +542,27 @@ has a roofscape (188-509 cells).
 under the sky plane); where the yard borders other spaces the rock stays full height
 (it reads like a gatehouse or a tower, but it isn't designed as one). Buildings are boxes
 with one doorway: no windows, no interior features, no second storey.
+
+## D25. Room around the yards, and a little life in the buildings
+
+**Room around the yards.** Step 6's roofscape barely showed from the ground. Measuring
+it showed why, and it wasn't what I expected: 88% of the band around a yard was already
+being carved. The problem was the roof shape. Rings rising 48 units outwards read from the
+ground as one tall stepped wall, and compound yards opened up to 14 m, so even low roofs
+left a tall face below the sky plane. Changes:
+- roofs are mostly flat blocks of their own height (176-256), some rising 16-32 per ring,
+  never closer than 64 units to the sky plane;
+- `yard_height` (compound: 320, 10 m) fixes where a compound's sky starts: low buildings
+  around a yard under a wide sky;
+- `yard_setback` (compound: 4 cells, the roofscape's width) keeps other rooms that much
+  further from an open area at layout time, so denser levels still leave rock to carve.
+  It changed little in the current seeds (median carved share 88% -> 91%), but it's what
+  makes the band possible when rooms crowd a yard.
+
+**Interiors.** Each building now gets window openings in its side walls (48 units, the
+slit height: you see and shoot through, nobody climbs through; the window's owner entry
+goes first so the validator recognises it), a light, a counter against the back wall in
+rooms of 3x3+ inside, and a health or ammo pickup near the middle: a reason to go in.
+Tests: windows too low for a player, every building reward reachable.
+
+**Measured** (compound seeds 1-8): 16 of 16 yards have buildings, 112 window openings.

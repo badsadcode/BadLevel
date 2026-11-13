@@ -113,6 +113,8 @@ class OpenAreaSpace(RoomSpace):
         from ..layout import _room_size
         w, h, height = _room_size(cfg, node.size, rng)     # 'yard' size: where the sky starts
         height = max(288, min(448, height))                  # 9-14 m, whatever the recipe's ceilings
+        if getattr(cfg, "yard_height", 0):
+            height = cfg.yard_height                         # a compound: low buildings, a wide sky
         return Room(-1, node.id, node.kind, 0, 0, w, h, floor, floor + height, storey=node.storey)
 
     def build(self, level: Level, room: Room, cfg):

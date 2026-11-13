@@ -56,13 +56,15 @@ def vertical_conflict(a: Tuple[int, int], b: Tuple[int, int], gap: int = SLAB) -
     return a[0] < b[1] + gap and b[0] < a[1] + gap
 
 
-def _overlaps(r: Room, rooms: List[Room], gap: int) -> bool:
-    """Footprints too close *and* on overlapping heights (rooms on other storeys may stack)."""
+def _overlaps(r: Room, rooms: List[Room], gap: int, setback: int = 0) -> bool:
+    """Footprints too close *and* on overlapping heights (rooms on other storeys may stack).
+    ``setback``: extra distance around open areas, so their surroundings can become roofs."""
     for o in rooms:
         if not vertical_conflict(r.slot, o.slot):
             continue
-        if (r.x - gap < o.x + o.w and o.x - gap < r.x + r.w and
-                r.y - gap < o.y + o.h and o.y - gap < r.y + r.h):
+        g = gap + (setback if "courtyard" in (r.kind, o.kind) else 0)
+        if (r.x - g < o.x + o.w and o.x - g < r.x + r.w and
+                r.y - g < o.y + o.h and o.y - g < r.y + r.h):
             return True
     return False
 
@@ -150,6 +152,9 @@ def place_rooms(g: MissionGraph, cfg: GenConfig, rng: random.Random) -> List[Roo
                 gap = max(cfg.room_gap + 4, climb + 2 * cfg.corridor_radius + 8) + rng.randint(0, 5)
                 if comp == "central" and pid == root:
                     gap = max(cfg.room_gap + 4, climb + 2 * cfg.corridor_radius + 6)   # a tight ring
+                setback = getattr(cfg, "yard_setback", 0)
+                if setback and "courtyard" in (node.kind, parent.kind):
+                    gap += setback                     # an open area keeps room around it for its roofs
                 stack = multi and _try % 3 == 2 and not merge
                 if merge:
                     if not multi and node.kind != "secret":
@@ -175,7 +180,7 @@ def place_rooms(g: MissionGraph, cfg: GenConfig, rng: random.Random) -> List[Roo
                         x = parent.x + rng.randint(-(w - lap), parent.w - lap)
                     cand.x, cand.y = x, y
                     others = [o for o in rooms.values() if o is not parent]
-                    if _overlaps(cand, others, cfg.room_gap + 2 * cfg.corridor_radius + 2) or \
+                    if _overlaps(cand, others, cfg.room_gap + 2 * cfg.corridor_radius + 2, setback) or \
                             _overlaps(cand, [parent], 0):
                         continue
                     if not _seam_ok(cand, parent):
@@ -214,7 +219,7 @@ def place_rooms(g: MissionGraph, cfg: GenConfig, rng: random.Random) -> List[Roo
                 if stack and not _overlaps(cand, [parent], gap - 4) and \
                         abs((x + w / 2) - (parent.x + parent.w / 2)) + abs((y + h / 2) - (parent.y + parent.h / 2)) > 60:
                     continue
-                if not _overlaps(cand, list(rooms.values()), cfg.room_gap + 2 * cfg.corridor_radius + 2):
+                if not _overlaps(cand, list(rooms.values()), cfg.room_gap + 2 * cfg.corridor_radius + 2, setback):
                     placed = cand
                     break
             if placed is None:

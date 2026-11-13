@@ -92,11 +92,65 @@ def f_buildings(ctx, rng: random.Random) -> bool:
                                     "two_way": True, "interaction": "climb", "accessible": False, "room": room.id})
                 ctx.top_cells = getattr(ctx, "top_cells", []) + [c for c in rect if c not in door]
                 info["ladder"] = True
+                info["ladder_cell"] = list(wall_c)
                 break
+        _interior(level, room, ctx, rng, info, walls, door, inner_top)
         room.meta.setdefault("buildings", []).append(info)
     if made:
         room.features.append("buildings")
     return made > 0
+
+
+def _interior(level: Level, room: Room, ctx, rng: random.Random, info: dict, walls, door, inner_top: int):
+    """A little life inside: window openings in the side walls (48 units, too low to climb
+    through: you see and shoot through them), a light, a counter against the back wall, and
+    a small reward for going in."""
+    from .openings import SLIT
+    x0, y0, bw, bh = info["rect"]
+    s = level.cell
+    ladder = tuple(info.get("ladder_cell", ())) or None
+    # windows: one per wall side except the door side, near the middle, not where the ladder is
+    lo, hi = room.floor + 40, room.floor + 40 + SLIT
+    wins = 0
+    for side in "nsew":
+        if side == info["door"]:
+            continue
+        if side in "ns":
+            yy = y0 + bh - 1 if side == "n" else y0
+            cands = [(x, yy) for x in range(x0 + 1, x0 + bw - 1)]
+        else:
+            xx = x0 + bw - 1 if side == "e" else x0
+            cands = [(xx, y) for y in range(y0 + 1, y0 + bh - 1)]
+        cands = [c for c in cands if c != ladder and c in walls]
+        if len(cands) < 2:
+            continue
+        c = cands[len(cands) // 2 - 1]
+        top_span = level.spans[c][-1]
+        level.replace_in(c, *room.slot, [(lo, hi), top_span])
+        level.owners.setdefault(c, []).insert(0, (lo, hi, f"window:building{room.id}"))   # (before the yard's)
+        wins += 1
+    info["windows"] = wins
+    inner = [(x, y) for x in range(x0 + 1, x0 + bw - 1) for y in range(y0 + 1, y0 + bh - 1)]
+    cx, cy = x0 + bw / 2.0, y0 + bh / 2.0
+    level.entities.append(Entity("light", (cx * s, cy * s, inner_top - 24), {"intensity": 180, "building": True}))
+    # a counter against the back wall, in rooms of at least 3x3 inside, never in front of the door
+    back = {"n": "s", "s": "n", "e": "w", "w": "e"}[info["door"]]
+    if bw >= 5 and bh >= 5:
+        if back in "ns":
+            yy = y0 + 1 if back == "s" else y0 + bh - 2
+            counter = [(x, yy) for x in range(x0 + 2, x0 + bw - 2)]
+        else:
+            xx = x0 + 1 if back == "w" else x0 + bw - 2
+            counter = [(xx, y) for y in range(y0 + 2, y0 + bh - 2)]
+        for c in counter:
+            level.replace_in(c, *room.slot, [(room.floor + 40, inner_top), level.spans[c][-1]])
+        info["counter"] = len(counter)
+        inner = [c for c in inner if c not in counter]
+    # a small reward for going in, in the cell nearest the middle
+    if inner:
+        c = min(inner, key=lambda c: (c[0] + 0.5 - cx) ** 2 + (c[1] + 0.5 - cy) ** 2)
+        level.entities.append(Entity(rng.choice(["health", "ammo"]), ((c[0] + 0.5) * s, (c[1] + 0.5) * s, room.floor),
+                                     {"building": True}))
 
 
 def roofscape(level: Level, room: Room, rng: random.Random, band: int = 4) -> int:
@@ -105,13 +159,14 @@ def roofscape(level: Level, room: Room, rng: random.Random, band: int = 4) -> in
     x0, y0, x1, y1 = room.x, room.y, room.x + room.w, room.y + room.h
     # blocks along the band: each block of 3-6 cells gets its own front height, and the roofs
     # rise away from the yard towards the sky plane
-    front: Dict[tuple, int] = {}
+    front: Dict[tuple, tuple] = {}
 
     def front_height(key):
         if key not in front:
             # never within a step of anything a player stands on along a yard wall (a balcony deck
-            # is 144 up): the roofs stay scenery
-            front[key] = room.floor + rng.choice([176, 192, 224, 256])
+            # is 144 up): the roofs stay scenery. Mostly flat blocks of their own height, a few
+            # rising a little: low buildings with sky above them, not a stepped cliff
+            front[key] = (room.floor + rng.choice([176, 192, 208, 224, 256]), rng.choice([0, 0, 16, 32]))
         return front[key]
     planned: Dict[Cell, int] = {}
     for x in range(x0 - band, x1 + band):
@@ -122,8 +177,8 @@ def roofscape(level: Level, room: Room, rng: random.Random, band: int = 4) -> in
             along = x if (y < y0 or y >= y1) else y
             side = ("s" if y < y0 else "n") if (y < y0 or y >= y1) else ("w" if x < x0 else "e")
             block = (side, along // 5)                               # 5-cell blocks of building
-            base = front_height(block)
-            roof = min(sky_top - 96, base + (d - 1) * 48)            # rising away from the yard
+            base, rise = front_height(block)
+            roof = min(sky_top - 64, base + (d - 1) * rise)          # (at least 64 of air under the sky)
             roof = (roof // 16) * 16
             if roof - room.floor < 112:
                 continue

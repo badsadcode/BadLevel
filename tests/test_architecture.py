@@ -396,3 +396,31 @@ def test_roofscape_is_scenery(compounds):
 
 def test_roofscape_is_opt_in():
     assert not compile_recipe(PRESETS["fortress"], 1).open_roofscape
+
+
+def test_buildings_have_a_little_life_inside(compounds):
+    """Windows nobody fits through, a light, and a reward you can reach by going in."""
+    from badlevel.validate import _node_at, flood
+    wins = rewards = 0
+    for lv in compounds:
+        start = _node_at(lv, next(e for e in lv.entities if e.kind == "player_start").pos)
+        reach = flood(lv, start, set())
+        for c, owners in lv.owners.items():
+            for lo, hi, name in owners:
+                if name.startswith("window:building"):
+                    assert hi - lo < lv.config.player_height
+                    wins += 1
+        for e in lv.entities:
+            if e.props.get("building") and e.kind in ("health", "ammo"):
+                n = _node_at(lv, (e.pos[0], e.pos[1], e.pos[2] + 1))
+                assert n in reach, (lv.seed, e.kind, e.pos)
+                rewards += 1
+    assert wins > 20 and rewards > 10, (wins, rewards)
+
+
+def test_compound_yards_are_low_with_room_around():
+    cfg = compile_recipe(PRESETS["compound"], 2)
+    assert cfg.yard_height == 320 and cfg.yard_setback == 4
+    lv = generate(cfg)
+    for y in (r for r in lv.rooms if r.kind == "courtyard"):
+        assert y.ceil - y.floor == 320

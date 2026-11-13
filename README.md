@@ -273,7 +273,9 @@ multi-storey levels, upper-storey galleries can overlook a yard.
 free-standing buildings you can walk into, some with a ladder to a rooftop vantage
 point, and the rock around the yard is carved into stepped roofs under the sky, so the
 yard reads as a place between buildings instead of a pit. The roofs are scenery
-(nobody can reach them; a test checks).
+(nobody can reach them; a test checks). Buildings have window openings, a light, a
+counter and a small reward inside; compound yards are 10 m high (`yard_height`) and keep
+other rooms 4 cells further away (`yard_setback`).
 
 ## Mega-rooms
 
