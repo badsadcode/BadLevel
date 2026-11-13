@@ -3,10 +3,11 @@
     python scripts/compile_check.py /path/to/ericw-tools/bin [--seeds 1-2] [--vis] [--light] [--out DIR]
 
 Generates every preset in every architecture style (and none), compiles each .map with
-qbsp (optionally vis and light), and reports per map: exit code, leaks, and any warning
-other than the expected ones (missing textures: BadLevel ships texture names, not a Quake
-wad; no wad key; no deathmatch start in a single-player map). Exit code 1 if any map
-failed, leaked or warned unexpectedly.
+qbsp (optionally vis and light), and reports per map: exit code, leaks, any warning other
+than "no deathmatch start" (single-player maps), and what the original WinQuake engine would
+refuse in the .bsp (textures without pixels, surface extents over 256), plus a note when a
+level is bigger than original Quake's +-4096 (modern engines don't mind). Exit code 1 if any
+map failed, leaked or warned.
 """
 from __future__ import annotations
 
@@ -21,14 +22,67 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from badlevel import generate  # noqa: E402
 from badlevel.architecture import STYLES  # noqa: E402
 from badlevel.export import to_map  # noqa: E402
+from badlevel.export.wad import WAD_NAME, write_wad  # noqa: E402
 from badlevel.recipes import PRESETS, compile_recipe  # noqa: E402
 
-EXPECTED = re.compile(r"Texture .* not found|No wad or _wad key|No info_player_deathmatch")
+EXPECTED = re.compile(r"No info_player_deathmatch")       # (a single-player map)
 
 
 def warnings(log: str):
     log = log.replace("\r", "\n")
     return [w.strip() for w in re.findall(r"\*\*\* (?:WARNING|ERROR)[^%\n]*", log) if not EXPECTED.search(w)]
+
+
+def original_quake_check(bsp_path: str) -> list:
+    """What the original WinQuake engine refuses, read from the compiled .bsp (BSP29):
+    textures without pixels (drawn as nothing or 'notexture', and a sky without pixels loses
+    its special flag), faces whose surface extents exceed 256 texels ('Bad surface extents',
+    computed as CalcSurfaceExtents does, a texture without pixels counting as ordinary), and
+    geometry beyond +-4096 (the original network protocol's range)."""
+    import math
+    import struct
+    data = open(bsp_path, "rb").read()
+    lumps = [struct.unpack_from("<ii", data, 4 + 8 * i) for i in range(15)]
+
+    def lump(i):
+        o, n = lumps[i]
+        return data[o:o + n]
+    problems = []
+    tex = lump(2)
+    n, = struct.unpack_from("<i", tex, 0)
+    offs = struct.unpack_from(f"<{n}i", tex, 4)
+    pixels = []
+    for o in offs:
+        ok = o >= 0 and struct.unpack_from("<16sII4I", tex, o)[3] > 0
+        pixels.append(ok)
+    if not all(pixels):
+        problems.append(f"{pixels.count(False)} of {n} textures have no pixels")
+    verts = [struct.unpack_from("<3f", lump(3), k) for k in range(0, len(lump(3)), 12)]
+    far = max((max(abs(v[0]), abs(v[1]), abs(v[2])) for v in verts), default=0)
+    if far > 4096:
+        problems.append(f"note: geometry reaches {far:.0f} (only original Quake's protocol is limited to +-4096)")
+    texinfo = [struct.unpack_from("<8fii", lump(6), k) for k in range(0, len(lump(6)), 40)]
+    edges = [struct.unpack_from("<HH", lump(12), k) for k in range(0, len(lump(12)), 4)]
+    surfedges = [struct.unpack_from("<i", lump(13), k)[0] for k in range(0, len(lump(13)), 4)]
+    bad = 0
+    for k in range(0, len(lump(7)), 20):
+        _, _, first, numedges, ti = struct.unpack_from("<HHiHH", lump(7), k)
+        vecs, miptex, flags = texinfo[ti][:8], texinfo[ti][8], texinfo[ti][9]
+        if not (miptex < n and pixels[miptex]):
+            flags = 0                                    # the engine's notexture: checked like any face
+        if flags & 1:
+            continue
+        mins, maxs = [1e9, 1e9], [-1e9, -1e9]
+        for e in surfedges[first:first + numedges]:
+            v = verts[edges[e][0]] if e >= 0 else verts[edges[-e][1]]
+            for j in range(2):
+                val = v[0] * vecs[j * 4] + v[1] * vecs[j * 4 + 1] + v[2] * vecs[j * 4 + 2] + vecs[j * 4 + 3]
+                mins[j], maxs[j] = min(mins[j], val), max(maxs[j], val)
+        if any((math.ceil(maxs[j] / 16) - math.floor(mins[j] / 16)) * 16 > 256 for j in range(2)):
+            bad += 1
+    if bad:
+        problems.append(f"{bad} faces with surface extents > 256 (WinQuake: Bad surface extents)")
+    return problems
 
 
 def run(tool, args, cwd, env=None):
@@ -48,6 +102,7 @@ def main(argv=None) -> int:
     seeds = range(int(lo), int(hi or lo) + 1)
     os.makedirs(a.out, exist_ok=True)
     out = os.path.abspath(a.out)
+    write_wad(os.path.join(out, WAD_NAME))          # the textures the .map names
     tools = {t: os.path.join(os.path.abspath(a.bin), t) for t in ("qbsp", "vis", "light")}
     env = dict(os.environ, LD_LIBRARY_PATH=os.path.abspath(a.bin))
     bad = 0
@@ -64,6 +119,10 @@ def main(argv=None) -> int:
                 rc, log = run(tools["qbsp"], [stem + ".map"], out)
                 leak = "leak" in log.lower() or os.path.exists(os.path.join(out, stem + ".pts"))
                 ws = warnings(log)
+                notes = []
+                if rc == 0:
+                    for p in original_quake_check(os.path.join(out, stem + ".bsp")):
+                        (notes if p.startswith("note:") else ws).append(f"original Quake: {p}")
                 steps = [f"qbsp rc={rc}"]
                 if rc == 0 and a.vis:
                     vrc, vlog = run(tools["vis"], ["-fast", stem + ".bsp"], out, env)
@@ -78,7 +137,8 @@ def main(argv=None) -> int:
                 ok = rc == 0 and not leak and not ws
                 bad += not ok
                 print(f"{'ok ' if ok else 'BAD'} {stem}: {', '.join(steps)}" + (" LEAK" if leak else "")
-                      + ("".join(f"\n      {w}" for w in sorted(set(ws)))), flush=True)
+                      + ("".join(f"\n      {w}" for w in sorted(set(ws))))
+                      + ("".join(f"\n      {w}" for w in notes)), flush=True)
     print(f"{total - bad} of {total} maps compiled cleanly")
     return 1 if bad else 0
 

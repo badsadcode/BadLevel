@@ -700,3 +700,40 @@ units at spawn), and the .map gets an `info_null` (removed by the game at spawn)
 open point of the biggest room, 2 cells from any wall, 48 above the floor and 96 under the
 ceiling. Both are in a unit test. These change every level's .map slightly (the start's
 height and one extra entity); the golden baseline is reset after this commit.
+
+## D31. Real Quake engines: textures in the .bsp, centred maps
+
+**What Tom found.** The compiled fortress .bsp in the **Quake rerelease**: the player floating in
+an empty brown void with monsters far off. In the original **WinQuake**: the game stopped with
+"Bad surface extents".
+
+**One root cause.** Reading the .bsp: the player start and all 239 entities were in open space
+(inside the level). But all 6 textures had names and no pixels, because BadLevel shipped no
+wad (the "texture not found" warnings, which D30 called expected). The rerelease draws such
+surfaces as nothing: invisible walls. WinQuake swaps in its notexture with flags 0, so the
+sky loses its TEX_SPECIAL flag; sky faces aren't subdivided by qbsp, and a 768-texel sky over
+a yard then fails the 256-texel check. Emulating WinQuake's CalcSurfaceExtents (with the
+notexture rule) on the .bsp reproduces the crash exactly.
+
+**Fixes.**
+- `badlevel/export/wad.py` makes `badlevel.wad`, a WAD2 of grey grid textures (Quake's
+  palette starts with a 16-step grey ramp, so greys look the same in any Quake): one line per
+  32-unit cell like the preview, 4 mip levels, a two-layer 256x128 sky, and every name the
+  map uses (bl_floor, bl_wall, bl_ceiling, bl_door, bl_glass, bl_lift, bl_ladder, trigger,
+  sky1). The .map's worldspawn names it (`wad`), and it is written next to every exported
+  .map, so qbsp embeds real textures and TrenchBroom shows them.
+- **Centred maps.** Original Quake's network protocol only carries positions within +-4096;
+  BadLevel built levels from (0, 0) outwards (the fortress ran to x = 6240). The .map is now
+  shifted to centre the level, in steps of 64 (the texture grid), recorded in worldspawn as
+  `_badlevel_offset` (the IR and .glb keep level coordinates).
+- `scripts/compile_check.py` now also checks each .bsp the way the original engine would:
+  textures without pixels and surface extents over 256 (failures: they break modern engines
+  too), and geometry beyond +-4096 (a note: only the original protocol is limited). Over
+  every preset x style x seeds 1-2: all 112 compile with no leaks, real textures and no bad
+  extents; 16 of them are bigger than 8192 units, which only original Quake can't carry.
+  Tom: original-Quake support is welcome but not a must (BadLevel is mostly for other engines).
+
+**Known limit: Quake 1 has no ladders.** Ladders are exported as `func_ladder` (Quake 2 /
+Half-Life), which Quake 1 ignores, so a level whose critical path uses a ladder connector
+(bunker, industrial) can't be finished in Quake 1, and yard rooftops can't be reached. A
+Quake 1 target would replace ladders (connectors with lifts or stairs, rooftops without).

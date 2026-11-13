@@ -364,5 +364,29 @@ def test_map_compiles_cleanly_by_construction():
     origin = re.search(r'"classname" "info_null"\n"origin" "([-\d. ]+)"', m)
     assert origin
     x, y, z = (float(v) for v in origin.group(1).split())
-    c = (int(x // lv.cell), int(y // lv.cell))
+    ox, oy, _ = (float(v) for v in re.search(r'"_badlevel_offset" "([-\d ]+)"', m).group(1).split())
+    c = (int((x - ox) // lv.cell), int((y - oy) // lv.cell))      # (the .map is centred: D31)
     assert any(f <= z - 48 and top >= z + 96 for f, top in lv.spans[c])
+
+
+def test_maps_ship_their_textures_and_fit_original_quake():
+    """D31: the .map names badlevel.wad (written next to it), a valid WAD2 with every texture
+    the map uses, and the level is centred so it stays within original Quake's +-4096."""
+    import re
+    import struct
+    from badlevel import generate
+    from badlevel.export import to_map
+    from badlevel.export.wad import WAD_NAME, make_wad
+    from badlevel.recipes import PRESETS, compile_recipe
+    wad = make_wad()
+    magic, n, dirofs = struct.unpack_from("<4sii", wad, 0)
+    names = {struct.unpack_from("<16s", wad, dirofs + 32 * i + 16)[0].split(b"\0")[0].decode() for i in range(n)}
+    assert magic == b"WAD2"
+    for lv in (generate(seed=3), generate(compile_recipe(PRESETS["fortress"], 1)),
+               generate(compile_recipe(PRESETS["compound"], 2))):
+        m = to_map(lv)
+        assert f'"wad" "{WAD_NAME}"' in m
+        used = set(re.findall(r"\) (\w+) 0 0 0 1 1", m))
+        assert used <= names, used - names
+        coords = [abs(float(v)) for v in re.findall(r"\( (-?\d+) (-?\d+) -?\d+ \)", m) for v in v]
+        assert max(coords) <= 4096

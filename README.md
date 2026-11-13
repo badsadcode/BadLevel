@@ -285,8 +285,10 @@ where the room is too low).
 ## Compiling for Quake
 
 The `.map` compiles with [ericw-tools](https://ericwa.github.io/ericw-tools/): no leaks, vis
-and light run cleanly (only "texture not found" warnings: BadLevel names its textures,
-`bl_wall`, `bl_floor`, ..., and ships no wad; add a `wad` key or retexture in TrenchBroom).
+and light run cleanly. Every exported `.map` comes with `badlevel.wad` (grey grid textures,
+named in the map's `wad` key), so the compiled `.bsp` has real textures in any Quake engine,
+and the map is centred on the origin to stay within original Quake's +-4096. Quake 1 has no
+ladders: levels that climb by ladder need a lift or stairs there (see D31).
 To check a whole range of levels:
 
 ```

@@ -66,6 +66,10 @@ def write_level(level, out_dir: str, formats, stem: str = None, analysis: dict =
         path = os.path.join(out_dir, f"{stem}.analysis.json" if fmt == "analysis" else f"{stem}.{fmt}")
         if fmt == "map":
             data = to_map(level).encode()
+            from .export.wad import WAD_NAME, write_wad
+            wad = os.path.join(out_dir, WAD_NAME)
+            if not os.path.exists(wad):            # the .map's textures, next to it (for qbsp, TrenchBroom)
+                write_wad(wad)
         elif fmt == "glb":
             data = to_glb(level)
         elif fmt == "json":
