@@ -10,6 +10,10 @@ when its cross-section has them:
            bays, shelters, window bays; and on the end wall of a big hall one deep feature
            (an apse niche, a loading door, a blast door, a bay window)
   above    a crane corbel along the long walls of tall industrial halls
+  dress    bases and capitals on the members: a plinth (the floor in front of a member, and
+           beside it, raised one step) and a capital (the ceiling in front, and beside it,
+           dropped 32-64 units under the member's top), chosen per room from the style's
+           palette, so the rhythm along a wall stays one order
 
 Per style:
   gothic      shafts; a blind arcade of lancet niches with pointed (sloped) heads;
@@ -215,6 +219,9 @@ def articulate(level: Level, room: Room, ctx, sec: Optional[Section], tier: str)
     has_members = sec is not None and any(
         all(v in (0, fr.W - 1) for _, v in g) for g in sec.piers)
     member_w = 2 if style in ("bunker", "castle") and fr.W >= 9 else 1     # counterforts, buttresses
+    placed: List[List[Tuple[int, int]]] = []
+    if has_members:                                  # the section's own wall piers get dressed too
+        placed += [g for g in sec.info.get("placed", []) if all(v in (0, fr.W - 1) for _, v in g)]
     lines = bay_lines(fr.L, bay, member_w)
     if not has_members and fr.W >= 5 and fr.L >= 6:
         groups = []
@@ -224,6 +231,7 @@ def articulate(level: Level, room: Room, ctx, sec: Optional[Section], tier: str)
         tmp = Section("members", fr)
         tmp.piers = groups
         counts["members"] = place_piers(level, room, tmp, ctx, "members")
+        placed += tmp.info.get("placed", [])
 
     # --- outward: recesses between the members, on the long walls
     spec = {
@@ -275,6 +283,13 @@ def articulate(level: Level, room: Room, ctx, sec: Optional[Section], tier: str)
         tmp = Section("members", fr)
         tmp.piers = groups
         counts["members"] += place_piers(level, room, tmp, ctx, "members")
+        placed += tmp.info.get("placed", [])
+
+    # --- bases and capitals on the members
+    if placed and getattr(cfg, "arch_dress", True):
+        dressed = dress_members(level, room, fr, sec, placed, style, near_door, rng)
+        if dressed:
+            counts["dress"] = dressed
 
     # --- above: crane corbels along the long walls of a tall industrial hall
     if style == "industrial" and sec is not None and H >= 352 and tier in ("grand", "major"):
@@ -286,6 +301,99 @@ def articulate(level: Level, room: Room, ctx, sec: Optional[Section], tier: str)
                     sec.forced.add((u, v))
         counts["corbel"] = rail
     return counts
+
+
+# style -> [(base, capital, weight)]: one order per room. base: None | "front" | "pedestal"
+# (front and both sides); capital: None | (cells, drop) with cells "front" | "flared" (front and
+# sides, the same drop) | "stepped" (the front drops, the sides half as far: a two-tier corbel)
+ORDERS = {
+    "gothic": [("pedestal", ("front", 48), 2), ("front", ("flared", 32), 1), ("pedestal", None, 1),
+               ("pedestal", ("stepped", 64), 1)],
+    "castle": [("front", ("front", 64), 2), ("pedestal", ("front", 48), 1), (None, ("flared", 32), 1),
+               ("front", ("stepped", 64), 1)],
+    "egyptian": [("pedestal", ("flared", 32), 2), ("pedestal", ("front", 64), 1), ("pedestal", ("stepped", 64), 1)],
+    "compound": [("front", ("front", 32), 2), (None, ("front", 48), 1), ("pedestal", None, 1)],
+    "industrial": [("front", None, 2), (None, ("front", 32), 1), ("front", ("front", 48), 1)],
+    "bunker": [("pedestal", None, 2), ("front", ("flared", 32), 1)],
+    "scifi": [("front", ("front", 32), 2), ("pedestal", ("flared", 32), 1), (None, ("front", 48), 1)],
+}
+BASE_RISE = 16                     # one step: walkable (Quake steps up to 18)
+
+
+def _inward(fr: Frame, group) -> Optional[Tuple[int, int]]:
+    if all(v == 0 for _, v in group):
+        return (0, 1)
+    if all(v == fr.W - 1 for _, v in group):
+        return (0, -1)
+    if all(u == 0 for u, _ in group):
+        return (1, 0)
+    if all(u == fr.L - 1 for u, _ in group):
+        return (-1, 0)
+    return None
+
+
+def dress_members(level: Level, room: Room, fr: Frame, sec: Optional[Section], groups, style: str,
+                  near_door, rng: random.Random) -> Dict[str, object]:
+    """A base and a capital on every wall member of the room, the same order for all of them."""
+    opts = ORDERS.get(style)
+    if not opts:
+        return {}
+    base, cap, _ = rng.choices(opts, [w for *_, w in opts])[0]
+    if base is None and (cap is None or sec is None):
+        return {}
+    bases = caps = 0
+    for g in groups:
+        d = _inward(fr, g)
+        if d is None:
+            continue
+        front = [(u + d[0], v + d[1]) for u, v in g]
+        along = (1, 0) if d[1] else (0, 1)
+        lo = min(g, key=lambda t: t[0] * along[0] + t[1] * along[1])
+        hi = max(g, key=lambda t: t[0] * along[0] + t[1] * along[1])
+        sides = [(lo[0] - along[0], lo[1] - along[1]), (hi[0] + along[0], hi[1] + along[1])]
+        # a base: the plain floor in front (and beside) the member, one step up
+        if base:
+            cells = front + (sides if base == "pedestal" else [])
+            world = [fr.cell(u, v) for u, v in cells if 0 <= u < fr.L and 0 <= v < fr.W]
+            if world and all(room.contains(*c) and not room.is_diag(*c) and c not in near_door
+                             and level.room_spans(c, room) == [(room.floor, room.ceil)] for c in world):
+                for c in world:
+                    level.replace_in(c, *room.slot, [(room.floor + BASE_RISE, room.ceil)])
+                    level.part_cells[c] = f"room:{room.id}/bases"
+                bases += 1
+        # a capital: the ceiling in front (and beside) the member, dropped under the member's top
+        if cap and sec is not None:
+            which, drop = cap
+            cells = [(uv, drop) for uv in front]
+            if which in ("flared", "stepped"):
+                cells += [(uv, drop if which == "flared" else drop // 2) for uv in sides]
+            cells = [(uv, dr) for uv, dr in cells if 0 <= uv[0] < fr.L and 0 <= uv[1] < fr.W]
+            lows = []
+            for uv, dr in cells:
+                here = sec.ceil.get(uv, fr.H)
+                low = here - dr
+                if low < max(HEAD, getattr(level.config, "arch_headroom", HEAD)) + 32:
+                    lows = []
+                    break
+                lows.append((uv, low))
+            for uv, low in lows:
+                sec.ceil[uv] = low
+                sec.forced.add(uv)
+                level.part_ceiling[fr.cell(*uv)] = f"room:{room.id}/capitals"
+            caps += bool(lows)
+    if not (bases or caps):
+        return {}
+    return {"base": base, "capital": f"{cap[0]} {cap[1]}" if cap else None, "bases": bases, "capitals": caps}
+
+
+def tidy_dress(level: Level, room: Room):
+    """After the room's features: a base that a feature built over (a terrace, a platform) is no
+    longer a base, so it loses the name."""
+    tag = f"room:{room.id}/bases"
+    for c in [c for c, p in level.part_cells.items() if p == tag]:
+        rs = level.room_spans(c, room)
+        if not rs or rs[0][0] != room.floor + BASE_RISE:
+            del level.part_cells[c]
 
 
 def _incoming_axis(level: Level, room: Room, fr: Frame, ctx) -> Optional[Tuple[str, float]]:

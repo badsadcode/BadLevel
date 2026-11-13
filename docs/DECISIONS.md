@@ -843,3 +843,29 @@ beside the switchback stairwell, the lift and the ladder.
 - Steps are whole cells (32 units deep, 16 high), so the helix reads as a stepped spiral.
   Thin wedge steps would need sub-cell geometry, as would a curved stair along a wall; both are
   for later.
+
+## D35. Bases and capitals on the pilasters
+
+Tom: "the pillars that stick to the wall... to have more different bottom and top parts too."
+Those are pilasters (D20's wall members); the bottom part is the base or plinth, the top part
+the capital (a corbel when it juts out to carry something).
+
+- **A base**: the floor in front of the member (`front`), or in front and on both sides
+  (`pedestal`), is raised one step, 16 units: still walkable (Quake steps up to 18), and the
+  entity placement already keeps off raised cells. A named part, `room:N/bases`.
+- **A capital**: the ceiling in front of the member drops 32 to 64 units under the member's top
+  (`front`), or in front and on both sides (`flared`), or in front with half that drop on the
+  sides (`stepped`, a two-tier corbel). Through the section's ceiling (stepped cells), so the
+  ceiling rules hold: never under the top floor plus headroom plus 32. A named part,
+  `room:N/capitals` (the vault no longer takes the name over).
+- **One order per room**: each room draws one base and one capital from its style's palette, so
+  every member along a wall matches and the next room may differ. Gothic: pedestals with
+  corbels; castle: deep corbels for beams; egyptian: pedestals with flared or stepped capitals;
+  compound: low plinths and blocks; industrial: footings and brackets; bunker: pedestals,
+  flared haunches; sci-fi: plinths and light-strip blocks.
+- Over 7 styles x 3 presets x 2 seeds: front 48 74 rooms, flared 32 95, front 32 84, front 64
+  48, stepped 64 34, no capital 109 (low rooms and vault springings leave no room for one).
+- `arch_dress = False` switches them off. Levels without a style are unchanged; styled levels
+  change where a member is dressed.
+- In a 32-unit grid a base is a full cell deep: chunky, like the rest of the blockout. Finer
+  mouldings (a torus, an abacus) are for the artist's pass, on the named parts.

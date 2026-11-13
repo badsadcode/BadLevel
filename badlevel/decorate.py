@@ -393,6 +393,8 @@ def decorate(level: Level, rng: random.Random):
             landmark.place(level, room, ctx, sec, level.config.arch_style,
                            random.Random(f"{level.config.seed}/{level.config.variant}/landmark/{room.id}"))
         space_for(room.kind).decorate(level, room, ctx, rng)
+        if room.meta.get("walls", {}).get("dress"):
+            walls.tidy_dress(level, room)
         if sec:
             lowered = architecture.apply_ceilings(level, room, sec)
             room.meta["arch"] = dict(sec.info, style=level.config.arch_style, profile=sec.name,

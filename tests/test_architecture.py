@@ -558,3 +558,33 @@ def test_landmark_switch():
     cfg = compile_recipe(PRESETS["fortress"], 1)
     cfg.arch_landmark = False
     assert not any("landmark" in r.meta for r in generate(cfg).rooms)
+
+
+def test_members_get_bases_and_capitals(styled):
+    """Pilasters get a plinth (one walkable step) and a capital (under the ceiling), one order per room."""
+    from badlevel.walls import BASE_RISE
+    seen = set()
+    for levels in styled.values():
+        for lv in levels:
+            for r in lv.rooms:
+                d = r.meta.get("walls", {}).get("dress")
+                if not d:
+                    continue
+                seen.add((d["base"], d["capital"]))
+                for c, p in lv.part_cells.items():
+                    if p == f"room:{r.id}/bases":
+                        assert lv.room_spans(c, r)[0][0] == r.floor + BASE_RISE <= r.floor + lv.config.max_step
+                for c, p in lv.part_ceiling.items():
+                    if p == f"room:{r.id}/capitals":
+                        f, ce = lv.room_spans(c, r)[-1]
+                        assert ce - f >= A.HEAD
+    assert len(seen) >= 4
+    assert any(b for b, _ in seen) and any(cap for _, cap in seen)
+
+
+def test_dress_switch():
+    cfg = compile_recipe(PRESETS["fortress"], 2)
+    cfg.arch_dress = False
+    lv = generate(cfg)
+    assert not any("dress" in r.meta.get("walls", {}) for r in lv.rooms)
+    assert not any(p.endswith(("/bases", "/capitals")) for p in list(lv.part_cells.values()) + list(lv.part_ceiling.values()))

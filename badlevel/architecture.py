@@ -840,6 +840,7 @@ def place_piers(level: Level, room: Room, sec: Section, ctx, tag: str = "piers")
         for c in cells:
             level.part_solid[c] = f"room:{room.id}/{tag}"
         placed += 1
+        sec.info.setdefault("placed", []).append(group)
     return placed
 
 
@@ -891,7 +892,7 @@ def apply_ceilings(level: Level, room: Room, sec: Section):
                 flat = max(need, (min(zi) // 16) * 16)
                 level.replace_in(c, f_top, room.ceil, [(f_top, flat)])
                 level.ceil_slope[c] = zi
-                level.part_ceiling[c] = f"room:{room.id}/{sec.name}"
+                level.part_ceiling.setdefault(c, f"room:{room.id}/{sec.name}")
                 lowered += 1
                 continue
         if room.floor + h >= room.ceil:     # (the apex of a smooth vault is handled above)
@@ -902,6 +903,6 @@ def apply_ceilings(level: Level, room: Room, sec: Section):
         level.replace_in(c, f_top, room.ceil, [(f_top, new)])
         if c in level.diag_span and level.diag_span[c][1] == room.ceil:
             level.diag_span[c] = (level.diag_span[c][0], new)
-        level.part_ceiling[c] = f"room:{room.id}/{sec.name}"
+        level.part_ceiling.setdefault(c, f"room:{room.id}/{sec.name}")     # (capitals keep their name)
         lowered += 1
     return lowered

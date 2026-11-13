@@ -161,10 +161,17 @@ def _stuck_edges(level: Level):
                     comp[m] = k
                     stack.append(m)
         sizes.append(size)
+    # a pocket matters if it is more than a nook of a few cells, or if a key or the exit is in it
+    s = level.cell
+    goals = set()
+    for e in level.entities:
+        if e.kind in ("key", "exit"):
+            c = (int(e.pos[0] // s), int(e.pos[1] // s))
+            goals |= {comp[n] for n in unc if (n[0], n[1]) == c}
     edges = []
     for n in sorted(cov & pr):
         for m in successors(level, n, set(), links):
-            if m in unc and sizes[comp[m]] > 3:
+            if m in unc and (sizes[comp[m]] > 3 or comp[m] in goals):
                 edges.append((n, m))
     return edges
 
