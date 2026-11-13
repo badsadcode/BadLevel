@@ -91,6 +91,9 @@ as it was. Turn them up on top of any recipe from the command line:
 python3 -m badlevel generate --seed 7 --recipe fortress --space 0.8 --variety 1
 ```
 
+`--monsters 0.5` halves the monsters (0 = none). Compiled for Quake, the easy skill gets half the
+monsters and normal three quarters.
+
 ```bash
 python3 -m badlevel presets
 ```

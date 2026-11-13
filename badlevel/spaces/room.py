@@ -16,6 +16,9 @@ from . import SpaceType, place_lights, register
 ROLES = ("start", "combat", "arena", "hub", "supply", "key", "secret", "exit")
 
 
+CROWD = 8                    # enemies a room holds before the count slows down
+
+
 class RoomSpace(SpaceType):
     name = "room"
     kinds = ROLES
@@ -105,7 +108,10 @@ class RoomSpace(SpaceType):
         per = self.ENEMY_AREA.get(room.kind)
         if per:
             dens = level.config.enemy_density
-            count = int(round(max(1, area // per) * dens)) if dens > 0 else 0
+            a = max(1, area // per)
+            if a > CROWD:                  # past a normal room's worth, monsters grow with the side,
+                a = CROWD * (a / CROWD) ** 0.5     # not the floor area: a huge room isn't a monster pit
+            count = int(round(a * dens)) if dens > 0 else 0
             for _ in range(max(1, count) if dens > 0 else 0):
                 c = _pick_free(ctx, rng, taken)
                 if c:

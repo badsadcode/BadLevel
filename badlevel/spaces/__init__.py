@@ -80,11 +80,18 @@ class SpaceType:
         return [room.id]
 
 
+LIGHT_OVER_FLOOR = 192
+
+
 def place_lights(level: Level, room: Room, max_height: Optional[int] = None, intensity: Optional[int] = None):
     from ..decorate import _nearest_open
     from ..level import Entity
     area = room.w * room.h
-    spots = [(0.25, 0.25), (0.75, 0.25), (0.25, 0.75), (0.75, 0.75)] if area >= 140 else [(0.5, 0.5)]
+    if area >= 140:              # a light every ~9 cells (Quake light fades over ~300 units)
+        nx, ny = max(2, round(room.w / 9)), max(2, round(room.h / 9))
+        spots = [((i + 0.5) / nx, (j + 0.5) / ny) for i in range(nx) for j in range(ny)]
+    else:
+        spots = [(0.5, 0.5)]
     lit = set()
     for fx, fy in spots:
         c = _nearest_open(level, room, room.x + room.w * fx, room.y + room.h * fy,
@@ -92,11 +99,18 @@ def place_lights(level: Level, room: Room, max_height: Optional[int] = None, int
         if c in lit:
             continue
         lit.add(c)
-        z = level.room_spans(c, room)[-1][1] - 24
+        bottom, top = level.room_spans(c, room)[-1]
+        z = min(top - 24, max(bottom, room.floor) + LIGHT_OVER_FLOOR)   # over the floor, not lost in a vault
         if max_height is not None:
             z = min(z, room.floor + max_height)
         level.entities.append(Entity("light", ((c[0] + 0.5) * level.cell, (c[1] + 0.5) * level.cell, z),
                                      {"intensity": intensity or (250 if len(spots) > 1 else 300)}))
+    if max_height is None and room.ceil - room.floor > 2 * LIGHT_OVER_FLOOR:   # and the vault itself
+        c = _nearest_open(level, room, room.x + room.w / 2, room.y + room.h / 2, single=room.kind == "courtyard")
+        top = level.room_spans(c, room)[-1][1]
+        if top - room.floor > 2 * LIGHT_OVER_FLOOR:
+            level.entities.append(Entity("light", ((c[0] + 0.5) * level.cell, (c[1] + 0.5) * level.cell, top - 48),
+                                         {"intensity": 350}))
 
 
 REGISTRY: Dict[str, SpaceType] = {}

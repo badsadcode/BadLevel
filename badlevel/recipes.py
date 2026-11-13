@@ -91,6 +91,9 @@ def roomier(cfg: GenConfig, s: float) -> GenConfig:
     cfg.corridor_height = int(round(cfg.corridor_height * _lerp(1.0, 1.5, s) / 16)) * 16   # id maps: 128-192
     cfg.crate_scale *= _lerp(1.0, 0.6, s)
     cfg.arch_headroom = int(round(_lerp(112, 192, s) / 16)) * 16
+    # enemies come per square metre: bigger rooms would mean twice the monsters (Tom: "are you
+    # trying to kill me?"), so the density falls with the floor area, same fight, more room
+    cfg.enemy_density /= _lerp(1.0, 1.5, s) ** 2
     cfg.spaciousness = s
     return cfg
 

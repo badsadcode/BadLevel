@@ -56,6 +56,9 @@ def _cfg_from_args(args, seed: int, recipe=None) -> GenConfig:
     if variety is not None:
         from .recipes import varied
         varied(cfg, variety)
+    monsters = getattr(args, "monsters", None)
+    if monsters is not None:
+        cfg.enemy_density *= max(0.0, monsters)                 # 0 = none, 0.5 = half, 2 = double
     style = getattr(args, "style", None)
     if style is not None:
         cfg.arch_style = "" if style == "none" else style       # any recipe, any architecture
@@ -132,6 +135,8 @@ def main(argv=None):
                         help="spaciousness: bigger rooms, wider corridors, more headroom (0 = as is)")
         sp.add_argument("--variety", type=float, metavar="0-1",
                         help="room sizes from closets to halls, more shapes: hex, diamond, Z, H (0 = as is)")
+        sp.add_argument("--monsters", type=float, metavar="X",
+                        help="scale the number of monsters (0 = none, 0.5 = half, 2 = double)")
         sp.add_argument("--style", choices=("none",) + STYLES,
                         help="architecture style, whatever the recipe (none = plain boxes)")
         sp.add_argument("--no-analysis", action="store_true", help="skip combat analysis (needs numpy)")

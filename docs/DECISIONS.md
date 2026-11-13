@@ -773,3 +773,44 @@ headroom) and a room at least 7 cells across. A smooth dome is for curved patche
 mesh, noted for later.
 A first version used 16-unit courses everywhere; on a 32-unit grid they broke up into a scatter
 of cubes, so the rings are now fewer and wider.
+
+## D33. Playtest fixes: the player is a box, fewer monsters, readable light
+
+Tom played the roomy fortress (D32) in the Quake rerelease: stuck in passes too narrow to get
+through, "are you trying to kill me? So many monsters", and too dark to judge the geometry.
+
+**Clearance (`badlevel/clearance.py`).** The validator walked a point from cell to cell, but
+Quake's player is a 32x32 box, and the engine expands walls by half that, so a gap exactly 32
+units (one cell) wide closes to nothing. Door jambs that narrowed a 3-cell mouth to 1, jambs set
+diagonally (corner to corner, the same 32-unit squeeze), a column one cell from a wall, the end
+of a stair beside a wall, the arm of an L. Measured before the fix: 3 of 7 presets had rooms the
+box couldn't reach (bunker seed 1: 13 of 15 rooms, the exit and the key).
+- `box_reach` floods where a 2x2-cell box (64 units, the smallest grid gap a 32-unit hull passes)
+  can stand and move: steps, drops, lifts, ladders as in the validator; doors count as open.
+- `widen_pinches` runs after generation: where the point goes on and the box can't, it opens the
+  solid cell beside the squeeze (a jamb, column, member or notch; its named part goes). It never
+  joins two spaces that weren't already joined (not counting doors), never opens a cell beside a
+  door, glass, a 45-degree wall or sky, and a cell outside a room's footprint goes to the
+  corridor, not the room. About 8 cells per level; 0.1-0.3 s.
+- The validator now also requires every room, key and exit to be reachable by the box. Over all
+  presets x styles (roomy and plain) the repair fixed every case: the check never forced a retry.
+- Levels without pinches are unchanged; the others change only where a cell opened.
+
+**Monsters.** Rooms got one enemy per 28 cells (combat), so a 30x30 room under `--space` and
+`--variety` held 21, and the roomy fortress 132 (28 ogres).
+- Past 8 enemies a room's count grows with the square root (its side, not its floor):
+  a huge room isn't a monster pit. Normal-sized rooms are unchanged.
+- `--space` lowers the density with the floor area it adds.
+- Quake skill levels: of every 4 monsters, all are in hard, 3 in normal, 2 in easy
+  (spawnflags 256 / 512, which every Quake engine reads).
+- `--monsters X` scales the count (0 = none, 0.5 = half).
+
+**Light.** Lights hung 24 units under the ceiling, so in a 500-unit hall the floor got nothing,
+and big rooms had only 4. Measured on the compiled roomy fortress (lightmap samples, 0-255): floor
+median 15, 68% of floor samples under 24.
+- Lights now hang at most 192 units over the floor, one every ~9 cells in big rooms, plus
+  one under the vault of a tall room.
+- Quake light keys: `"wait" "0.5"` on every light (fades over twice the distance; supported by
+  id's light and ericw-tools), and worldspawn `"light" "24"` (ericw-tools' minimum light).
+- Result: floor median 131, walls 85, 5% of floor samples under 24. Bounce lighting
+  (`_bounce`) on top washed everything out to white, so it's left off.
