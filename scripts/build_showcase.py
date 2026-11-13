@@ -228,8 +228,9 @@ def viewpoints(level, report):
                     ex, ey = (c[0] + 0.5) * s, (c[1] + 0.5) * s
                     dx, dy = ex - lx * s, ey - ly * s
                     n = max(1e-6, (dx * dx + dy * dy) ** 0.5)
+                    off = 2 * lm.get("scale", 1) + 1.2      # just outside its footprint
                     return occ.visible(np.array([[ex, ey, r.floor + EYE]]),
-                                       np.array([[lx * s + dx / n * 3.2 * s, ly * s + dy / n * 3.2 * s, tz]]))[0]
+                                       np.array([[lx * s + dx / n * off * s, ly * s + dy / n * off * s, tz]]))[0]
                 pick = next((c for c in far if sees(c)), far[0])
                 shots.append({"name": "landmark", "caption": f"The landmark: a {lm['shape']} in the {r.kind}, "
                               f"{(lm['top'] - r.floor) / 32:.0f} m tall",

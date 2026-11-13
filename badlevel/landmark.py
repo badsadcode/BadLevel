@@ -95,14 +95,20 @@ def _shape(name: str, H: int, top_max: int) -> Optional[Dict[Tuple[int, int], Li
 
 def place(level: Level, room: Room, ctx, sec: Optional[Section], style: str,
           rng: random.Random) -> Optional[dict]:
-    """The style's landmark, or where the room is too low for it, a great column."""
+    """The style's landmark, or where the room is too low for it, a great column. As big as
+    the room allows: scaled 3x / 2x / 1x with the room's size, smaller if it doesn't fit."""
     name = SHAPES.get(style)
     if name is None:
         return None
-    return _place(level, room, ctx, sec, name) or _place(level, room, ctx, sec, "column")
+    big = min(room.w, room.h)
+    for scale in [k for k in (3, 2, 1) if big >= 14 * k or k == 1]:
+        got = _place(level, room, ctx, sec, name, scale) or (scale == 1 and _place(level, room, ctx, sec, "column", 1))
+        if got:
+            return got
+    return None
 
 
-def _place(level: Level, room: Room, ctx, sec: Optional[Section], name: str) -> Optional[dict]:
+def _place(level: Level, room: Room, ctx, sec: Optional[Section], name: str, scale: int = 1) -> Optional[dict]:
     H = room.ceil - room.floor
     # the lowest ceiling over the room's middle (after the section) bounds a free-standing top
     fr = sec.frame if sec is not None else None
@@ -123,7 +129,10 @@ def _place(level: Level, room: Room, ctx, sec: Optional[Section], name: str) -> 
         shape = _shape(name, H, q(local - HEAD - 16))
         if shape is None:
             continue                                    # (a lower spot of the profile may not fit it)
-        cells = {(px + dx, py + dy): rngs for (dx, dy), rngs in shape.items()}
+        # scaled with the room: a landmark has to dominate its space (2x in a mega-hall)
+        k = scale
+        cells = {(px + dx * k + i, py + dy * k + j): rngs for (dx, dy), rngs in shape.items()
+                 for i in range(k) for j in range(k)}
         ring = {(x + dx, y + dy) for (x, y) in cells for dx in range(-2, 3) for dy in range(-2, 3)} - set(cells)
         if not all(room.contains(*c) and not room.is_diag(*c) and c not in ctx.used and c not in near_door
                    and level.room_spans(c, room) == plain for c in cells):
@@ -152,7 +161,8 @@ def _place(level: Level, room: Room, ctx, sec: Optional[Section], name: str) -> 
         ctx.used.update(cells)
         ctx.used.update(ring)
         top = max(hi for rngs in shape.values() for _, hi in rngs)
-        info = {"shape": name, "centre": [px, py], "top": room.floor + top, "cells": len(cells)}
+        info = {"shape": name, "centre": [px + (scale - 1) / 2.0, py + (scale - 1) / 2.0], "top": room.floor + top,
+                "cells": len(cells), "scale": scale}
         room.meta["landmark"] = info
         room.features.append(name)
         return info

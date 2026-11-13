@@ -546,7 +546,8 @@ def test_one_landmark_per_styled_level(styled):
             def face(e):        # a point on the landmark's side facing the eye (its centre is solid)
                 dx, dy = e[0] - lx * s, e[1] - ly * s
                 n = max(1e-6, (dx * dx + dy * dy) ** 0.5)
-                return np.array([[lx * s + dx / n * 3.2 * s, ly * s + dy / n * 3.2 * s, z]])
+                off = 2 * lm.get("scale", 1) + 1.2        # just outside its footprint
+                return np.array([[lx * s + dx / n * off * s, ly * s + dy / n * off * s, z]])
             if eyes and any(occ.visible(np.array([e]), face(e))[0] for e in eyes):
                 seen += 1
     assert found >= 0.8 * total, (found, total)

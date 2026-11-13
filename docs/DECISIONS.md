@@ -659,7 +659,10 @@ sci-fi core (a column floor to ceiling with floating rings), compound water towe
 shaft, open underneath), bunker monolith. Where the room is too low for the style's shape, a
 great column on a plinth (floor to ceiling) takes its place.
 
-It is placed after the room's piers and walls and before its features (they avoid it), as
+It is as big as the room allows: the shape is scaled 3x / 2x / 1x with the room's size
+(a first version at 1x was lost in a 40 m hall full of decks; in the review renders it read as
+one more block), smaller when it doesn't fit. It is placed after the room's piers and walls
+and before its features (they avoid it), as
 near the middle as fits: a 2-cell walkable ring, 3 cells from any doorway, undone if the
 floor would split. A free-standing top stays HEAD + 16 under the lowest ceiling of the
 section around it, so a vault is never broken; full-height shapes are solid floor to
@@ -669,6 +672,6 @@ ceiling. It is a named part (`room:N/landmark`, a TrenchBroom group and a .glb o
 **Measured.** Every style x fortress, industrial, classic, bunker, compound, seeds 1-2: 66
 of 70 levels have a landmark (the misses are halls whose floor is already a forest of
 columns or piers: hypostyle, mushroom, multispan). The four themed presets with their own
-styles, seeds 1-5: 19 of 20, and all 19 can be seen from a way into their room (a test
+styles, seeds 1-5: 19 of 20 (12 at 2x, 7 at 1x), and all 19 can be seen from a way into their room (a test
 checks the line of sight to the landmark's near face). A showcase camera rule frames it
 from the far side of its room.
