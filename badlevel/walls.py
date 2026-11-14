@@ -78,9 +78,14 @@ def carve_recess(level: Level, room: Room, ctx, cells: List[Cell], d: Tuple[int,
     out = [(r[0] + d[0] * k, r[1] + d[1] * k) for r in cells for k in range(1, depth + 1)]
     planned = set(out)
     for r in cells:
-        if not room.contains(*r) or room.is_diag(*r) or r in ctx.used or r in near_door \
+        # (``ctx.used`` is not checked on roomy levels: at this point it holds the rings kept free round the
+        # members, and a recess leaves its row of floor as it is; sci-fi members 3-4 apart had
+        # rings over every gap, so 3 recesses in 4 levels)
+        if not room.contains(*r) or room.is_diag(*r) or r in near_door \
                 or level.room_spans(r, room) != plain:
             return False
+        if r in ctx.used and not getattr(level.config, "spaciousness", 0.0):
+            return False                                # (the original rule, kept for --space 0)
     for o in out:
         if level.spans.get(o) or o in level.diag or o in level.glass or level.owners.get(o):
             return False
@@ -241,7 +246,8 @@ def articulate(level: Level, room: Room, ctx, sec: Optional[Section], tier: str)
         "compound": dict(width=3 if bay >= 6 else 2, z0=32, frac=0.55, every=1, depth=1, pointed=False),
         # false doors; panel bays with a console sill; deep window embrasures
         "egyptian": dict(width=1, z0=0, frac=0.5, every=1, depth=1, pointed=False),
-        "scifi": dict(width=3 if bay >= 4 else 2, z0=16, frac=None, top=112, every=2, depth=1, pointed=False),
+        "scifi": dict(width=2, z0=16, frac=None, top=112, every=1, depth=1, pointed=False),   # (3 wide every
+        # other bay rarely fitted between members 3-4 apart: 3 recesses in 4 levels)
         "castle": dict(width=1, z0=0, frac=None, top=128, every=1, depth=2, pointed=False),
     }[style]
     if tier == "minor" and style in ("gothic", "compound"):

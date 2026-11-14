@@ -80,6 +80,7 @@ class GenConfig:
     corridor_height: int = 128   # height of a base-width corridor
     max_corridor_radius: int = 3 # widest corridors: 7 cells
     diagonal_chance: float = 0.5 # share of corridors allowed to run at 45 degrees
+    diagonal_pull: float = 0.0   # 0..1: how much those corridors prefer a diagonal (a 45-degree step's cost)
     room_gap: int = 4            # minimum empty cells between room rectangles
 
     # --- player capsule used for validation ----------------------------

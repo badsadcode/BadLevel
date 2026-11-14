@@ -99,6 +99,7 @@ def roomier(cfg: GenConfig, s: float) -> GenConfig:
     cfg.spaciousness = s
     cfg.beat_shapes = max(getattr(cfg, "beat_shapes", 0.0), 1.0)   # rooms along long corridors
     cfg.beat_spacing = min(cfg.beat_spacing, 12)                     # ... and more of them
+    cfg.diagonal_pull = max(getattr(cfg, "diagonal_pull", 0.0), 1.0) # diagonal corridors (Tom)
     return cfg
 
 

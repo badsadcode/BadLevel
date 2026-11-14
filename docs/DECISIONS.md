@@ -954,3 +954,31 @@ beats (D10: a chamber, alcoves or a vault every 16 cells), all rectangular and m
 - A bug it surfaced: a block base (D35) that a later terrace walled in became a pocket you could
   drop onto and never leave (a softlock the validator caught, at the cost of retries). After the
   features, a base with no way off it is now filled: the member deepens.
+
+## D39. Diagonal corridors, for real
+
+Tom: "diagonal corridors, just a thought." BadLevel has had 45-degree corridor stretches since
+the start (`diagonal_chance`, a share of corridors allowed to run diagonally), but over every
+preset x 3 seeds only 7 of 338 corridors had one. Two reasons, both measured:
+- Rooms are placed beside each other on the grid (left, right, above, below, slightly shifted),
+  and no diagonal step may come within a few cells of a doorway (doorways stay square). So a
+  diagonal was almost never shorter, and the space for one was a handful of cells.
+- The corridor style that allows diagonals was decided after placement, and the "compressed"
+  corridors (into big halls) returned before it.
+
+Changes, with the roomy default (`diagonal_pull`, set by `roomier`; `--space 0` unchanged, 24 of
+24 checked):
+- **Corner placement**: a room may be placed off its parent's corner (a gap on both axes), with
+  the chance of `diagonal_chance`; its corridor is then flagged diagonal, whatever its style.
+- **Cheaper diagonal steps**: a 45-degree step costs 1.0 instead of 1.414, so an offset becomes a
+  diagonal rather than an L.
+- Result: 42 of 330 corridors run diagonally. By preset: classic 16 of 37, explore 12 of 59,
+  compound 7 of 38; bunker and fortress stay square (their regularity dial is high), industrial 3.
+  The walls are true 45-degree brushes; stairs on a diagonal stretch still don't plan (those
+  fall back to straight).
+
+**Wall niches on roomy levels.** The tests surfaced that sci-fi rooms had almost no wall niches
+(3 in 4 levels): the rings kept free round its members (3-4 cells apart) covered every gap, and a
+niche refused cells in a ring. A niche only carves outward and leaves the floor as it is, so on
+roomy levels the ring no longer stops it: sci-fi 1 -> 181 niches over the test levels, gothic
+48 -> 132, compound and castle ~100+.

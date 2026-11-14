@@ -212,10 +212,11 @@ def test_recesses_keep_a_solid_wall(styled):
                     for dx in (-1, 0, 1):
                         for dy in (-1, 0, 1):
                             nb = (c[0] + dx, c[1] + dy)
-                            if nb in lv.spans and not r.contains(*nb):
+                            if nb != c and nb in lv.spans and not r.contains(*nb):
                                 # spaces beside it at the same height (a roofscape 64+ above is not)
-                                lo = min(sp[0] for sp in lv.spans[c]) - 16
-                                hi = max(sp[1] for sp in lv.spans[c]) + 16
+                                mine = [sp for sp in lv.spans[c] if r.slot[0] <= sp[0] and sp[1] <= r.ceil] or lv.spans[c]
+                                lo = min(sp[0] for sp in mine) - 16       # (the recess itself, not the
+                                hi = max(sp[1] for sp in mine) + 16       # roofscape above it)
                                 owners = {o[2] for o in lv.owners.get(nb, []) if o[0] < hi and lo < o[1]}
                                 assert owners <= {f"room:{r.id}"} or any(o.startswith("window:") for o in owners), \
                                     (lv.seed, r.id, c, nb, owners)

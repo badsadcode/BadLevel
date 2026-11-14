@@ -37,8 +37,9 @@ def test_widening_never_joins_new_spaces(monkeypatch):
 
 def test_without_widening_the_box_gets_stuck(monkeypatch):
     """The squeezes are real: switch the repair off and the bunker has rooms the box can't reach."""
+    import dataclasses
     monkeypatch.setattr(G, "widen_pinches", lambda level: 0)
-    cfg = compile_recipe(PRESETS["bunker"], 1)
+    cfg = compile_recipe(dataclasses.replace(PRESETS["bunker"], spaciousness=0.0), 1)   # the tight original
     cfg.check_clearance = False
     assert C.clearance_report(generate(cfg))
 

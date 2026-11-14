@@ -139,6 +139,10 @@ def place_rooms(g: MissionGraph, cfg: GenConfig, rng: random.Random) -> List[Roo
             merge = (_mergeable(e, parent, node, g) and rng.random() < cfg.merge_chance
                      and len(hall_of.get(pid, [pid])) < cfg.max_hall_rooms)
             tries = 60 + int(60 * getattr(cfg, "spaciousness", 0.0))    # bigger rooms are harder to fit
+            from .graph import CONNECTOR_KINDS
+            pull = getattr(cfg, "diagonal_pull", 0.0)
+            diag_wish = (pull > 0 and not merge and node.kind not in CONNECTOR_KINDS + ("secret",)
+                         and rng.random() < cfg.diagonal_chance * pull)
             for _try in range(tries):
                 if merge and _try >= 25:
                     merge = False                    # couldn't fit: fall back to a corridor
@@ -164,6 +168,7 @@ def place_rooms(g: MissionGraph, cfg: GenConfig, rng: random.Random) -> List[Roo
                 if setback and "courtyard" in (node.kind, parent.kind):
                     gap += setback                     # an open area keeps room around it for its roofs
                 stack = multi and _try % 3 == 2 and not merge
+                diag_place = diag_wish and _try < tries // 2 and not stack
                 if merge:
                     if not multi and node.kind != "secret":
                         floor = parent.floor + rng.choice([0, 0, 0, 16, 32, 48, 64, -32, -64])
@@ -217,6 +222,14 @@ def place_rooms(g: MissionGraph, cfg: GenConfig, rng: random.Random) -> List[Roo
                         else:
                             y = parent.y + parent.h + gap if dy > 0 else parent.y - gap - h
                             x = parent.x + (parent.w - w) // 2 + rng.randint(-1, 1)
+                    elif diag_place:
+                        # off the parent's corner, so the corridor between them cuts across at 45
+                        # degrees (the gap on both axes leaves room past the square doorways)
+                        sx, sy = dx or rng.choice((-1, 1)), dy or rng.choice((-1, 1))
+                        x = parent.x + parent.w + gap if sx > 0 else parent.x - gap - w
+                        y = parent.y + parent.h + gap if sy > 0 else parent.y - gap - h
+                        x -= sx * rng.randint(0, max(0, min(w, parent.w) // 2))
+                        y -= sy * rng.randint(0, max(0, min(h, parent.h) // 2))
                     elif dx:
                         x = parent.x + parent.w + gap if dx > 0 else parent.x - gap - w
                         y = parent.y + rng.randint(-(h - 4), parent.h - 4)
@@ -229,6 +242,8 @@ def place_rooms(g: MissionGraph, cfg: GenConfig, rng: random.Random) -> List[Roo
                     continue
                 if not _overlaps(cand, list(rooms.values()), cfg.room_gap + 2 * cfg.corridor_radius + 2, setback):
                     placed = cand
+                    if diag_place:
+                        placed.meta["diag_from"] = pid    # its corridor cuts across at 45 degrees
                     break
             if placed is None:
                 raise LayoutError(f"could not place room for node {cid}")
@@ -431,11 +446,16 @@ class Router:
             raise LayoutError(f"room {a.id} too small for a corridor of radius {r}")
         bx0, by0, bx1, by1 = b.x, b.y, b.x + b.w - 1, b.y + b.h - 1
 
+        # with ``diagonal_pull`` a 45-degree step costs less than its length (1.414 -> 1.0 at 1):
+        # rooms sit side by side on the grid, so a true-length diagonal is almost never the
+        # shortest way and diagonal corridors stayed rare (7 of 338); now offsets become diagonals
+        dstep = 1.414 - 0.414 * getattr(self.cfg, "diagonal_pull", 0.0)
+
         def heur(x, y):
             dx = max(bx0 - x, 0, x - bx1)
             dy = max(by0 - y, 0, y - by1)
             if diagonal:
-                return max(dx, dy) + 0.414 * min(dx, dy)
+                return max(dx, dy) + (dstep - 1.0) * min(dx, dy)
             return dx + dy
 
         dirs = range(8) if diagonal else range(0, 8, 2)
@@ -488,7 +508,7 @@ class Router:
                         continue
                     if self._near_endpoint(c, a, b, ext) or self._near_endpoint(n, a, b, ext):
                         continue
-                    step = 1.414
+                    step = dstep
                 else:
                     step = 1.0
                 ng = gcost + step + extra + turn_cost
