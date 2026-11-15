@@ -108,7 +108,7 @@ def place_rooms(g: MissionGraph, cfg: GenConfig, rng: random.Random) -> List[Roo
 
     comp = cfg.composition
     root = g.center if (comp in ("hub", "central") and g.center is not None) else 0
-    if getattr(cfg, "packing", 0.0) >= 0.5 and not multi:
+    if getattr(cfg, "packing", 0.0) >= 0.5:
         from .packed import place_packed              # a divided floor plan (packed.py)
         packed = place_packed(g, cfg, rng, make, LayoutError)
         if packed is not None:

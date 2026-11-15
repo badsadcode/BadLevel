@@ -1031,3 +1031,13 @@ Result: techbase 25% -> 46% fill, corridors 33% -> 7% of the floor; classic with
 55% and 6%. Generation stays quick (9 of 10 techbase levels at the first attempt). On in the
 techbase preset (`packing` 1.0); `--packing 1` for any single-storey recipe. Multi-storey levels
 keep the normal layout for now (a plan per storey is the next step). Other presets unchanged.
+
+**Packed, several storeys.** Tom: "pack it in tight... multiple stories as well." One floor plan
+is shared by all storeys: a plot holds several rooms as long as their vertical slots don't
+overlap (a room per storey, a tall room through two, a stair core through all). A storey's
+rooms share its floor (level doorways); stairwells, lifts, ladders and mega-halls keep their
+exact size (their geometry), centred in a plot that fits them; the splitter never splits away
+the last plot a fixed-size room fits in. Measured (`--packing 1`, 4 seeds each): fortress 16% ->
+57% floor in its outline, bunker 68%, industrial 54%, all valid in 1-5 attempts; corridors are
+14-23% of the floor (connector doors face fixed sides, so some doorways go round). Opt-in for
+these presets (`--packing 1`); techbase packs by default.

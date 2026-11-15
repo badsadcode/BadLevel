@@ -152,7 +152,7 @@ def main(argv=None):
         sp.add_argument("--variety", type=float, metavar="0-1",
                         help="room sizes from closets to halls, more shapes: hex, diamond, Z, H (0 = as is)")
         sp.add_argument("--packing", type=float, metavar="0-1",
-                        help="0.5+: a packed floor plan, rooms sharing walls, Doom-like (single storey levels)")
+                        help="0.5+: a packed floor plan, rooms sharing walls, Doom-like (any number of storeys)")
         sp.add_argument("--crates", type=float, metavar="X",
                         help="scale the crates (cover blocks): 0 = none, 0.5 = half, 2 = double")
         sp.add_argument("--monsters", type=float, metavar="X",

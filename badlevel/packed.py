@@ -42,7 +42,26 @@ class Plot:
         return self.w * self.h
 
 
-def split_site(W: int, H: int, n: int, rng: random.Random) -> List[Plot]:
+def _homed(plots: List[Plot], need: List[Tuple[int, int]]) -> int:
+    """How many required (w, h) get a plot of their own at least that big (greedy, biggest first)."""
+    free = sorted(plots, key=lambda p: p.area)
+    n = 0
+    for w, h in sorted(need, key=lambda wh: -wh[0] * wh[1]):
+        for i, p in enumerate(free):
+            if p.w >= w and p.h >= h:
+                free.pop(i)
+                n += 1
+                break
+    return n
+
+
+def _holds(plots: List[Plot], need: List[Tuple[int, int]]) -> bool:
+    return _homed(plots, need) == len(need)
+
+
+def split_site(W: int, H: int, n: int, rng: random.Random, need: List[Tuple[int, int]] = ()) -> List[Plot]:
+    """Split the site into ``n`` plots (the largest first), never so far that the fixed-size
+    rooms (stair cores, lift shafts, mega-halls: ``need``) lose the plots they fit in."""
     plots = [Plot(0, 0, W, H)]
     while len(plots) < n:
         plots.sort(key=lambda p: -p.area)
@@ -60,7 +79,10 @@ def split_site(W: int, H: int, n: int, rng: random.Random) -> List[Plot]:
                 a, b = Plot(p.x, p.y, cut, p.h), Plot(p.x + cut, p.y, p.w - cut, p.h)
             else:
                 a, b = Plot(p.x, p.y, p.w, cut), Plot(p.x, p.y + cut, p.w, p.h - cut)
-            plots[i:i + 1] = [a, b]
+            trial = plots[:i] + [a, b] + plots[i + 1:]
+            if need and _homed(trial, need) < _homed(plots, need):
+                continue                            # keep this plot whole for a fixed-size room
+            plots = trial
             break
         else:
             break                                   # nothing left to split
@@ -87,10 +109,12 @@ def adjacency(plots: List[Plot], min_shared: int) -> Dict[int, List[int]]:
     return adj
 
 
-def embed(g, root: int, plots: List[Plot], adj, target: Dict[int, float], rng: random.Random,
+def embed(g, root: int, plots: List[Plot], adj, target: Dict[int, float], slots, fits, rng: random.Random,
           deadline: List[int]) -> Optional[Dict[int, int]]:
     """Node -> plot for the mission's spanning tree, neighbours on neighbouring plots (depth
-    first, with backtracking; ``deadline`` bounds the search)."""
+    first, with backtracking; ``deadline`` bounds the search). A plot holds several rooms as long
+    as their vertical slots don't overlap (storeys stacked, a stair core through them all)."""
+    from .layout import vertical_conflict
     children: Dict[int, List[int]] = {n.id: [] for n in g.nodes}
     tree = [e for e in g.edges if e.tree]
     seen = {root}
@@ -110,96 +134,147 @@ def embed(g, root: int, plots: List[Plot], adj, target: Dict[int, float], rng: r
         return abs(math.log(max(1.0, p.area) / max(1.0, target[node])))
 
     assign: Dict[int, int] = {}
-    used = set()
+    occ: Dict[int, List[Tuple[int, int]]] = {p.id: [] for p in plots}
+
+    def free_for(node, pid):
+        return fits(node, by_id[pid]) and not any(vertical_conflict(slots[node], s) for s in occ[pid])
 
     def free_neighbours(pid):
-        return sum(1 for q in adj[pid] if q not in used)
+        return sum(1 for q in adj[pid] if not occ[q])
 
     def place_children(node) -> bool:
         return place_kid(node, children[node], 0)
 
     def place_kid(node, kids, i) -> bool:
         if i == len(kids):
-            snap_a, snap_u = dict(assign), set(used)
+            snap_a, snap_o = dict(assign), {k: list(v) for k, v in occ.items()}
             for k in kids:                           # then each child's own subtree
                 if not place_children(k):
                     assign.clear()
                     assign.update(snap_a)
-                    used.clear()
-                    used.update(snap_u)
+                    occ.clear()
+                    occ.update(snap_o)
                     return False
             return True
         deadline[0] -= 1
         if deadline[0] < 0:
             return False
         kid = kids[i]
-        opts = [q for q in adj[assign[node]] if q not in used]
+        opts = [q for q in adj[assign[node]] if free_for(kid, q)]
         need = len(children[kid])
         opts.sort(key=lambda q: (free_neighbours(q) < need, fit(kid, by_id[q]) + rng.random() * 0.3))
         for q in opts[:4]:
             assign[kid] = q
-            used.add(q)
+            occ[q].append(slots[kid])
             if place_kid(node, kids, i + 1):
                 return True
-            used.discard(q)
+            occ[q].remove(slots[kid])
             assign.pop(kid, None)
         return False
 
-    starts = sorted(plots, key=lambda p: fit(root, p) + rng.random() * 0.5)[:6]
+    starts = sorted((p for p in plots if fits(root, p)), key=lambda p: fit(root, p) + rng.random() * 0.5)[:6]
     for p in starts:
         assign.clear()
-        used.clear()
+        for v in occ.values():
+            v.clear()
         assign[root] = p.id
-        used.add(p.id)
+        occ[p.id].append(slots[root])
         if place_children(root):
             return dict(assign)
     return None
 
 
+FIXED = ("megaroom",)      # (and the connectors): their size is their geometry, centred in a plot
+
+
 def place_packed(g, cfg, rng: random.Random, make, LayoutError):
-    """Rooms for every node on a divided floor plan (see the module docstring)."""
+    """Rooms for every node on a divided floor plan (see the module docstring). Several storeys
+    share one plan: a plot holds a room per storey (or a tall room, or a stair core through all)."""
     from .graph import CONNECTOR_KINDS
-    if any(n.kind in CONNECTOR_KINDS for n in g.nodes):
-        return None                                  # (single storey only: no connector rooms)
     root = g.center if (cfg.composition in ("hub", "central") and g.center is not None) else 0
-    protos = {n.id: make(n, 0, 0, 0, 0) for n in g.nodes}
-    target = {i: float((r.w + WALL_LO + WALL_HI) * (r.h + WALL_LO + WALL_HI)) for i, r in protos.items()}
-    total = sum(target.values())
+    step = cfg.step_height
+    tree = [e for e in g.edges if e.tree]
+    nbrs: Dict[int, List[Tuple[int, object]]] = {n.id: [] for n in g.nodes}
+    for e in tree:
+        nbrs[e.a].append((e.b, e))
+        nbrs[e.b].append((e.a, e))
+    multi = cfg.storeys > 1
+    floor_of: Dict[int, int] = {}
+    if multi:
+        # a storey's rooms share its floor (level doorways); connectors climb between storeys
+        H_ = cfg.storey_height
+        for n in g.nodes:
+            if n.kind not in CONNECTOR_KINDS:
+                floor_of[n.id] = n.storey * H_
+        for n in g.nodes:
+            if n.kind in CONNECTOR_KINDS:
+                fl = [floor_of[m] for m, _ in nbrs[n.id] if m in floor_of]
+                floor_of[n.id], n.top = min(fl), max(fl)
+    else:
+        # neighbours differ by at most one step (the doorway passage holds it)
+        floor_of[root] = 0
+        order = [root]
+        while order:
+            a = order.pop(0)
+            for b, e in nbrs[a]:
+                if b in floor_of:
+                    continue
+                f = floor_of[a] + rng.choice([-1, 0, 0, 1]) * step
+                if e.kind != "open":
+                    f = floor_of[a]                      # a locked or secret door needs a level doorway
+                floor_of[b] = max(0, min(f, cfg.max_level * cfg.level_step))
+                order.append(b)
+    protos = {}
+    for n in g.nodes:
+        r = make(n, 0, 0, floor_of[n.id], 0)
+        if r is None:
+            raise LayoutError(f"packed: connector {n.kind} can't climb {n.top - floor_of[n.id]}")
+        protos[n.id] = r
+    fixed = {i for i, r in protos.items() if r.is_connector or r.kind in FIXED}
+    slots = {i: r.slot for i, r in protos.items()}
+    walls = WALL_LO + WALL_HI
+    target = {i: float((r.w + walls) * (r.h + walls)) for i, r in protos.items()}
+
+    def fits(node, p):
+        r = protos[node]
+        inner_w, inner_h = p.w - walls, p.h - walls
+        if node in fixed:
+            return r.w <= inner_w and r.h <= inner_h
+        return inner_w >= 6 and inner_h >= 6
+
+    # the site holds the busiest storey band (connectors count on every storey they cross)
+    bands: Dict[int, List[int]] = {}
+    for i, r in protos.items():
+        lo = r.floor // max(1, cfg.storey_height) if multi else 0
+        hi = (r.ceil - 1) // max(1, cfg.storey_height) if multi and (r.is_connector or r.kind in FIXED) else lo
+        for s in range(lo, hi + 1):
+            bands.setdefault(s, []).append(i)
+    total = max(sum(target[i] for i in ids) for ids in bands.values())
+    count = max(len(ids) for ids in bands.values())
     for attempt in range(40):
-        spare = 1.25 + 0.05 * attempt
+        spare = 1.3 + 0.05 * attempt
         aspect = rng.uniform(1.0, 1.6)
         W = int(math.sqrt(total * spare * aspect)) + 1
         H = int(total * spare / W) + 1
-        n = int(len(g.nodes) * spare) + 1
-        plots = split_site(W, H, n, rng)
-        adj = adjacency(plots, WALL_LO + WALL_HI + 6)
-        assign = embed(g, root, plots, adj, target, rng, [4000])
+        need = [(protos[i].w + walls, protos[i].h + walls) for i in fixed]
+        plots = split_site(W, H, int(count * spare) + 2, rng, need)
+        if not _holds(plots, need):
+            continue
+        adj = adjacency(plots, walls + 6)
+        assign = embed(g, root, plots, adj, target, slots, fits, rng, [4000])
         if assign is None:
             continue
         by_id = {p.id: p for p in plots}
         rooms: Dict[int, object] = {}
-        # floors: neighbours differ by at most two steps (the doorway passage holds the stairs)
-        step = cfg.step_height
-        floor_of = {root: 0}
-        order = [root]
-        tree = [e for e in g.edges if e.tree]
-        while order:
-            a = order.pop(0)
-            for e in tree:
-                if a in (e.a, e.b):
-                    b = e.b if e.a == a else e.a
-                    if b in floor_of:
-                        continue
-                    f = floor_of[a] + rng.choice([-1, 0, 0, 1]) * step
-                    if e.kind != "open":
-                        f = floor_of[a]                  # a locked or secret door needs a level doorway
-                    floor_of[b] = max(0, min(f, cfg.max_level * cfg.level_step))
-                    order.append(b)
         for node in g.nodes:
             p = by_id[assign[node.id]]
-            room = make(node, 0, 0, floor_of[node.id], 0)
-            room.x, room.y = p.x + WALL_LO, p.y + WALL_LO
-            room.w, room.h = p.w - WALL_LO - WALL_HI, p.h - WALL_LO - WALL_HI
+            room = protos[node.id]
+            if node.id in fixed:                         # its own size, centred in the plot
+                room.x = p.x + WALL_LO + (p.w - walls - room.w) // 2
+                room.y = p.y + WALL_LO + (p.h - walls - room.h) // 2
+            else:
+                room.x, room.y = p.x + WALL_LO, p.y + WALL_LO
+                room.w, room.h = p.w - walls, p.h - walls
             rooms[node.id] = room
         return rooms
     raise LayoutError("packed: the mission did not fit a floor plan")
