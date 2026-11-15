@@ -53,6 +53,9 @@ class GenConfig:
     arch_style: str = ""         # "" (plain boxes) | gothic | industrial | bunker | compound: hall cross-sections
     arch_weights: dict = field(default_factory=dict)  # bias the profiles: {"basilica": 2.0, "sawtooth": 0.0}
     arch_walls: bool = True      # structure along the walls: members, recesses, end features (walls.py)
+    hazards: float = 0.0         # weight of hazard pools (slime / lava) among room features (decorate.f_hazard)
+    hazard_kind: str = "slime"   # slime | lava
+    light_variety: float = 0.0   # 0..1: rooms lit brighter or darker than each other (sector-style light)
     ramps: float = 0.0           # chance per stair corridor that its steps become a smooth ramp (ramps.py)
     arch_dress: bool = True      # bases and capitals on the wall members (walls.py)
     arch_portals: bool = True    # framed corridor openings: jambs, arched / lintelled heads (portals.py)

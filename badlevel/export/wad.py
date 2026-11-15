@@ -27,6 +27,10 @@ TEXTURES: Dict[str, Tuple[Tuple[int, int], int, int, str]] = {
     "bl_lift": ((64, 64), 12, 5, "door"),
     "bl_ladder": ((64, 64), 7, 13, "grid"),
     "sky1": ((256, 128), 12, 10, "sky"),
+    # liquids: a '*' name makes qbsp a liquid volume. Quake 1's palette: 48-63 greens, 240+ fullbright
+    # (glowing) orange and yellow; the Quake 2 .wal versions stay grey (its palette is ordered differently)
+    "*slime0": ((64, 64), 54, 50, "grid"),
+    "*lava1": ((64, 64), 247, 244, "grid"),
 }
 
 
@@ -83,13 +87,16 @@ def write_wad(path: str):
 # --- Quake 2: the same textures as .wal files (textures/badlevel/<name>.wal). Quake 2's palette also
 # starts with a 16-step grey ramp, so the same indices give the same greys.
 Q2_NAMES = {"bl_floor": "floor", "bl_wall": "wall", "bl_ceiling": "ceiling", "bl_door": "door",
-            "bl_glass": "glass", "trigger": "trigger", "bl_lift": "lift", "bl_ladder": "ladder", "sky1": "sky"}
+            "bl_glass": "glass", "trigger": "trigger", "bl_lift": "lift", "bl_ladder": "ladder", "sky1": "sky",
+            "*slime0": "slime", "*lava1": "lava"}
 
 
 def make_wal(name: str) -> bytes:
     """One .wal: a 100-byte header (name, size, 4 mip offsets, next frame, flags, contents, value)
     and the 4 mip levels."""
     size, base, line, pattern = TEXTURES[name]
+    if name.startswith("*"):
+        base, line = (4, 2) if "slime" in name else (14, 12)
     w, h = size
     px = _pixels(size, base, line, pattern)
     mips = [_mip(px, w, h, f) for f in (1, 2, 4, 8)]

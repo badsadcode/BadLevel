@@ -60,6 +60,9 @@ def _cfg_from_args(args, seed: int, recipe=None) -> GenConfig:
     if variety is not None:
         from .recipes import varied
         varied(cfg, variety)
+    crates = getattr(args, "crates", None)
+    if crates is not None:
+        cfg.crate_scale *= max(0.0, crates)                     # 0 = no crates, 2 = twice as many
     monsters = getattr(args, "monsters", None)
     if monsters is not None:
         cfg.enemy_density *= max(0.0, monsters)                 # 0 = none, 0.5 = half, 2 = double
@@ -145,6 +148,8 @@ def main(argv=None):
                         help="spaciousness: bigger rooms, wider corridors, more headroom (0 = as is)")
         sp.add_argument("--variety", type=float, metavar="0-1",
                         help="room sizes from closets to halls, more shapes: hex, diamond, Z, H (0 = as is)")
+        sp.add_argument("--crates", type=float, metavar="X",
+                        help="scale the crates (cover blocks): 0 = none, 0.5 = half, 2 = double")
         sp.add_argument("--monsters", type=float, metavar="X",
                         help="scale the number of monsters (0 = none, 0.5 = half, 2 = double)")
         sp.add_argument("--style", choices=("none",) + STYLES,

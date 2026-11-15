@@ -139,6 +139,9 @@ class Level:
     # sloped floors (ramps, battered bases): cell -> corner heights (x0y0, x1y0, x1y1, x0y1) of the
     # bottom span's floor; the span keeps the highest point, so gameplay stays conservative
     floor_slope: Dict[Cell, Tuple[int, int, int, int]] = field(default_factory=dict)
+    # hazard pools (slime, lava): cell -> liquid kind; a shallow sunken floor, one step down, so
+    # walkable and never a trap; exporters make a liquid where the game has one
+    hazard: Dict[Cell, str] = field(default_factory=dict)
     # named parts, so an artist can find and replace an element ("room:5/vault", "room:7/building 1"):
     #   part_solid    solid cells that are an element (piers, members, jambs, building walls)
     #   part_cells    open cells that are an element (niches, building interiors, portal mouths)

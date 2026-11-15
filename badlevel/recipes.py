@@ -243,6 +243,17 @@ PRESETS: Dict[str, Recipe] = {r.name: r for r in [
                       "size_bias": {"small": 0.4, "medium": 1.0, "large": 2.5},
                       "corridor_width_bias": {1: 0.3, 2: 1.0, 3: 3.0},
                       "mega_rooms": 1, "mega_styles": {"hangar": 3.0, "works": 0.5, "terraces": 0.0}}),
+    Recipe("techbase", "Doom-era techbase: one level, never a room over a room; height from steps, "
+                       "platforms and pits; angled walls and diagonal corridors; flat ceilings at many "
+                       "heights; outdoor yards, slime pools, keycards, bright and dim areas.",
+           scale=0.6, openness=0.7, verticality=0.45, claustrophobia=0.15, combat=0.85, exploration=0.75,
+           loopiness=0.6, regularity=0.1,
+           overrides={"storeys": 1, "max_level": 5, "open_areas": 2, "tall_room_chance": 0.45,
+                      "hazards": 1.0, "hazard_kind": "slime", "light_variety": 1.0, "windows": 8,
+                      "glazed_chance": 0.3, "mega_rooms": 0, "keys": 2,
+                      "shape_weights": {"octagon": 2.0, "chamfer": 2.5, "hex": 1.0, "diamond": 1.0,
+                                        "ring": 0.5, "rect": 1.5},
+                      "feature_weights": {"platform": 2.0, "pit": 1.0, "hazard": 2.0, "balcony": 0.0}}),
     Recipe("explore", "No combat. Vertical, open, full of side rooms, secrets, views ahead and loops: "
                       "for exploration, walking sims and architectural blockouts.",
            scale=0.6, openness=0.6, verticality=0.7, claustrophobia=0.2, combat=0.0, exploration=1.0,

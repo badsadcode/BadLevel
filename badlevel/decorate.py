@@ -128,6 +128,32 @@ def _stair_block(ctx: RoomCtx, rng: random.Random, sign: int, name: str) -> bool
     return False
 
 
+def f_hazard(ctx: RoomCtx, rng: random.Random) -> bool:
+    """A hazard pool: a rectangle of floor one step down, flooded with slime or lava. One step,
+    so you can always walk out (it hurts, it never traps); a free ring around it."""
+    r = ctx.room
+    if min(r.w, r.h) < 9:
+        return False
+    step = ctx.level.config.step_height
+    for _ in range(40):
+        pw = rng.randint(3, max(3, min(9, r.w - 5)))
+        ph = rng.randint(3, max(3, min(9, r.h - 5)))
+        px = rng.randint(r.x + 2, r.x + r.w - 2 - pw)
+        py = rng.randint(r.y + 2, r.y + r.h - 2 - ph)
+        rect = [(x, y) for y in range(py, py + ph) for x in range(px, px + pw)]
+        border = [(x, y) for y in range(py - 1, py + ph + 1) for x in range(px - 1, px + pw + 1)]
+        if not ctx.free(border):
+            continue
+        for c in rect:
+            ctx.set_floor(c, r.floor - step)
+            ctx.level.hazard[c] = ctx.level.config.hazard_kind
+        for c in border:
+            ctx.used.add(c)
+        r.features.append("hazard")
+        return True
+    return False
+
+
 def f_platform(ctx, rng):
     return _stair_block(ctx, rng, +1, "platform")
 

@@ -982,3 +982,25 @@ Changes, with the roomy default (`diagonal_pull`, set by `roomier`; `--space 0` 
 niche refused cells in a ring. A niche only carves outward and leaves the floor as it is, so on
 roomy levels the ring no longer stops it: sci-fi 1 -> 181 niches over the test levels, gothic
 48 -> 132, compound and castle ~100+.
+
+## D40. Techbase: the Doom-era preset, hazard pools, light variety
+
+First of the five design traditions Tom and Noor picked (techbase, Quake flavours, grand, arena,
+facility). The design language of the 2.5D era, not any game's maps or assets:
+- **One level, never a room over a room** (`storeys` 1), but many floor heights (`max_level` 5:
+  6 distinct floor heights per level on average), platforms and pits, tall rooms with flat
+  ceilings (no vaulted architecture).
+- **Angled**: regularity 0.1 and extra octagon / chamfer / hex / diamond plans (50 of 96 rooms
+  not rectangles), diagonal corridors (D39: 32 of 93).
+- **Outdoor yards** (2 per level), windows, 2 keys, secrets, a lot of combat.
+- **Hazard pools** (new, `decorate.f_hazard`, `cfg.hazards`, `level.hazard`): a rectangle of
+  floor one step down, flooded with slime (or lava, `hazard_kind`). One step, so you can always
+  walk out: it hurts, it never traps. Exported as a real liquid where the game has one: Quake 1 a
+  `*slime0` / `*lava1` brush (green and fullbright-orange textures in badlevel.wad), Quake 2 a
+  brush with CONTENTS_SLIME / LAVA and SURF_WARP (grey .wal: its palette is ordered differently);
+  a green or orange floor material in the .glb and the preview; `hazards` in the IR.
+- **Light variety** (`light_variety`): each room's lights drawn brighter or dimmer (0.5x-1.3x),
+  sector-style.
+- Nothing changes for the other presets (24 of 24 levels identical).
+
+`--crates X` scales the crates (cover blocks) from the command line: 0 = none (Tom asked).

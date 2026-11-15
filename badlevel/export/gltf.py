@@ -32,6 +32,8 @@ MATERIALS = {
     "glass": ("bl_glass", [0.55, 0.80, 0.95, 0.30]),
     "sky": ("bl_sky", [0.45, 0.62, 0.90, 1.0]),
     "ladder": ("bl_ladder", [0.55, 0.35, 0.20, 1.0]),
+    "hazard_slime": ("bl_slime", [0.35, 0.85, 0.20, 1.0]),
+    "hazard_lava": ("bl_lava", [0.95, 0.35, 0.08, 1.0]),
 }
 
 

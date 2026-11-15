@@ -52,7 +52,9 @@ Q2_TEXTURES = {
     "bl_door": ("badlevel/door", 0, 0), "trigger": ("badlevel/trigger", 0, Q2_SURF_NODRAW),
     "bl_glass": ("badlevel/glass", Q2_CONTENTS_WINDOW, Q2_SURF_TRANS33), "bl_lift": ("badlevel/lift", 0, 0),
     "bl_ladder": ("badlevel/ladder", Q2_CONTENTS_SOLID | Q2_CONTENTS_LADDER, 0),
+    "*slime0": ("badlevel/slime", 16, 8), "*lava1": ("badlevel/lava", 8, 8),   # CONTENTS_SLIME / LAVA, SURF_WARP
 }
+LIQUIDS = {"slime": "*slime0", "lava": "*lava1"}
 Q2_KEY_ITEMS = {"red": "key_red_key", "blue": "key_blue_key"}
 Q2_ENEMIES = {1: "monster_soldier_light", 2: "monster_soldier", 3: "monster_gunner"}
 Q2_ITEMS = {"health": "item_health", "megahealth": "item_health_mega", "ammo": "ammo_shells",
@@ -197,6 +199,19 @@ def to_map(level: Level, game: str = "quake") -> str:
                 top_sloped_text(b, TEXTURES[b.top], TEXTURES[b.bottom], TEXTURES[b.side]) if b.top_slope else
                 brush_text(b.mins, b.maxs, TEXTURES[b.top], TEXTURES[b.bottom], TEXTURES[b.side]))
     world = [text(b) for b in brushes if not b.part]
+    # hazard pools: a liquid volume over the sunken floor, its surface a little under the room floor
+    if level.hazard:
+        from ..brushes import greedy_rects
+        s_ = level.cell
+        pools: Dict[tuple, set] = {}
+        for c, kind in level.hazard.items():
+            if level.spans.get(c):
+                pools.setdefault((level.spans[c][0][0], kind), set()).add(c)
+        for (f, kind), cells in sorted(pools.items()):
+            for (x0, y0, x1, y1) in greedy_rects(cells):
+                lo = (x0 * s_ + ox, y0 * s_ + oy, f)
+                hi = (x1 * s_ + ox, y1 * s_ + oy, f + level.config.step_height - 4)
+                world.append(brush_text(lo, hi, *([LIQUIDS[kind]] * 3)))
     # named elements (a vault, piers, a portal, a building) as TrenchBroom groups: func_group, which
     # compilers merge into the world, so the map compiles the same; in the editor each is one click
     parts: Dict[str, List[str]] = {}

@@ -60,6 +60,9 @@ class SpaceType:
         from ..decorate import f_crates
         options = self.feature_options(room)
         fw = level.config.feature_weights
+        if getattr(level.config, "hazards", 0.0) > 0 and room.kind in ("combat", "arena", "hub", "megaroom"):
+            from ..decorate import f_hazard
+            options = list(options) + [[f_hazard]]          # a slime or lava pool (techbase)
 
         def option_weight(opt):
             w = 1.0
@@ -87,6 +90,11 @@ def place_lights(level: Level, room: Room, max_height: Optional[int] = None, int
     from ..decorate import _nearest_open
     from ..level import Entity
     area = room.w * room.h
+    lv_ = getattr(level.config, "light_variety", 0.0)
+    if lv_ > 0:            # sector-style light: some rooms dim, some bright (one draw per room)
+        import random as _r
+        k = _r.Random(f"{level.config.seed}/{level.config.variant}/light/{room.id}").uniform(1 - 0.5 * lv_, 1 + 0.3 * lv_)
+        intensity = int(round((intensity or 300) * k))
     if area >= 140:              # a light every ~9 cells (Quake light fades over ~300 units)
         nx, ny = max(2, round(room.w / 9)), max(2, round(room.h / 9))
         spots = [((i + 0.5) / nx, (j + 0.5) / ny) for i in range(nx) for j in range(ny)]

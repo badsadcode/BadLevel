@@ -150,7 +150,9 @@ def build_mesh(level: Level) -> MeshBuilder:
         for (f, c) in spans:
             if not corner:
                 if not ((x, y) in fslopes and (f, c) == spans[0]):
-                    flats.setdefault((part_of(level, (x, y), (f, c), "floor"), "floor", f), set()).add((x, y))
+                    mat = ("hazard_" + level.hazard[(x, y)]) if (x, y) in level.hazard and (f, c) == spans[0] \
+                        else "floor"
+                    flats.setdefault((part_of(level, (x, y), (f, c), "floor"), mat, f), set()).add((x, y))
                 top = (x, y) in level.sky and (f, c) == spans[-1]
                 if not ((x, y) in slopes and (f, c) == spans[-1]):
                     flats.setdefault((part_of(level, (x, y), (f, c), "ceiling"), "sky" if top else "ceiling", c),
@@ -179,7 +181,7 @@ def build_mesh(level: Level) -> MeshBuilder:
 
     for (part, mat, z), cells in flats.items():
         mb.part = part
-        n = (0, 0, 1) if mat == "floor" else (0, 0, -1)
+        n = (0, 0, 1) if mat == "floor" or mat.startswith("hazard") else (0, 0, -1)   # (a hazard pool is a floor)
         for (x0, y0, x1, y1) in greedy_rects(cells):
             X0, Y0, X1, Y1 = x0 * s, y0 * s, x1 * s, y1 * s
             mb.quad(mat, [(X0, Y0, z), (X1, Y0, z), (X1, Y1, z), (X0, Y1, z)], n,

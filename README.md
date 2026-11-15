@@ -92,7 +92,7 @@ settings. A recipe is ten dials from 0 to 1 plus optional raw overrides:
 | `spaciousness` | bigger, taller rooms, wider and higher corridors, more headroom (0 = the compact Quake feel) |
 | `variety` | a wider spread of room sizes, extra footprints (round, hex, diamond, Z, H), domes in big rooms, spiral stairs |
 
-Presets: `compact`, `classic`, `bunker`, `fortress`, `industrial`, `compound`, `explore`.
+Presets: `compact`, `classic`, `bunker`, `fortress`, `industrial`, `compound`, `techbase`, `explore`.
 
 Presets start at `spaciousness` 0.5 (wide corridors, roomy halls); `--space 0` gives the
 original tight Quake-1 levels, byte for byte. `variety` defaults to 0, which changes nothing. Turn them up on top of any recipe from the command line:
@@ -101,7 +101,7 @@ original tight Quake-1 levels, byte for byte. `variety` defaults to 0, which cha
 python3 -m badlevel generate --seed 7 --recipe fortress --space 0.8 --variety 1
 ```
 
-`--monsters 0.5` halves the monsters (0 = none). Compiled for Quake, the easy skill gets half the
+`--monsters 0.5` halves the monsters (0 = none); `--crates 0` leaves out the crates (cover blocks). Compiled for Quake, the easy skill gets half the
 monsters and normal three quarters.
 
 ```bash
