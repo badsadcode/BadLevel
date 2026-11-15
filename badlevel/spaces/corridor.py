@@ -50,6 +50,8 @@ def corridor_height(cfg: GenConfig, a: Room, b: Room, r: int) -> int:
 
 def _corridor_style(g: MissionGraph, e, a: Room, b: Room, cfg: GenConfig, rng: random.Random):
     r, diag = _corridor_style0(g, e, a, b, cfg, rng)
+    if getattr(cfg, "packing", 0.0) >= 0.5:
+        return 1, False                  # packed: a doorway through the wall, 3 wide, straight
     if not (a.is_connector or b.is_connector) and (a.meta.get("diag_from") == b.id or b.meta.get("diag_from") == a.id):
         diag = True                      # placed off the other's corner for it (diagonal_pull)
     return r, diag

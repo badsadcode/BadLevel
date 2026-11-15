@@ -101,7 +101,8 @@ original tight Quake-1 levels, byte for byte. `variety` defaults to 0, which cha
 python3 -m badlevel generate --seed 7 --recipe fortress --space 0.8 --variety 1
 ```
 
-`--monsters 0.5` halves the monsters (0 = none); `--crates 0` leaves out the crates (cover blocks). Compiled for Quake, the easy skill gets half the
+`--monsters 0.5` halves the monsters (0 = none); `--crates 0` leaves out the crates (cover blocks);
+`--packing 1` packs a single-storey level into a floor plan of rooms sharing walls (Doom-like). Compiled for Quake, the easy skill gets half the
 monsters and normal three quarters.
 
 ```bash

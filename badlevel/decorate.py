@@ -352,6 +352,14 @@ def _door_entity(level: Level, corr, kind: str) -> Entity:
                 score = i if kind == "secret_door" else abs(i - len(path) // 2)
                 if best is None or score < best[0]:
                     best = (score, i)
+    if best is None and getattr(cfg, "packing", 0.0) >= 0.5:
+        # packed: the corridor is a short straight passage through a wall; the door goes on any
+        # level cell of it
+        for i in range(len(path)):
+            nb = [floors[j] for j in (i - 1, i + 1) if 0 <= j < len(path)]
+            if (0 < i < len(path) - 1 and all(f == floors[i] for f in nb)) or (len(path) == 2 and i == 0):
+                best = (abs(i - len(path) // 2), i)
+                break
     if best is None:
         raise LayoutError(f"no spot for {kind} in corridor {corr.id}")
     i = best[1]

@@ -121,3 +121,24 @@ def test_rooms_along_long_corridors():
             for c in lv.corridors:
                 kinds.update(b["type"] for b in c.beats)
     assert sum(kinds[k] for k in ("rotunda", "octagon", "crossing", "aisles")) >= 4, kinds
+
+
+def test_packed_floor_plan():
+    """Packed layouts (techbase; --packing): rooms share walls, doorway corridors, a compact block."""
+    import dataclasses
+    from badlevel.clearance import clearance_report
+
+    def measure(cfg):
+        lv = generate(cfg)
+        assert validate(lv)["ok"] and not clearance_report(lv)
+        cells = set(lv.spans)
+        xs, ys = [c[0] for c in cells], [c[1] for c in cells]
+        fill = len(cells) / ((max(xs) - min(xs) + 1) * (max(ys) - min(ys) + 1))
+        corr = sum(1 for c in cells if any((o[2] or "").startswith("corridor") for o in lv.owners.get(c, [])))
+        return fill, corr / len(cells)
+    packed = [measure(compile_recipe(PRESETS["techbase"], s)) for s in (1, 2, 3)]
+    loose = [measure(compile_recipe(dataclasses.replace(PRESETS["techbase"],
+                                                        overrides={**PRESETS["techbase"].overrides, "packing": 0.0}), s))
+             for s in (1, 2, 3)]
+    assert statistics.mean(f for f, _ in packed) > 1.4 * statistics.mean(f for f, _ in loose)
+    assert statistics.mean(c for _, c in packed) < 0.5 * statistics.mean(c for _, c in loose)

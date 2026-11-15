@@ -1004,3 +1004,30 @@ facility). The design language of the 2.5D era, not any game's maps or assets:
 - Nothing changes for the other presets (24 of 24 levels identical).
 
 `--crates X` scales the crates (cover blocks) from the command line: 0 = none (Tom asked).
+
+## D41. Packed floor plans (Doom-era layouts)
+
+Tom showed Doom automaps (and a hand-drawn dungeon): "Can you see how tight they are? Not
+cramped: the layout." Measured, BadLevel's levels were islands on strings: 20-38% of the
+bounding box floor, a third or more of it corridor; a Doom map is most of its block, rooms
+sharing walls, doors straight through, few corridors.
+
+Squeezing the normal layout (rooms placed one by one beside their parent) doesn't get there: at
+full squeeze the last rooms had nowhere to go, or no corridor could be routed (tried, measured,
+reverted). The other way round works: `packed.py`, a divided floor plan.
+1. A site sized for every room of the mission plus 25% spare plots.
+2. Split again and again (the largest plot, along its long side, at 35-65%) into plots that share
+   edges; neighbours are plots sharing at least 9 cells of edge (room for a doorway).
+3. The mission's spanning tree embedded depth first: the root on a plot of its size, each child
+   on a free neighbour of its parent's plot (the closest size, with enough free neighbours for
+   its own children), backtracking; a new floor plan if it doesn't fit.
+4. Each room fills its plot less a wall (1 cell low side, 2 high side: 3 between rooms); the
+   corridor is a doorway passage through it: 3 wide, straight, stairs right up to its ends
+   (neighbours differ by at most one step; locked and secret doors join rooms at one height).
+   Loops only through a shared wall. Unused plots stay solid: the irregular edge and inner
+   holes. Room shapes cut the corners inside their plots.
+
+Result: techbase 25% -> 46% fill, corridors 33% -> 7% of the floor; classic with `--packing 1`
+55% and 6%. Generation stays quick (9 of 10 techbase levels at the first attempt). On in the
+techbase preset (`packing` 1.0); `--packing 1` for any single-storey recipe. Multi-storey levels
+keep the normal layout for now (a plan per storey is the next step). Other presets unchanged.

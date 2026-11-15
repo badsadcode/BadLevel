@@ -248,7 +248,7 @@ PRESETS: Dict[str, Recipe] = {r.name: r for r in [
                        "heights; outdoor yards, slime pools, keycards, bright and dim areas.",
            scale=0.6, openness=0.7, verticality=0.45, claustrophobia=0.15, combat=0.85, exploration=0.75,
            loopiness=0.6, regularity=0.1,
-           overrides={"storeys": 1, "max_level": 5, "open_areas": 2, "tall_room_chance": 0.45,
+           overrides={"storeys": 1, "max_level": 5, "open_areas": 2, "tall_room_chance": 0.45, "packing": 1.0,
                       "hazards": 1.0, "hazard_kind": "slime", "light_variety": 1.0, "windows": 8,
                       "glazed_chance": 0.3, "mega_rooms": 0, "keys": 2,
                       "shape_weights": {"octagon": 2.0, "chamfer": 2.5, "hex": 1.0, "diamond": 1.0,

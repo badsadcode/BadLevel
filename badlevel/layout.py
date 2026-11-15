@@ -108,6 +108,20 @@ def place_rooms(g: MissionGraph, cfg: GenConfig, rng: random.Random) -> List[Roo
 
     comp = cfg.composition
     root = g.center if (comp in ("hub", "central") and g.center is not None) else 0
+    if getattr(cfg, "packing", 0.0) >= 0.5 and not multi:
+        from .packed import place_packed              # a divided floor plan (packed.py)
+        packed = place_packed(g, cfg, rng, make, LayoutError)
+        if packed is not None:
+            result = [packed[n.id] for n in g.nodes]
+            for r in result:
+                space_for(r.kind).assign_shape(r, g.nodes[r.node], cfg, rng, False)
+            minx = min(r.x for r in result)
+            miny = min(r.y for r in result)
+            for idx, r in enumerate(result):
+                r.id = idx
+                r.x += PAD - minx
+                r.y += PAD - miny
+            return result
     first = g.nodes[root]
     rooms: Dict[int, Room] = {}
     r0 = make(first, 0, 0, preset.get(root, 0), 0)
@@ -554,8 +568,10 @@ def plan_floors(path: List[Cell], fa: int, fb: int, cfg: GenConfig, r: int = Non
     n = len(path)
     if steps == 0:
         return [fa] * n
-    margin = r + 2
-    cands = [i for i in range(margin, n - margin) if _straight(path, i, r)]
+    margin, reach = r + 2, r
+    if getattr(cfg, "packing", 0.0) >= 0.5:
+        margin, reach = 1, 0           # packed: the (straight) doorway passage through a wall holds the stairs
+    cands = [i for i in range(margin, n - margin) if _straight(path, i, reach)]
     if len(cands) < steps:
         return None
     mid = (n - 1) / 2.0
@@ -666,6 +682,8 @@ def choose_loops(g: MissionGraph, rooms: List[Room], cfg: GenConfig, rng: random
                 hops = g.hop_distance(a.node, b.node)
                 if hops < 2:
                     continue
+                if getattr(cfg, "packing", 0.0) >= 0.5 and _gap(a, b) > 4:
+                    continue                           # packed: loops only through a shared wall
                 # close in space; bigger circuits (3+ hops) and same-height pairs (junctions) preferred;
                 # radial compositions bring loops back to their centre
                 bonus = -20 if g.center is not None and g.center in (a.node, b.node) else 0
