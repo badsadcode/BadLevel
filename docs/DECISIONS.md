@@ -1075,9 +1075,13 @@ so it gets its own mode (`cfg.mode = "arena"`) on top of the same generator:
   power-ups in the most central room first (high ground preferred), the rest spread over the
   central half; guns spread by farthest-point, the strongest in the most central of their rooms,
   each with ammo in the next room; then a distance field from every gun, and the spawns picked
-  in the distance band [d, 1.5 d] that covers the most rooms, one room each first, 4+ cells
-  apart, facing into the room. The first attempt (spawns first, then guns) gave spreads up to 33x;
-  guns first, then spawns in a band: 1.5x at worst (8 of 8 levels per preset).
+  in the distance band [d, 1.5 d] that covers the most places (rooms first; straight, level
+  corridor stretches too, as arena shooters do), one spawn per place (a hall over 250 cells a
+  few), 4+ cells apart, facing into the room or along the corridor. The first attempt (spawns
+  first, then guns) gave spreads up to 33x; guns first, then spawns in a band: 1.5x at worst
+  (16 of 16 levels). Power-up rooms get no spawns, so a 6-room duel puts some in corridors.
+- **Short loops**: no deliberately long loop corridors (`long_loop_chance` 0): a circuit, not
+  a trek.
 - **Jump pads** (`decorate.f_tower`, `cfg.jump_pads`): a 3-5 cell block 64-160 high with no
   stairs, a 2x2 pad one cell off a face; a one-way link up (the drop is the way down). Exported
   as a `trigger_push` over a pad plate: `arena.jump_launch` gives speed and angles for an arc

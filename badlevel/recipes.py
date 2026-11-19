@@ -81,6 +81,7 @@ def arena_mode(cfg) -> None:
     cfg.enemy_density = 0.0
     cfg.pickup_density = 0.0
     cfg.loops = max(cfg.loops, 4)
+    cfg.long_loop_chance = 0.0          # short loops: a circuit, not a trek
     cfg.jump_pads = max(getattr(cfg, "jump_pads", 0.0), 1.0)
 
 
@@ -298,7 +299,7 @@ PRESETS: Dict[str, Recipe] = {r.name: r for r in [
            scale=0.45, openness=0.6, verticality=0.8, claustrophobia=0.2, combat=0.8, exploration=0.3,
            loopiness=1.0, regularity=0.4, spaciousness=0.6,
            overrides={"mode": "arena", "keys": 0, "secret": False, "storeys": 2, "composition": "central",
-                      "loops": 5, "jump_pads": 1.5, "drop_chance": 1.0, "tall_room_chance": 0.7, "height_scale": 1.4,
+                      "loops": 5, "long_loop_chance": 0.0, "jump_pads": 1.5, "drop_chance": 1.0, "tall_room_chance": 0.7, "height_scale": 1.4,
                       "enemy_density": 0.0, "pickup_density": 0.0, "windows": 6, "open_areas": 0, "mega_rooms": 0,
                       "connector_weights": {"stairs": 0.4, "stairwell": 0.3, "lift": 0.3, "ladder": 0.0},
                       "feature_weights": {"platform": 2.0, "balcony": 2.0, "pit": 0.5, "pillars": 1.5, "none": 0.3}}),
@@ -307,7 +308,7 @@ PRESETS: Dict[str, Recipe] = {r.name: r for r in [
            scale=0.25, openness=0.5, verticality=0.55, claustrophobia=0.3, combat=0.8, exploration=0.2,
            loopiness=1.0, regularity=0.5, spaciousness=0.5,
            overrides={"mode": "arena", "keys": 0, "secret": False, "storeys": 1, "composition": "central",
-                      "loops": 3, "jump_pads": 2.0, "tall_room_chance": 0.8, "height_scale": 1.3,
+                      "loops": 3, "long_loop_chance": 0.0, "jump_pads": 2.0, "tall_room_chance": 0.8, "height_scale": 1.3,
                       "enemy_density": 0.0, "pickup_density": 0.0, "open_areas": 0, "mega_rooms": 0,
                       "feature_weights": {"platform": 2.0, "balcony": 1.0, "pit": 0.5, "none": 0.2}}),
     Recipe("explore", "No combat. Vertical, open, full of side rooms, secrets, views ahead and loops: "

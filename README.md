@@ -136,7 +136,7 @@ exit, secrets or monsters. Instead:
 - **Power-ups where the fights are**: quad, heavy armour and megahealth in the most central room
   (on high ground when it has some) and spread across the central half of the map.
 - **Fair spawns**: guns are spread out, the strongest in the middle; then every spawn is placed so
-  its walk to the nearest gun is within the same band as every other spawn's (`fairness` in the
+  its walk to the nearest gun is within the same band as every other spawn's, in rooms first and in corridors where needed (`fairness` in the
   IR: worst over best, at most 1.5 so far).
 - **Jump pads**: towers with no stairs and a pad that throws you on top (`trigger_push` in Quake
   1 and 2, aimed so the arc lands on the tower). Down is a drop.

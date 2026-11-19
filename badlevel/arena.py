@@ -148,13 +148,14 @@ def _field(level: Level, targets) -> Dict[tuple, int]:
 
 
 def _best_band(cands, want: int):
-    """The distance band [lo, 1.5 lo] (lo at least 6 steps) holding candidates in the most rooms."""
+    """The distance band [lo, 1.5 lo] (lo at least 6 steps) holding candidates in the most places."""
     best = (6, 9)
     best_key = (-1, 0)
-    for lo in sorted({max(6, d) for d, _, _ in cands}):
+    for lo in sorted({max(6, x[0]) for x in cands}):
         hi = lo * 1.5
-        rooms = {r.id for d, r, _ in cands if lo <= d <= hi}
-        key = (min(len(rooms), want), -lo)          # enough rooms, then the shorter walk
+        places = {x[1] for x in cands if lo <= x[0] <= hi}
+        rooms = sum(1 for p in places if p[0] == "room")
+        key = (min(len(places), want), rooms, -lo)  # enough places, as many rooms as can be, a short walk
         if key > best_key:
             best, best_key = (lo, hi), key
     return best
@@ -246,51 +247,71 @@ def populate(level: Level, ctxs, rng: random.Random):
             placed["items"] += 1
 
     # --- spawns: every one about as far from its nearest gun as the others ----------------------
+    # places: rooms (a small room holds one spawn, a hall a few) and the straight, level stretches
+    # of corridors (one each); each candidate keeps its walk to the nearest gun
     to_gun = _field(level, [e.pos for e in ents if e.kind == "weapon"])
-    power_at = [e.pos for e in ents if e.kind in ("quad", "armor_heavy", "megahealth")]
-    cands = []                                     # (steps to the nearest gun, room, cell)
+    cands = []                                     # (steps to the nearest gun, place, cap, cell, pos, facing)
     for r in rooms:
         if r in power_rooms and len(rooms) > len(power_rooms) + 2:
             continue                               # not on top of the power-ups
+        cx, cy = r.x + r.w / 2.0, r.y + r.h / 2.0
+        cap = 1 + (r.w * r.h) // 250
         for c in _free_cells(level, ctxs[r.id], taken[r.id]):
             d = to_gun.get((c[0], c[1], _span_index(level, r, c)))
-            if d is not None and d < FAR:
-                cands.append((d, r, c))
+            if d is None or d >= FAR:
+                continue
+            face = (cx - (c[0] + 0.5), cy - (c[1] + 0.5))
+            if abs(face[0]) + abs(face[1]) < 2 and ctxs[r.id].doors:     # in the middle: face a way out
+                dd = ctxs[r.id].doors[0]
+                face = (dd[0] - c[0], dd[1] - c[1])
+            cands.append((d, ("room", r.id), cap, c, _at(level, r, c, z_off=32.0), face))
+    for corr in level.corridors:
+        path, floors = corr.path, corr.floors
+        for i in range(4, len(path) - 4):
+            c = path[i]
+            spans = level.spans.get(c, ())
+            if c in level.diag or c in level.floor_slope or len(spans) != 1 or spans[0][0] != floors[i] \
+                    or floors[i - 1] != floors[i] or floors[i + 1] != floors[i]:
+                continue
+            if level.owner_of(c, spans[0]) != f"corridor:{corr.id}" or corr.radius < 1:
+                continue
+            d = to_gun.get((c[0], c[1], 0))
+            if d is None or d >= FAR:
+                continue
+            face = (path[i + 1][0] - c[0], path[i + 1][1] - c[1])
+            pos = ((c[0] + 0.5) * level.cell, (c[1] + 0.5) * level.cell, floors[i] + 32.0)
+            cands.append((d, ("corr", corr.id), 1, c, pos, face))
     n_spawn = max(4, min(12, n))
     band = _best_band(cands, n_spawn)
-    spawns = []
+    spawns = []                                    # (place, cell, pos, facing, d)
     for lo, hi in (band, (band[0] / 1.5, band[1] * 1.4), (0, FAR)):
         pick = [x for x in cands if lo <= x[0] <= hi]
         while len(spawns) < n_spawn and pick:
-            used_rooms = {sp[0].id for sp in spawns}
-            # a room without a spawn first, then the cell farthest from the other spawns
-            def score(x):
-                d_other = min((abs(x[2][0] - sc[0]) + abs(x[2][1] - sc[1]) for _, _, sc, _ in spawns), default=99)
-                return (x[1].id not in used_rooms, min(d_other, 30))
+            count: Dict[tuple, int] = {}
+            for sp in spawns:
+                count[sp[0]] = count.get(sp[0], 0) + 1
+
+            def score(x):                          # an empty place first, a room first, far from the others
+                d_other = min((abs(x[3][0] - sp[1][0]) + abs(x[3][1] - sp[1][1]) for sp in spawns), default=99)
+                return (x[1] not in count, x[1][0] == "room", min(d_other, 30))
             x = max(pick, key=score)
             pick.remove(x)
-            d, r, c = x
-            if any(abs(c[0] - sc[0]) + abs(c[1] - sc[1]) < 4 for _, _, sc, _ in spawns) or c in taken[r.id]:
+            d, place, cap, c, pos, face = x
+            if any(abs(c[0] - sp[1][0]) + abs(c[1] - sp[1][1]) < 4 for sp in spawns):
                 continue
-            taken[r.id].add(c)
-            spawns.append((r, _at(level, r, c, z_off=32.0), c, d))
+            if count.get(place, 0) >= cap and lo > 0:
+                continue
+            if place[0] == "room":
+                taken[place[1]].add(c)
+            spawns.append((place, c, pos, face, d))
         if len(spawns) >= n_spawn:
             break
-    spawn_list = []
-    for r, pos, c, d in spawns:
-        cx, cy = r.x + r.w / 2.0, r.y + r.h / 2.0
-        dx, dy = cx - (c[0] + 0.5), cy - (c[1] + 0.5)
-        if abs(dx) + abs(dy) < 2 and ctxs[r.id].doors:     # in the middle: face a way out instead
-            dd = ctxs[r.id].doors[0]
-            dx, dy = dd[0] - c[0], dd[1] - c[1]
-        angle = int(round(math.degrees(math.atan2(dy, dx)) / 45.0)) * 45 % 360
-        ents.append(Entity("spawn", pos, {"angle": angle, "room": r.id}))
-        placed["spawns"].append(r.id)
-        spawn_list.append((r, pos, angle))
-    if spawn_list:
-        r, pos, angle = spawn_list[0]
-        ents.append(Entity("player_start", pos, {"angle": angle}))   # single player / coop loads here
-    spawns = spawn_list
+    for place, c, pos, face, d in spawns:
+        angle = int(round(math.degrees(math.atan2(face[1], face[0])) / 45.0)) * 45 % 360
+        ents.append(Entity("spawn", pos, {"angle": angle, place[0] if place[0] == "room" else "corridor": place[1]}))
+        placed["spawns"].append(list(place))
+    if spawns:
+        ents.append(Entity("player_start", spawns[0][2], {"angle": ents[-len(spawns)].props["angle"]}))
 
     # --- health everywhere, armour shards between -----------------------------------------------
     for r in rooms:
@@ -308,10 +329,7 @@ def populate(level: Level, ctxs, rng: random.Random):
 
     dead = sum(1 for r in rooms if sum(1 for _ in level.graph.neighbors(r.node)) <= 1)
     # the spread as built: each spawn's walk to its nearest gun, in cells
-    near = []
-    for r, pos, _ in spawns:
-        c = (int(pos[0] // level.cell), int(pos[1] // level.cell))
-        near.append(to_gun.get((c[0], c[1], _span_index(level, r, c)), FAR))
+    near = [d for *_, d in spawns]
     fair = round(max(near) / max(6, min(near)), 2) if near else 1.0
     level.arena = {"spawns": len(spawns), "weapons": placed["weapons"], "powerups": placed["powerups"],
                    "items": placed["items"], "fairness": fair, "dead_ends": dead,
