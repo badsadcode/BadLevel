@@ -134,6 +134,7 @@ nav.episodes a:hover { border-color:var(--rust); }
 .post h2 { font:400 28px/1.15 Metamorphous, serif; margin:0; color:var(--bone); }
 .post time { color:var(--muted); font:13px 'IBM Plex Mono', monospace; }
 .body p, .body ul { margin:12px 0; }
+.body h3 { font:400 21px/1.2 Metamorphous, serif; color:var(--rust2); margin:26px 0 4px; }
 .body li { margin:4px 0; }
 .body b { color:#fff2da; }
 .body code, .body pre { font:14px 'IBM Plex Mono', monospace; background:#0d0907; border:1px solid var(--line); border-radius:3px; }

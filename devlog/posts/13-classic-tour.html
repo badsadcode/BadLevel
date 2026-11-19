@@ -1,0 +1,72 @@
+<!--
+map: E2M4
+title: The classic tour
+date: 2026-11-19
+time: Day 8, one long session
+secrets: The quad is always in the middle
+kills: 7 atriums down to 1
+-->
+<p>BadSad, after a detour into an RPG world we decided to leave for later: <i>"Let's go with all the
+classic games out there. :D"</i> So BadLevel went on a tour of the shooters we grew up with. The rule
+for the trip: learn each tradition's <i>habits</i>, never copy its maps, names or art. Six stops.</p>
+
+<h3>Stop 1: the techbase (Doom)</h3>
+<p>BadSad showed some old automaps: <i>"Can you see how tight they are? Not cramped: the layout."</i>
+BadLevel's levels were islands on strings: only 20-38% of the area was floor, and a third of that was
+corridor. Squeezing the rooms closer together failed (the last rooms had nowhere left to go). Turning it
+around worked: start with one block of floor, slice it into plots, and fit the mission onto the plots
+with doors straight through shared walls. Floor went from 25% to 46%, corridors from 33% to 7%. Slime
+pools, bright and dim rooms, and the leftover plots stay solid, which gives the ragged outline.</p>
+<figure><img src="img/tour-packed.jpg" alt="Top-down plan of a packed techbase: brown rooms sharing walls, two blue outdoor yards">
+<figcaption>A packed techbase from above. Lighter is higher, blue is open sky.</figcaption></figure>
+
+<h3>Stops 2-4: a keep, an outpost, a grand hall (Quake 1, Quake 2, Unreal)</h3>
+<p>These three came out of dials BadLevel already had, plus one fix:</p>
+<ul>
+<li><b>runekeep</b>: a dark gothic keep with bits of base in it. Packed tight over three storeys, with lava
+and dim, uneven light.</li>
+<li><b>outpost</b>: a military-industrial base. Slime, catwalks, glass, big crates, lifts and ladders.</li>
+<li><b>grand</b>: everything big. Huge halls, open yards, tall windows.</li>
+</ul>
+<p>The fix: on a packed plan, a staircase can't climb a whole storey inside a 3-cell wall, so those
+became stairwells. Runekeep went from needing up to 36 tries to build a level to at most 8.</p>
+<figure><img src="img/tour-flavours.jpg" alt="Three rows of screenshots: runekeep, outpost and grand, each from above and from inside">
+<figcaption>Top to bottom: runekeep, outpost, grand.</figcaption></figure>
+
+<h3>Stop 5: the arena (Quake 3, Unreal Tournament)</h3>
+<p>Deathmatch is a different game. There's no start and no exit, just a circuit people run round and
+round, so BadLevel got a whole new mode:</p>
+<ul>
+<li><b>No traps.</b> Every room gets a second way out. The checker makes sure that from anywhere you can
+reach, you can get back to everywhere else, even after a drop.</li>
+<li><b>Power-ups where the fights are.</b> The quad goes in the most central room, up high when there's
+high ground. The armour and megahealth spread out, so there's more than one spot worth holding.</li>
+<li><b>Fair spawns.</b> Guns go down first, then every spawn is placed about the same walk from its
+nearest gun. The first try put one spawn 1 step from a gun and another 98 steps away (33 times
+unfair). Now it's at most 1.5 times.</li>
+<li><b>Jump pads.</b> Towers with no stairs and a pad that throws you on top. Before trusting the math, a
+player-sized box flew every arc through the level. 27 out of 27 landed.</li>
+</ul>
+<figure class="small"><img src="img/tour-duel.jpg" alt="Top-down plan of a duel map with green spawns, white guns, a pink megahealth and orange jump pads">
+<figcaption>A duel map. Green: spawns. White: guns. Red and pink: armour and megahealth. Orange: jump pads.</figcaption></figure>
+
+<h3>Stop 6: the facility (Half-Life, Abiotic Factor)</h3>
+<p>What makes a research facility feel real is that every room is <i>for</i> something. So:</p>
+<ul>
+<li><b>Departments.</b> Each keycard door divides two sectors of the complex: admin at the entrance, the
+reactor at the bottom.</li>
+<li><b>Rooms with jobs</b>, each with blockout furniture: desks in offices, benches in labs, racks in
+server rooms, shelving in the warehouse, tables in the cafeteria, a core in the reactor. Every piece is
+named, so it can be swapped for real props later.</li>
+<li><b>Vents.</b> Some short loops become low ducts, 64 units high. Quake's player is 56 tall, so
+they just fit.</li>
+</ul>
+<figure><img src="img/tour-facility.jpg" alt="Nine eye-level shots inside facility rooms: lobby, office desks, warehouse shelves, lab, cafeteria tables, reactor, server racks, pump tanks and a vent">
+<figcaption>Facility rooms from eye level, and a vent (bottom right).</figcaption></figure>
+
+<p>Bloopers: the first department plan gave one sector <b>seven atriums</b>. The "this is the big hall"
+marker had the same name as an older marker for rooms merged into one hall. And the first furniture
+rules were so careful about doorways that only 1 lab in 11 got its benches. Now it's about 85%.
+The first vent was 60 cells long too: less a short cut, more a hike on your knees.</p>
+<p>Six stops, and every map compiles clean in Quake 1 and Quake 2 (120 out of 120 for each). Next:
+team maps with two mirrored halves, and big windows for the grand halls.</p>
