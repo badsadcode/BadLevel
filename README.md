@@ -92,7 +92,7 @@ settings. A recipe is ten dials from 0 to 1 plus optional raw overrides:
 | `spaciousness` | bigger, taller rooms, wider and higher corridors, more headroom (0 = the compact Quake feel) |
 | `variety` | a wider spread of room sizes, extra footprints (round, hex, diamond, Z, H), domes in big rooms, spiral stairs |
 
-Presets: `compact`, `classic`, `bunker`, `fortress`, `industrial`, `compound`, `techbase` (Doom-era), `runekeep` (Quake-1 flavour), `outpost` (Quake-2 flavour), `grand` (Unreal flavour), `arena`, `duel` and `ctf` (deathmatch and capture the flag, see below), `facility` and `complex` (Half-Life-style facilities, see below), `explore`.
+Presets: `compact`, `classic`, `bunker`, `fortress`, `industrial`, `compound`, `techbase` (Doom-era), `runekeep` (Quake-1 flavour), `outpost` (Quake-2 flavour), `grand` (Unreal flavour), `arena`, `duel` and `ctf` (deathmatch and capture the flag, see below), `facility` and `complex` (Half-Life-style facilities, see below), `dungeon` (see below), `explore`.
 
 Presets start at `spaciousness` 0.5 (wide corridors, roomy halls); `--space 0` gives the
 original tight Quake-1 levels, byte for byte. `variety` defaults to 0, which changes nothing. Turn them up on top of any recipe from the command line:
@@ -124,6 +124,23 @@ The recipe used is saved beside every export as `<name>.recipe.json`. Without
 Presets are checked for **identity**: `fingerprint.py` describes a level as ~17
 features, and a test requires each preset to be recognisable from its fingerprint
 alone. Why things are built this way: [docs/DECISIONS.md](docs/DECISIONS.md).
+
+## Dungeons
+
+`--recipe dungeon` builds Noor's dungeon: down from a gatehouse through the keep, the prison, the
+catacombs and the deep, in castle stone.
+
+- **Chasm bridges**: a band across a hall, 384 units deep with spikes at the bottom (a
+  `trigger_hurt` in Quake), crossed by a bridge 2 cells wide. Deeper than any drop the validator
+  walks, so falling in is death, never a softlock. Piers stay standing in the abyss.
+- **Torches** on the walls instead of hanging lights, warm and dim (Quake 1's own wall torch).
+- **Grates**: openings to the sky with a shaft of light under them.
+- **Traps**: blade, dart and spike markers in corridors, for each game to build its own way.
+- **Rooms with a job**: crypts with sarcophagi, prison cells, libraries, armouries, shrines,
+  guardrooms, storerooms, a vault for the key; a great hall with a balcony, a pit hall, a
+  catacomb hall, a throne room on a dais. Every piece is a named part.
+
+`chasms`, `torches`, `skylights`, `traps` and `program_set: "dungeon"` work in any config.
 
 ## Vistas: big windows onto the world outside
 

@@ -27,6 +27,11 @@ class GenConfig:
     jump_pads: float = 0.0       # weight of jump-pad towers among room features (high ground with no stairs)
     vistas: int = 0              # big windows in grand halls onto a sky and hills outside (vistas.py)
     mirror: bool = False         # arena: a team map, the level's half and its mirror image (mirror.py)
+    chasms: float = 0.0          # weight of chasm bridges among room features: a spiked pit, a 2-cell bridge
+    skylights: float = 0.0       # weight of grates open to the sky (a shaft of light) among room features
+    torches: bool = False        # wall torches instead of ceiling lights (dungeons)
+    traps: float = 0.0           # chance a corridor gets a trap marker (blade, darts, spikes)
+    program_set: str = "facility"   # the rooms' jobs when programs is on: facility | dungeon
     programs: bool = False       # facility: sectors per lock zone, rooms with a job and its furniture (programs.py)
     vents: float = 0.0           # chance a loop becomes a vent: a duct 3 wide and vent_height high
     vent_height: int = 64        # (Quake's player is 56 tall; crouching engines go lower by hand)

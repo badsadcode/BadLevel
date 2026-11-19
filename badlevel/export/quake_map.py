@@ -211,6 +211,7 @@ def to_map(level: Level, game: str = "quake") -> str:
                 brush_text(b.mins, b.maxs, TEXTURES[b.top], TEXTURES[b.bottom], TEXTURES[b.side]))
     world = [text(b) for b in brushes if not b.part]
     # hazard pools: a liquid volume over the sunken floor, its surface a little under the room floor
+    hurts = []
     if level.hazard:
         from ..brushes import greedy_rects
         s_ = level.cell
@@ -219,6 +220,10 @@ def to_map(level: Level, game: str = "quake") -> str:
             if level.spans.get(c):
                 pools.setdefault((level.spans[c][0][0], kind), set()).add(c)
         for (f, kind), cells in sorted(pools.items()):
+            if kind == "spikes":                       # a chasm's spikes: a hurt trigger, not a liquid
+                for (x0, y0, x1, y1) in greedy_rects(cells):
+                    hurts.append(((x0 * s_ + ox, y0 * s_ + oy, f), (x1 * s_ + ox, y1 * s_ + oy, f + 64)))
+                continue
             for (x0, y0, x1, y1) in greedy_rects(cells):
                 lo = (x0 * s_ + ox, y0 * s_ + oy, f)
                 hi = (x1 * s_ + ox, y1 * s_ + oy, f + level.config.step_height - 4)
@@ -249,12 +254,19 @@ def to_map(level: Level, game: str = "quake") -> str:
                  and int(n) < len(level.rooms) else area.replace(":", " "))
         out.append(_entity({"classname": "func_group", "_tb_type": "_tb_group", "_tb_name": f"{label}: {element}",
                             "_tb_id": gid, "_badlevel_part": part}, texts))
+    for lo, hi in hurts:                               # the spikes at the bottom of each chasm
+        out.append(_entity({"classname": "trigger_hurt", "dmg": 1000, "_badlevel_kind": "spikes"},
+                           [brush_text(lo, hi, *(["trigger"] * 3))]))
     n_enemy = n_door = 0
     for e in level.entities:
         p = {}
         origin = " ".join(_fmt(v) for v in at(e.pos))
         if e.kind == "player_start":
             p = {"classname": "info_player_start", "origin": origin, "angle": e.props.get("angle", 0)}
+        elif e.kind == "torch":                        # dungeons: Quake 1's own wall torch; a warm light elsewhere
+            p = {"classname": "light" if q2 else "light_torch_small_walltorch", "origin": origin,
+                 "light": e.props.get("intensity", 170), "_color": "1 0.72 0.42",
+                 "wait": Q2_LIGHT_FADE if q2 else LIGHT_FADE}
         elif e.kind == "spawn":                        # arena mode: a deathmatch spawn (both games)
             p = {"classname": "info_player_deathmatch", "origin": origin, "angle": e.props.get("angle", 0)}
             if e.props.get("team"):                    # team maps: the CTF team spawn too (Q2 CTF,

@@ -1174,3 +1174,32 @@ beyond it. `vistas.py` (`cfg.vistas`, 3 in grand, 0 elsewhere; its own random st
   maps, glb hashes equal).
 - Unreachable by construction (glass), so validation and clearance never see it; the compiler
   keeps it because it's in sight through the pane.
+
+## D47. Dungeons (Noor's secret level)
+
+Noor's concept art (devlog, the secret level): a torch-lit stone dungeon, a narrow bridge over
+spikes, a swinging blade, goblins on a balcony, arches, light through a grate. Most of it maps
+onto what exists (galleries and balconies, portals, castle style, room programs); the new parts:
+- **Chasm bridges** (`decorate.f_chasm`, `cfg.chasms`): a band from wall to wall, 4-7 cells deep,
+  384 down (CHASM_DEPTH, deeper than max_drop 288: the validator never walks into it, so it's
+  death, never a softlock) with `spikes` in `level.hazard` (a `trigger_hurt`, dmg 1000, in both
+  Quakes; a dark red floor in the mesh), crossed by a 2-cell bridge of plain floor. Piers and
+  wall members stay standing in it; cells within 2 of a doorway, half cells and raised bits stay
+  as ledges. Nothing may be under the pit or open beside its walls down there. The biggest pit
+  of 30 tries. The first version found a chasm on 0 of 6 levels (bands had to be free of piers
+  and of the features' 3-cell door zones), then on 3 of 8; then the narrow trenches it picked
+  were replaced by the biggest pit: now 1-2 per level, 54-134 cells each.
+- **Torches** (`cfg.torches`, `dungeon.place_torches`): every ~6 cells round a room's walls,
+  96 up, never within 2 cells of a corridor, 170 warm; a faint light in the middle of a big room
+  (once placed at the room's floor height inside a landmark's plinth: 30 retries on one level).
+  Quake 1: `light_torch_small_walltorch`; Quake 2: a coloured `light`.
+- **Grates** (`cfg.skylights`, a chance per room): 2x2 or 3x3 to the sky where nothing is
+  stacked above, cut up through the vault after it's shaped, a shaft light under it.
+- **Traps** (`cfg.traps`, a chance per corridor): markers on straight level stretches (blade,
+  darts, spikes); markers only, so they never change a route.
+- **Dungeon programs** (`cfg.program_set = "dungeon"`): sectors keep, prison, catacombs, deep;
+  gatehouse, stair down, vault (the key), hidden cache; guardroom, armory, library, storeroom,
+  cells, crypt, shrine; halls: great hall (balcony, long table), pit hall (the chasm), catacomb
+  hall, throne room (dais). Big crypts, guardrooms and halls sometimes get a chasm of their own.
+- Preset `dungeon`: underground, 2 storeys, castle, 2 keys, stairs, stairwells and spiral
+  stairs (no lifts), little glass. 23 attempts over 8 levels; other presets unchanged.

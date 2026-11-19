@@ -34,6 +34,7 @@ MATERIALS = {
     "ladder": ("bl_ladder", [0.55, 0.35, 0.20, 1.0]),
     "hazard_slime": ("bl_slime", [0.35, 0.85, 0.20, 1.0]),
     "hazard_lava": ("bl_lava", [0.95, 0.35, 0.08, 1.0]),
+    "hazard_spikes": ("bl_spikes", [0.45, 0.12, 0.10, 1.0]),
 }
 
 

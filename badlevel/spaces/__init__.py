@@ -68,6 +68,9 @@ class SpaceType:
         if getattr(level.config, "hazards", 0.0) > 0 and room.kind in ("combat", "arena", "hub", "megaroom"):
             from ..decorate import f_hazard
             options = list(options) + [[f_hazard]]          # a slime or lava pool (techbase)
+        if getattr(level.config, "chasms", 0.0) > 0 and room.kind in ("combat", "arena", "hub"):
+            from ..decorate import f_chasm
+            options = list(options) + [[f_chasm]]           # a spiked chasm and a bridge (dungeons)
         pads = getattr(level.config, "jump_pads", 0.0)
         if pads > 0 and room.kind in ("combat", "arena", "hub"):
             from ..decorate import f_pillars, f_tower
@@ -76,7 +79,9 @@ class SpaceType:
         def option_weight(opt):
             w = 1.0
             for f in opt:
-                w *= float(fw.get(f.__name__[2:], pads if f.__name__ == "f_tower" else 1.0))
+                default = pads if f.__name__ == "f_tower" else \
+                    getattr(level.config, "chasms", 1.0) if f.__name__ == "f_chasm" else 1.0
+                w *= float(fw.get(f.__name__[2:], default))
             return w if opt else float(fw.get("none", 1.0))
         ws = [option_weight(o) for o in options]
         chosen = rng.choices(options, ws)[0] if sum(ws) > 0 else []
@@ -98,6 +103,10 @@ LIGHT_OVER_FLOOR = 192
 def place_lights(level: Level, room: Room, max_height: Optional[int] = None, intensity: Optional[int] = None):
     from ..decorate import _nearest_open
     from ..level import Entity
+    if getattr(level.config, "torches", False) and not room.is_connector and room.kind != "courtyard":
+        from ..dungeon import place_torches
+        if place_torches(level, room):                   # dungeons: torches on the walls instead
+            return
     area = room.w * room.h
     lv_ = getattr(level.config, "light_variety", 0.0)
     if lv_ > 0:            # sector-style light: some rooms dim, some bright (one draw per room)

@@ -311,6 +311,17 @@ PRESETS: Dict[str, Recipe] = {r.name: r for r in [
                       "open_areas": 1, "open_buildings": 0.5, "mega_rooms": 0, "windows": 14, "glazed_chance": 0.95,
                       "diagonal_chance": 0.1,
                       "connector_weights": {"stairs": 0.3, "stairwell": 0.35, "lift": 0.35, "ladder": 0.0}}),
+    Recipe("dungeon", "A dungeon after Noor's concept art: down from a gatehouse through the keep, the "
+                      "prison, the catacombs and the deep; torch-lit stone, bridges over spiked chasms, light "
+                      "falling through grates, traps in the corridors, crypts, cells and a throne room.",
+           scale=0.7, openness=0.35, verticality=0.6, claustrophobia=0.55, combat=0.75, exploration=0.85,
+           loopiness=0.45, regularity=0.7, spaciousness=0.3,
+           overrides={"underground": True, "storeys": 2, "keys": 2, "programs": True, "program_set": "dungeon",
+                      "arch_style": "castle", "torches": True, "chasms": 1.5, "skylights": 0.3, "traps": 0.5,
+                      "windows": 2, "glazed_chance": 0.0, "open_areas": 0, "mega_rooms": 0, "diagonal_chance": 0.1,
+                      "light_variety": 0.4, "crate_scale": 0.5, "tall_room_chance": 0.5,
+                      "size_bias": {"small": 1.5, "medium": 1.5, "large": 0.8},
+                      "connector_weights": {"stairs": 0.4, "stairwell": 0.35, "spiral": 0.25, "lift": 0.0, "ladder": 0.0}}),
     Recipe("arena", "Deathmatch in the arena-shooter tradition: a tight circuit of rooms round a central "
                     "hall, loops everywhere and no dead ends, two storeys joined by stairs, lifts and drops, "
                     "jump pads up to high ground, the power-ups where the fights should be.",

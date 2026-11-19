@@ -207,6 +207,77 @@ def f_tower(ctx: RoomCtx, rng: random.Random) -> bool:
     return False
 
 
+CHASM_DEPTH = 384          # deeper than any drop the validator allows (max_drop 288): a fall, not a route
+
+
+def f_chasm(ctx: RoomCtx, rng: random.Random) -> bool:
+    """A chasm across the room with spikes at the bottom and a bridge over it (dungeons): a band
+    from wall to wall, 3-6 cells deep, CHASM_DEPTH down, and a bridge 2 cells wide (the player
+    box) across it. Falling in is death, never a softlock: it's deeper than any drop the
+    validator walks, so the only way across is the bridge. The band keeps clear of doorways, and
+    nothing may be under it or beside its walls down there. Piers in its way stay standing,
+    rising out of the abyss."""
+    r = ctx.room
+    level = ctx.level
+    if min(r.w, r.h) < 10:
+        return False
+    s = level.cell
+    D = CHASM_DEPTH
+    # 2 cells in front of every doorway stay floor (the features' 3-cell zone left no room for a band)
+    near_door = {(x + dx, y + dy) for (x, y) in ctx.doors for dx in range(-2, 3) for dy in range(-2, 3)}
+    best = None
+    for _ in range(30):                              # the biggest pit of 30 tries
+        along_x = rng.random() < 0.5                 # the band runs along x (spans the room's height)
+        L = r.w if along_x else r.h
+        if L < 10:
+            continue
+        bw = rng.randint(4, min(7, L - 6))
+        p = rng.randint(r.x + 3 if along_x else r.y + 3, (r.x if along_x else r.y) + L - 3 - bw)
+        rows_ = [c for c in r.cells() if p <= (c[0] if along_x else c[1]) < p + bw]
+        # piers and wall members (solid) stay standing in the chasm; the chasm takes the band's
+        # plain floor; cells by a doorway, half cells and raised bits (pilaster bases, a plinth)
+        # stay standing as ledges
+        band = [c for c in rows_ if level.spans.get(c)]
+        plain = [c for c in band if c not in near_door and c not in level.diag
+                 and level.room_spans(c, r) == [(r.floor, r.ceil)]]
+        if not band or len(plain) < 0.6 * len(band):
+            continue
+        # the bridge: 2 cells wide, across the band, not at its ends
+        across = sorted({c[1] if along_x else c[0] for c in band})
+        if len(across) < 6:
+            continue
+        b0 = rng.randint(across[0] + 2, across[-1] - 3)
+        bridge = {c for c in band if b0 <= (c[1] if along_x else c[0]) <= b0 + 1}
+        if not all(level.room_spans(c, r) and level.room_spans(c, r)[0][0] == r.floor for c in bridge):
+            continue                                 # the bridge is plain floor all the way across
+        pit = [c for c in plain if c not in bridge]
+        bs = set(band)
+        ok = all(not level.spans_in(c, r.floor - D - 16, r.floor - 64) for c in pit)
+        for c in pit:                                # the pit's walls: nothing open down there
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                n = (c[0] + dx, c[1] + dy)
+                if n not in bs and not r.contains(*n) and level.spans_in(n, r.floor - D - 16, r.floor):
+                    ok = False
+        if ok and (best is None or len(pit) > len(best[0])):
+            best = (pit, bridge, p, bw, along_x, b0)
+    if best is not None:
+        pit, bridge, p, bw, along_x, b0 = best
+        for c in pit:
+            level.replace_in(c, r.floor - 64, r.ceil, [(r.floor - D, r.ceil)])
+            level.owners[c] = [((r.floor - D) if name == f"room:{r.id}" else lo, hi, name)
+                               for lo, hi, name in level.owners.get(c, [])]
+            ctx.used.add(c)
+            level.hazard[c] = "spikes"
+            level.part_cells[c] = f"room:{r.id}/chasm"
+        for c in bridge:
+            ctx.used.add(c)
+            level.part_cells[c] = f"room:{r.id}/bridge"
+        r.features.append("chasm")
+        r.meta["chasm"] = {"band": [p, bw], "axis": "x" if along_x else "y", "bridge": b0, "depth": D}
+        return True
+    return False
+
+
 def f_platform(ctx, rng):
     return _stair_block(ctx, rng, +1, "platform")
 
@@ -508,6 +579,9 @@ def decorate(level: Level, rng: random.Random):
     if getattr(level.config, "mode", "campaign") == "arena":
         from . import arena
         arena.populate(level, ctxs, rng)       # deathmatch: spawns, weapons, power-ups instead
+    from .dungeon import add_skylights, add_traps
+    add_skylights(level)                       # grates to the sky (cfg.skylights; after the vaults)
+    add_traps(level)                           # trap markers in corridors (cfg.traps)
     if tiers:
         from . import portals
         portals.build(level, tiers)            # frames the openings, last: it sees doors and entities

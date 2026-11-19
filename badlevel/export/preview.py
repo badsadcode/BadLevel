@@ -14,7 +14,7 @@ ENT_COLORS = {
     "secret_door": "#a855f7", "exit": "#10b981", "health": "#f472b6", "megahealth": "#ec4899",
     "ammo": "#eab308", "armor": "#38bdf8", "weapon": "#e5e7eb", "light": "#fde68a",
     "lift": "#f59e0b", "ladder": "#a16207", "window": "#7dd3fc",
-    "spawn": "#4ade80", "flag": "#f43f5e", "quad": "#6366f1", "armor_heavy": "#dc2626", "jumppad": "#f59e0b",
+    "spawn": "#4ade80", "flag": "#f43f5e", "torch": "#fb923c", "trap": "#a3e635", "quad": "#6366f1", "armor_heavy": "#dc2626", "jumppad": "#f59e0b",
 }
 KIND_LABEL = {"start": "START", "exit": "EXIT", "arena": "ARENA", "hub": "hub", "combat": "fight",
               "supply": "supply", "key": "KEY", "secret": "secret", "stairwell": "stairs ⇅", "spiral": "spiral ⇅",
