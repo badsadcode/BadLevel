@@ -25,6 +25,7 @@ class GenConfig:
     secret: bool = True          # add a secret room
     mode: str = "campaign"       # campaign (start -> keys -> exit) | arena (deathmatch: spawns, items, loops; arena.py)
     jump_pads: float = 0.0       # weight of jump-pad towers among room features (high ground with no stairs)
+    mirror: bool = False         # arena: a team map, the level's half and its mirror image (mirror.py)
     programs: bool = False       # facility: sectors per lock zone, rooms with a job and its furniture (programs.py)
     vents: float = 0.0           # chance a loop becomes a vent: a duct 3 wide and vent_height high
     vent_height: int = 64        # (Quake's player is 56 tall; crouching engines go lower by hand)

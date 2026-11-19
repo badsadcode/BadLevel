@@ -34,6 +34,9 @@ def generate(cfg: GenConfig = None, **overrides) -> Level:
             add_windows(level, rng, cfg.windows, cfg.glazed_chance)
             widen_pinches(level)                 # the player is a box: no 32-unit squeezes
             make_ramps(level)                    # stair corridors as smooth ramps (cfg.ramps)
+            if getattr(cfg, "mirror", False):
+                from .mirror import make_team_map
+                level = make_team_map(level)     # team map: this half, lanes, and its mirror image
         except LayoutError as e:
             last = str(e)
             continue

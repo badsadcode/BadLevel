@@ -321,6 +321,17 @@ PRESETS: Dict[str, Recipe] = {r.name: r for r in [
                       "enemy_density": 0.0, "pickup_density": 0.0, "windows": 6, "open_areas": 0, "mega_rooms": 0,
                       "connector_weights": {"stairs": 0.4, "stairwell": 0.3, "lift": 0.3, "ladder": 0.0},
                       "feature_weights": {"platform": 2.0, "balcony": 2.0, "pit": 0.5, "pillars": 1.5, "none": 0.3}}),
+    Recipe("ctf", "Capture the flag: two bases, mirror images of each other, joined by two or three "
+                  "lanes with a midfield chamber on the seam; each team's flag in the room farthest from the "
+                  "lanes, team spawns round it, one quad in the middle.",
+           scale=0.35, openness=0.6, verticality=0.7, claustrophobia=0.2, combat=0.8, exploration=0.3,
+           loopiness=1.0, regularity=0.5, spaciousness=0.6,
+           overrides={"mode": "arena", "mirror": True, "keys": 0, "secret": False, "storeys": 2, "composition": "central",
+                      "loops": 4, "long_loop_chance": 0.0, "jump_pads": 1.5, "drop_chance": 1.0,
+                      "tall_room_chance": 0.7, "height_scale": 1.4, "enemy_density": 0.0, "pickup_density": 0.0,
+                      "windows": 4, "open_areas": 0, "mega_rooms": 0,
+                      "connector_weights": {"stairs": 0.4, "stairwell": 0.3, "lift": 0.3, "ladder": 0.0},
+                      "feature_weights": {"platform": 2.0, "balcony": 2.0, "pit": 0.5, "pillars": 1.5, "none": 0.3}}),
     Recipe("duel", "One-on-one: a small deathmatch map, five or six rooms in a ring, one storey with "
                    "platforms and a jump-pad tower, every room two ways out, one power-up to fight over.",
            scale=0.25, openness=0.5, verticality=0.55, claustrophobia=0.3, combat=0.8, exploration=0.2,

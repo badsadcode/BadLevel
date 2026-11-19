@@ -70,9 +70,10 @@ def _cfg_from_args(args, seed: int, recipe=None) -> GenConfig:
     if monsters is not None:
         cfg.enemy_density *= max(0.0, monsters)                 # 0 = none, 0.5 = half, 2 = double
     mode = getattr(args, "mode", None)
-    if mode == "arena":
+    if mode in ("arena", "ctf"):
         from .recipes import arena_mode
         arena_mode(cfg)                                          # any recipe as a deathmatch map
+        cfg.mirror = mode == "ctf"                               # ... or a mirrored team map
     style = getattr(args, "style", None)
     if style is not None:
         cfg.arch_style = "" if style == "none" else style       # any recipe, any architecture
@@ -157,8 +158,9 @@ def main(argv=None):
                         help="room sizes from closets to halls, more shapes: hex, diamond, Z, H (0 = as is)")
         sp.add_argument("--packing", type=float, metavar="0-1",
                         help="0.5+: a packed floor plan, rooms sharing walls, Doom-like (any number of storeys)")
-        sp.add_argument("--mode", choices=("campaign", "arena"),
-                        help="arena: a deathmatch map (spawns, weapons, power-ups, jump pads; no keys, exit or monsters)")
+        sp.add_argument("--mode", choices=("campaign", "arena", "ctf"),
+                        help="arena: a deathmatch map (spawns, weapons, power-ups, jump pads; no keys, exit or monsters); "
+                             "ctf: a mirrored two-team map with flags")
         sp.add_argument("--crates", type=float, metavar="X",
                         help="scale the crates (cover blocks): 0 = none, 0.5 = half, 2 = double")
         sp.add_argument("--monsters", type=float, metavar="X",

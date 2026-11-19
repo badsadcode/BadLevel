@@ -92,7 +92,7 @@ settings. A recipe is ten dials from 0 to 1 plus optional raw overrides:
 | `spaciousness` | bigger, taller rooms, wider and higher corridors, more headroom (0 = the compact Quake feel) |
 | `variety` | a wider spread of room sizes, extra footprints (round, hex, diamond, Z, H), domes in big rooms, spiral stairs |
 
-Presets: `compact`, `classic`, `bunker`, `fortress`, `industrial`, `compound`, `techbase` (Doom-era), `runekeep` (Quake-1 flavour), `outpost` (Quake-2 flavour), `grand` (Unreal flavour), `arena` and `duel` (deathmatch, see below), `facility` and `complex` (Half-Life-style facilities, see below), `explore`.
+Presets: `compact`, `classic`, `bunker`, `fortress`, `industrial`, `compound`, `techbase` (Doom-era), `runekeep` (Quake-1 flavour), `outpost` (Quake-2 flavour), `grand` (Unreal flavour), `arena`, `duel` and `ctf` (deathmatch and capture the flag, see below), `facility` and `complex` (Half-Life-style facilities, see below), `explore`.
 
 Presets start at `spaciousness` 0.5 (wide corridors, roomy halls); `--space 0` gives the
 original tight Quake-1 levels, byte for byte. `variety` defaults to 0, which changes nothing. Turn them up on top of any recipe from the command line:
@@ -165,6 +165,13 @@ exit, secrets or monsters. Instead:
 ```bash
 python -m badlevel --recipe arena --seed 3 --format q2map
 ```
+
+**Team maps (capture the flag)**: `--recipe ctf`, or `--mode ctf` for any recipe. One half is
+generated, then mirrored: both bases are exactly the same base, so neither team has an
+advantage. 2-3 straight lanes join the halves, with a midfield chamber on the seam holding the
+one quad; each team's flag sits in the room farthest from the lanes, its 8 spawns at the back
+of the base. Exported as `item_flag_team1/2` and `info_player_team1/2` (Quake 2 CTF, Quake 1
+Threewave CTF), plus deathmatch spawns so the map works for plain deathmatch too.
 
 ## Evaluation
 

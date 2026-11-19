@@ -1122,3 +1122,26 @@ something, and the complex is divided into departments. Built on the campaign ge
   `complex` (above ground, 2 storeys, bunker style, a loading yard). Programs and vents add no
   failed attempts (52 vs 67 attempts over 20 levels without them); campaign levels unchanged
   (24 of 24 identical).
+
+## D45. Mirrored team maps (capture the flag)
+
+The arena plan's last item: team maps with mirror symmetry. Fairness between teams is the whole
+point, and the classic answer is the mirror: both bases are one base. Generating a symmetric
+layout directly would mean a symmetric graph, placement and router; mirroring a finished half
+is far simpler and exact (`mirror.py`, `cfg.mirror`):
+- **The half** is an ordinary arena-mode level, generated and decorated as usual.
+- **Lanes**: a seam 7 cells past the half's easternmost cell (room for the midfield); from
+  east-facing room walls with two flat cells inside, 5-wide straight lanes through rock only (a
+  cell of wall kept each side), 2-3 of them at least 12 cells apart, the shortest first; fewer
+  than 2 is a LayoutError (a new attempt). A midfield chamber (5 x 9 cells, 64 higher) on the
+  middle lane at the seam.
+- **Base**: the room farthest from the lane mouths (walking) gets the flag; spawns are placed
+  again for the team: deep rooms first, never in the front 40% of the base, off doorways, one per
+  room, then more. (The arena's spawns were spread over the whole half, some right at the lanes:
+  respawning in the enemy's path.) The half's quad goes: one quad, on the seam.
+- **Mirror**: x -> 2A - 1 - x for every column, span, owner (renumbered), 45-degree corner
+  (sw <-> se, nw <-> ne), sloped corner order, hazard, glass, sky, part name; rooms (masks and
+  half-cells flipped), corridors, beats, entities (angles 180 - a, bounds, jump-pad targets),
+  links, the mission graph (twin nodes and edges), halls. The second player_start is dropped.
+- Checked: spans, corners, hazards and slopes exactly symmetric on 8 of 8 maps; the whole map
+  validates as one arena circuit; 1-3 attempts. Exported as Quake 2 CTF / Threewave entities.

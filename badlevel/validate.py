@@ -151,7 +151,7 @@ def _validate_arena(level: Level, start: Node, links, by_kind, errors: List[str]
     spawns = by_kind.get("spawn", [])
     if len(spawns) < 2:
         errors.append(f"arena needs spawns, got {len(spawns)}")
-    for kind in ("spawn", "weapon", "quad", "armor_heavy", "megahealth"):
+    for kind in ("spawn", "weapon", "quad", "armor_heavy", "megahealth", "flag"):
         for e in by_kind.get(kind, []):
             if _node_at(level, e.pos) not in reach:
                 errors.append(f"{kind} at {e.pos} unreachable")

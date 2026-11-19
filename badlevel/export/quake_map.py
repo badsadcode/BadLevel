@@ -257,6 +257,11 @@ def to_map(level: Level, game: str = "quake") -> str:
             p = {"classname": "info_player_start", "origin": origin, "angle": e.props.get("angle", 0)}
         elif e.kind == "spawn":                        # arena mode: a deathmatch spawn (both games)
             p = {"classname": "info_player_deathmatch", "origin": origin, "angle": e.props.get("angle", 0)}
+            if e.props.get("team"):                    # team maps: the CTF team spawn too (Q2 CTF,
+                out.append(_entity({"classname": f"info_player_team{e.props['team']}", "origin": origin,   # Q1 Threewave)
+                                    "angle": e.props.get("angle", 0)}))
+        elif e.kind == "flag":                         # team maps: the CTF flags (Q2 CTF, Q1 Threewave)
+            p = {"classname": f"item_flag_team{e.props['team']}", "origin": origin}
         elif e.kind in POWERUPS:
             p = {"classname": (Q2_POWERUPS if q2 else POWERUPS)[e.kind], "origin": origin}
         elif e.kind == "ammo" and e.props.get("type"):

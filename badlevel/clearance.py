@@ -24,7 +24,7 @@ from .level import Cell, Level
 Box = Tuple[int, int, int]          # (x, y, F): box over cells x-1..x, y-1..y, standing at F
 D4 = ((1, 0), (-1, 0), (0, 1), (0, -1))
 SLAB = 16
-ARENA_GOALS = ("spawn", "weapon", "quad", "armor_heavy", "megahealth")
+ARENA_GOALS = ("spawn", "weapon", "quad", "armor_heavy", "megahealth", "flag")
 
 
 def _goals(level: Level):
