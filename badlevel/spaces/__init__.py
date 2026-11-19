@@ -63,11 +63,15 @@ class SpaceType:
         if getattr(level.config, "hazards", 0.0) > 0 and room.kind in ("combat", "arena", "hub", "megaroom"):
             from ..decorate import f_hazard
             options = list(options) + [[f_hazard]]          # a slime or lava pool (techbase)
+        pads = getattr(level.config, "jump_pads", 0.0)
+        if pads > 0 and room.kind in ("combat", "arena", "hub"):
+            from ..decorate import f_pillars, f_tower
+            options = list(options) + [[f_tower], [f_tower, f_pillars]]   # high ground by jump pad (arena)
 
         def option_weight(opt):
             w = 1.0
             for f in opt:
-                w *= float(fw.get(f.__name__[2:], 1.0))
+                w *= float(fw.get(f.__name__[2:], pads if f.__name__ == "f_tower" else 1.0))
             return w if opt else float(fw.get("none", 1.0))
         ws = [option_weight(o) for o in options]
         chosen = rng.choices(options, ws)[0] if sum(ws) > 0 else []

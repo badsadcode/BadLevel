@@ -23,6 +23,8 @@ class GenConfig:
     beat_shapes: float = 0.0     # share of beats that are shaped rooms (rotunda, octagon, crossing, aisles)
     keys: int = 1                # 0..2 key/locked-door pairs
     secret: bool = True          # add a secret room
+    mode: str = "campaign"       # campaign (start -> keys -> exit) | arena (deathmatch: spawns, items, loops; arena.py)
+    jump_pads: float = 0.0       # weight of jump-pad towers among room features (high ground with no stairs)
 
     # --- storeys -----------------------------------------------------------
     storeys: int = 1             # 1 = classic single-storey level; 2-5 = stacked floors

@@ -83,8 +83,10 @@ def _bridges(n_rooms, edges):
 
 def _main_path(level: Level):
     g = level.graph
-    start = next(n.id for n in g.nodes if n.kind == "start")
-    exit_ = next(n.id for n in g.nodes if n.kind == "exit")
+    start = next((n.id for n in g.nodes if n.kind == "start"), 0)     # arena: no start or exit,
+    exit_ = next((n.id for n in g.nodes if n.kind == "exit"), None)   # the path's two ends instead
+    if exit_ is None:
+        exit_ = max((n for n in g.nodes if getattr(n, "main", False)), key=lambda n: n.depth, default=g.nodes[-1]).id
     prev = {start: None}
     frontier = [start]
     while frontier:

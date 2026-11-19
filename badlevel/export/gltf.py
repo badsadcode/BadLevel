@@ -174,7 +174,8 @@ def to_glb(level: Level) -> bytes:
             continue
         if e.bounds:
             mat = {"window": "glass","door": "door_blue" if e.props.get("key") == "blue" else "door",
-                   "secret_door": "secret", "exit": "trigger", "lift": "lift", "ladder": "ladder"}.get(e.kind, "door")
+                   "secret_door": "secret", "exit": "trigger", "lift": "lift", "ladder": "ladder",
+                   "jumppad": "lift"}.get(e.kind, "door")
             mb = MeshBuilder()
             lo, hi = e.bounds
             c = e.pos

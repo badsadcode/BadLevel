@@ -32,6 +32,7 @@ def to_dict(level: Level, include_spans: bool = True) -> dict:
                          **({"slope": list(b.slope)} if b.slope else {}))
                     for b in build_brushes(level)],
         "notes": level.notes,
+        "arena": level.arena,
     }
     if include_spans:
         d["grid"] = {"width": level.width, "height": level.height}

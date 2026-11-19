@@ -700,6 +700,32 @@ def choose_loops(g: MissionGraph, rooms: List[Room], cfg: GenConfig, rng: random
         e = g.add_edge(a, b, tree=False)
         if g.nodes[a].storey != g.nodes[b].storey:
             e.connector = "drop"
+    if getattr(cfg, "mode", "campaign") == "arena":
+        _arena_loops(g, rooms, cfg)
+
+
+def _arena_loops(g: MissionGraph, rooms: List[Room], cfg: GenConfig):
+    """Deathmatch hates dead ends (a camper's corner, a trap): every room with one way in gets a
+    second, to the nearest room it isn't joined to (routed like any loop; if it can't be routed,
+    the room stays a dead end and the arena report counts it)."""
+    packed = getattr(cfg, "packing", 0.0) >= 0.5
+    for a in rooms:
+        if a.is_connector or a.kind == "secret":
+            continue
+        if sum(1 for _ in g.neighbors(a.node)) != 1:
+            continue
+        cands = []
+        for b in rooms:
+            if b is a or b.is_connector or b.kind == "secret" or g.connected(a.node, b.node):
+                continue
+            if packed and _gap(a, b) > 4:
+                continue
+            cands.append((_gap(a, b) + (12 if a.floor != b.floor else 0), b.node))
+        if cands:
+            b = min(cands)[1]
+            e = g.add_edge(a.node, b, tree=False)
+            if g.nodes[a.node].storey != g.nodes[b].storey:
+                e.connector = "drop"
 
 
 def _attachment(room: Room, other: Room):

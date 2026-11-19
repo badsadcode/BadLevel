@@ -24,6 +24,12 @@ from .level import Cell, Level
 Box = Tuple[int, int, int]          # (x, y, F): box over cells x-1..x, y-1..y, standing at F
 D4 = ((1, 0), (-1, 0), (0, 1), (0, -1))
 SLAB = 16
+ARENA_GOALS = ("spawn", "weapon", "quad", "armor_heavy", "megahealth")
+
+
+def _goals(level: Level):
+    """Entities the box must reach: keys and the exit; in an arena, spawns, guns and power-ups."""
+    return ARENA_GOALS if getattr(level.config, "mode", "campaign") == "arena" else ("key", "exit")
 
 
 def _quad(x: int, y: int):
@@ -165,7 +171,7 @@ def _stuck_edges(level: Level):
     s = level.cell
     goals = set()
     for e in level.entities:
-        if e.kind in ("key", "exit"):
+        if e.kind in _goals(level):
             c = (int(e.pos[0] // s), int(e.pos[1] // s))
             goals |= {comp[n] for n in unc if (n[0], n[1]) == c}
     edges = []
@@ -313,7 +319,7 @@ def clearance_report(level: Level) -> List[str]:
             errors.append(f"clearance: room {r.id} ({r.kind}) too narrow to reach for the player")
     s = level.cell
     for e in level.entities:
-        if e.kind in ("key", "exit"):
+        if e.kind in _goals(level):
             c = (int(e.pos[0] // s), int(e.pos[1] // s))
             if c not in cells:
                 errors.append(f"clearance: {e.kind} at {c} too narrow to reach for the player")

@@ -128,6 +128,51 @@ def can_reach(level: Level, targets: Set[Node], blocked: Set[Cell], links=None) 
     return seen
 
 
+def _rooms_unreached(level: Level, reach: Set[Node]) -> List[int]:
+    out = []
+    for room in level.rooms:
+        hit = any((c[0], c[1], i) in reach and level.owner_of(c, sp) == f"room:{room.id}"
+                  for c in room.cells() for i, sp in enumerate(level.spans.get(c, ())))
+        if not hit:
+            out.append(room.id)
+    return out
+
+
+def _validate_arena(level: Level, start: Node, links, by_kind, errors: List[str]) -> Dict[str, object]:
+    """Deathmatch: no goal, but no trap either. Everything reachable from the first spawn must be
+    able to get back to it (so every reachable spot reaches every other: one circuit), every room
+    and every spawn, weapon and power-up must be on it."""
+    reach = flood(level, start, set(), links)
+    back = can_reach(level, {start}, set(), links)
+    stuck = reach - back
+    if stuck:
+        x, y, i = next(iter(sorted(stuck)))
+        errors.append(f"softlock: {len(stuck)} reachable spot(s) can't get back (e.g. {x},{y})")
+    spawns = by_kind.get("spawn", [])
+    if len(spawns) < 2:
+        errors.append(f"arena needs spawns, got {len(spawns)}")
+    for kind in ("spawn", "weapon", "quad", "armor_heavy", "megahealth"):
+        for e in by_kind.get(kind, []):
+            if _node_at(level, e.pos) not in reach:
+                errors.append(f"{kind} at {e.pos} unreachable")
+    unreached = _rooms_unreached(level, reach)
+    if unreached:
+        errors.append(f"rooms unreachable: {unreached}")
+    if not errors and getattr(level.config, "check_clearance", True):
+        from .clearance import clearance_report
+        errors += clearance_report(level)
+    open_nodes = sum(len(s) for c, s in level.spans.items() if c not in level.diag)
+    return {
+        "ok": not errors,
+        "errors": errors,
+        "reachable_fraction": round(len(reach) / max(1, open_nodes), 3),
+        "softlock_spots": len(stuck),
+        "one_way_drops": sum(1 for c in level.corridors if getattr(c, "connector", None) == "drop"),
+        "links": [{k: v for k, v in l.items() if k in ("kind", "two_way", "interaction", "accessible", "room")}
+                  for l in level.links],
+    }
+
+
 def validate(level: Level) -> Dict[str, object]:
     errors: List[str] = []
     for (x, y) in level.spans:
@@ -165,6 +210,8 @@ def validate(level: Level) -> Dict[str, object]:
     doors = by_kind.get("door", [])
     door_cells = {d.props["key"]: _door_cells(level, d) for d in doors}
     keys = {k.props["color"]: _node_at(level, k.pos) for k in by_kind.get("key", [])}
+    if getattr(level.config, "mode", "campaign") == "arena":
+        return _validate_arena(level, start, links, by_kind, errors)
     exits = by_kind.get("exit", [])
     exit_node = _node_at(level, exits[0].pos) if exits else None
     if not exits:

@@ -72,6 +72,18 @@ def _lerp(a: float, b: float, t: float) -> float:
     return a + (b - a) * t
 
 
+def arena_mode(cfg) -> None:
+    """Make any compiled recipe a deathmatch map: no keys, secret or monsters; spawns, weapons and
+    power-ups instead (arena.py), more loops, jump-pad towers."""
+    cfg.mode = "arena"
+    cfg.keys = 0
+    cfg.secret = False
+    cfg.enemy_density = 0.0
+    cfg.pickup_density = 0.0
+    cfg.loops = max(cfg.loops, 4)
+    cfg.jump_pads = max(getattr(cfg, "jump_pads", 0.0), 1.0)
+
+
 def roomier(cfg: GenConfig, s: float) -> GenConfig:
     """Spaciousness: Tom found the rooms "a little bit cramped" in the Quake rerelease (fast
     movement, 320 units/s, in rooms of 384-448 units and 96-unit corridors). s = 0 changes
@@ -280,6 +292,24 @@ PRESETS: Dict[str, Recipe] = {r.name: r for r in [
                       "glazed_chance": 0.6, "tall_room_chance": 0.8, "height_scale": 1.5, "merge_chance": 0.5,
                       "mega_styles": {"terraces": 2.5, "hangar": 1.5, "works": 0.0},
                       "size_bias": {"small": 0.3, "medium": 1.0, "large": 3.0}}),
+    Recipe("arena", "Deathmatch in the arena-shooter tradition: a tight circuit of rooms round a central "
+                    "hall, loops everywhere and no dead ends, two storeys joined by stairs, lifts and drops, "
+                    "jump pads up to high ground, the power-ups where the fights should be.",
+           scale=0.45, openness=0.6, verticality=0.8, claustrophobia=0.2, combat=0.8, exploration=0.3,
+           loopiness=1.0, regularity=0.4, spaciousness=0.6,
+           overrides={"mode": "arena", "keys": 0, "secret": False, "storeys": 2, "composition": "central",
+                      "loops": 5, "jump_pads": 1.5, "drop_chance": 1.0, "tall_room_chance": 0.7, "height_scale": 1.4,
+                      "enemy_density": 0.0, "pickup_density": 0.0, "windows": 6, "open_areas": 0, "mega_rooms": 0,
+                      "connector_weights": {"stairs": 0.4, "stairwell": 0.3, "lift": 0.3, "ladder": 0.0},
+                      "feature_weights": {"platform": 2.0, "balcony": 2.0, "pit": 0.5, "pillars": 1.5, "none": 0.3}}),
+    Recipe("duel", "One-on-one: a small deathmatch map, five or six rooms in a ring, one storey with "
+                   "platforms and a jump-pad tower, every room two ways out, one power-up to fight over.",
+           scale=0.25, openness=0.5, verticality=0.55, claustrophobia=0.3, combat=0.8, exploration=0.2,
+           loopiness=1.0, regularity=0.5, spaciousness=0.5,
+           overrides={"mode": "arena", "keys": 0, "secret": False, "storeys": 1, "composition": "central",
+                      "loops": 3, "jump_pads": 2.0, "tall_room_chance": 0.8, "height_scale": 1.3,
+                      "enemy_density": 0.0, "pickup_density": 0.0, "open_areas": 0, "mega_rooms": 0,
+                      "feature_weights": {"platform": 2.0, "balcony": 1.0, "pit": 0.5, "none": 0.2}}),
     Recipe("explore", "No combat. Vertical, open, full of side rooms, secrets, views ahead and loops: "
                       "for exploration, walking sims and architectural blockouts.",
            scale=0.6, openness=0.6, verticality=0.7, claustrophobia=0.2, combat=0.0, exploration=1.0,

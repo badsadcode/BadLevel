@@ -154,6 +154,59 @@ def f_hazard(ctx: RoomCtx, rng: random.Random) -> bool:
     return False
 
 
+def f_tower(ctx: RoomCtx, rng: random.Random) -> bool:
+    """A jump-pad tower (arena high ground): a block 96-160 units tall with no stairs, and a 2x2
+    jump pad one cell off one face that throws the player onto it. The way down is a drop (a
+    one-way link up, so the validator knows the top is reachable and the drop brings you back)."""
+    r = ctx.room
+    level = ctx.level
+    if min(r.w, r.h) < 10:
+        return False
+    hs = [h for h in (64, 80, 96, 128, 160) if r.ceil - r.floor >= h + 152]  # the arc: 64 over the top + a player
+    if not hs:
+        return False
+    s = level.cell
+    for _ in range(40):
+        bw, bh = rng.randint(3, 5), rng.randint(3, 5)
+        px = rng.randint(r.x + 2, r.x + r.w - 2 - bw)
+        py = rng.randint(r.y + 2, r.y + r.h - 2 - bh)
+        side = rng.choice("nsew")
+        if side == "e":
+            pad_x, pad_y = px + bw + 1, py + bh // 2 - 1
+        elif side == "w":
+            pad_x, pad_y = px - 3, py + bh // 2 - 1
+        elif side == "n":
+            pad_x, pad_y = px + bw // 2 - 1, py + bh + 1
+        else:
+            pad_x, pad_y = px + bw // 2 - 1, py - 3
+        rect = [(x, y) for x in range(px, px + bw) for y in range(py, py + bh)]
+        pad = [(x, y) for x in (pad_x, pad_x + 1) for y in (pad_y, pad_y + 1)]
+        zone = {(x + dx, y + dy) for (x, y) in rect + pad for dx in (-1, 0, 1) for dy in (-1, 0, 1)}
+        if not ctx.free(zone):
+            continue
+        h = rng.choice(hs)
+        for c in rect:
+            ctx.set_floor(c, r.floor + h)
+            level.part_cells[c] = f"room:{r.id}/tower"
+        ctx.used.update(zone)
+        pcx, pcy = (pad_x + 1) * s, (pad_y + 1) * s                 # the pad's centre (a cell corner)
+        # land 1.5 cells in from the face the pad looks at
+        tx = {"e": (px + bw) * s - 48, "w": px * s + 48}.get(side, pcx)
+        ty = {"n": (py + bh) * s - 48, "s": py * s + 48}.get(side, pcy)
+        target = (tx, ty, r.floor + h + 24)
+        level.entities.append(Entity("jumppad", (pcx, pcy, r.floor + 8), {"target": target, "rise": h, "room": r.id},
+                                     ((pad_x * s, pad_y * s, r.floor), ((pad_x + 2) * s, (pad_y + 2) * s, r.floor + 16))))
+        a = ((pad_x + 0.5) * s, (pad_y + 0.5) * s, r.floor + 24)
+        level.links.append({"kind": "jumppad", "a": a, "b": target, "two_way": False,
+                            "interaction": "jump", "accessible": False, "room": r.id})
+        ctx.top_cells = getattr(ctx, "top_cells", []) + rect
+        ctx.pads = getattr(ctx, "pads", []) + pad
+        r.features.append("tower")
+        r.meta.setdefault("towers", []).append({"rect": [px, py, bw, bh], "height": h, "pad": [pad_x, pad_y], "side": side})
+        return True
+    return False
+
+
 def f_platform(ctx, rng):
     return _stair_block(ctx, rng, +1, "platform")
 
@@ -449,6 +502,9 @@ def decorate(level: Level, rng: random.Random):
         space_for(room.kind).populate(level, room, ctxs[room.id], rng, info)
     for corr in level.corridors:
         corridor_space.populate(level, corr, rng, info)
+    if getattr(level.config, "mode", "campaign") == "arena":
+        from . import arena
+        arena.populate(level, ctxs, rng)       # deathmatch: spawns, weapons, power-ups instead
     if tiers:
         from . import portals
         portals.build(level, tiers)            # frames the openings, last: it sees doors and entities

@@ -156,6 +156,8 @@ class Level:
     graph: object = None
     config: object = None
     notes: List[str] = field(default_factory=list)
+    # arena mode (deathmatch): spawns, weapons, power-ups and how fair their spread is (arena.py)
+    arena: dict = field(default_factory=dict)
 
     # --- columns -------------------------------------------------------
     def add_span(self, c: Cell, span: Span, owner: str = None, slot: Tuple[int, int] = None):

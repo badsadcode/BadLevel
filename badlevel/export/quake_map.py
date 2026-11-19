@@ -40,7 +40,13 @@ ITEMS = {
     "health": "item_health", "megahealth": "item_health", "ammo": "item_shells",
     "armor": "item_armor1",
 }
-WEAPONS = {"shotgun": "weapon_supershotgun", "rocket_launcher": "weapon_rocketlauncher"}
+WEAPONS = {"shotgun": "weapon_supershotgun", "rocket_launcher": "weapon_rocketlauncher",
+           # arena mode's generic roles (arena.WEAPONS); Quake has no rail: the lightning gun stands in
+           "rapid": "weapon_nailgun", "heavy_rapid": "weapon_supernailgun", "grenade_launcher": "weapon_grenadelauncher",
+           "beam": "weapon_lightning", "rail": "weapon_lightning"}
+AMMO = {"shotgun": "item_shells", "rapid": "item_spikes", "heavy_rapid": "item_spikes", "grenade_launcher": "item_rockets",
+        "rocket_launcher": "item_rockets", "beam": "item_cells", "rail": "item_cells"}
+POWERUPS = {"quad": "item_artifact_super_damage", "armor_heavy": "item_armor2"}
 
 # --- Quake 2
 # BadLevel texture -> (Quake 2 texture, contents, surface flags)
@@ -59,7 +65,12 @@ Q2_KEY_ITEMS = {"red": "key_red_key", "blue": "key_blue_key"}
 Q2_ENEMIES = {1: "monster_soldier_light", 2: "monster_soldier", 3: "monster_gunner"}
 Q2_ITEMS = {"health": "item_health", "megahealth": "item_health_mega", "ammo": "ammo_shells",
             "armor": "item_armor_jacket"}
-Q2_WEAPONS = {"shotgun": "weapon_supershotgun", "rocket_launcher": "weapon_rocketlauncher"}
+Q2_WEAPONS = {"shotgun": "weapon_supershotgun", "rocket_launcher": "weapon_rocketlauncher",
+              "rapid": "weapon_machinegun", "heavy_rapid": "weapon_chaingun", "grenade_launcher": "weapon_grenadelauncher",
+              "beam": "weapon_hyperblaster", "rail": "weapon_railgun"}
+Q2_AMMO = {"shotgun": "ammo_shells", "rapid": "ammo_bullets", "heavy_rapid": "ammo_bullets", "grenade_launcher": "ammo_grenades",
+           "rocket_launcher": "ammo_rockets", "beam": "ammo_cells", "rail": "ammo_slugs"}
+Q2_POWERUPS = {"quad": "item_quad", "armor_heavy": "item_armor_body"}
 
 
 def _q2_faces(text: str) -> str:
@@ -244,6 +255,25 @@ def to_map(level: Level, game: str = "quake") -> str:
         origin = " ".join(_fmt(v) for v in at(e.pos))
         if e.kind == "player_start":
             p = {"classname": "info_player_start", "origin": origin, "angle": e.props.get("angle", 0)}
+        elif e.kind == "spawn":                        # arena mode: a deathmatch spawn (both games)
+            p = {"classname": "info_player_deathmatch", "origin": origin, "angle": e.props.get("angle", 0)}
+        elif e.kind in POWERUPS:
+            p = {"classname": (Q2_POWERUPS if q2 else POWERUPS)[e.kind], "origin": origin}
+        elif e.kind == "ammo" and e.props.get("type"):
+            p = {"classname": (Q2_AMMO if q2 else AMMO).get(e.props["type"], "ammo_shells" if q2 else "item_shells"),
+                 "origin": origin}
+        elif e.kind == "jumppad":
+            # a trigger_push over a pad plate: velocity = speed * 10 along (pitch, yaw), aimed so
+            # the arc peaks 64 units over the target and comes down on it (arena.jump_launch)
+            from ..arena import jump_launch
+            lo, hi = box(e.bounds)
+            out.append(_entity({"classname": "func_group", "_badlevel_kind": "jumppad"},
+                               [brush_text(lo, (hi[0], hi[1], lo[2] + 4), *(["bl_lift"] * 3))]))
+            speed, pitch, yaw = jump_launch((e.pos[0], e.pos[1], lo[2] + 4), e.props["target"])
+            out.append(_entity({"classname": "trigger_push", "speed": speed, "angles": f"{pitch} {yaw} 0",
+                                "_badlevel_target": " ".join(_fmt(v) for v in at(e.props["target"]))},
+                               [brush_text((lo[0], lo[1], lo[2] + 4), (hi[0], hi[1], lo[2] + 20), *(["trigger"] * 3))]))
+            continue
         elif e.kind == "light":
             p = {"classname": "light", "origin": origin, "light": e.props.get("intensity", 300),
                  "wait": Q2_LIGHT_FADE if q2 else LIGHT_FADE}

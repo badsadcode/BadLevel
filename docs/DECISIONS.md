@@ -1059,3 +1059,33 @@ One fix came with them: in a packed plan a storey change can't be a stair corrid
 passage through a 3-cell wall can't climb a storey), so it becomes a stairwell; secret edges
 keep their level doorway. Runekeep went from 7-36 attempts to 1-8, outpost builds first time.
 Other presets unchanged (24 of 24 levels identical).
+
+## D43. Arena mode: deathmatch maps
+
+The plan Tom agreed: Quake 3 / Unreal Tournament style deathmatch. A campaign level is a route
+(start, keys, exit, monsters on the way); a deathmatch map is a circuit, judged by other things,
+so it gets its own mode (`cfg.mode = "arena"`) on top of the same generator:
+- **Graph**: the campaign graph with start and exit turned into ordinary rooms, no locks, keys
+  or secret, one zone; `layout._arena_loops` gives every dead-end room a second corridor to the
+  nearest room it isn't joined to (all maps so far: 0 dead ends).
+- **Validation**: no goal, but no trap: everything reachable from the first spawn must be able
+  to get back to it (one circuit, drops allowed only where there's a way back up); every room,
+  spawn, gun and power-up on it; the player box (clearance.py) must reach all of them.
+- **Items (arena.py)**, by walking distance (the validator's own moves):
+  power-ups in the most central room first (high ground preferred), the rest spread over the
+  central half; guns spread by farthest-point, the strongest in the most central of their rooms,
+  each with ammo in the next room; then a distance field from every gun, and the spawns picked
+  in the distance band [d, 1.5 d] that covers the most rooms, one room each first, 4+ cells
+  apart, facing into the room. The first attempt (spawns first, then guns) gave spreads up to 33x;
+  guns first, then spawns in a band: 1.5x at worst (8 of 8 levels per preset).
+- **Jump pads** (`decorate.f_tower`, `cfg.jump_pads`): a 3-5 cell block 64-160 high with no
+  stairs, a 2x2 pad one cell off a face; a one-way link up (the drop is the way down). Exported
+  as a `trigger_push` over a pad plate: `arena.jump_launch` gives speed and angles for an arc
+  peaking 64 units over the top (velocity = speed x 10, gravity 800, both Quakes). Flown through
+  the grid with a player box: 27 of 27 pads land within 24 units of their target, nothing hit on
+  the way. If the dice give no tower, the biggest room that takes one gets it.
+- Presets `arena` (two storeys, central, 1.4x height) and `duel` (one storey, 6 rooms); `--mode
+  arena` for any recipe. Campaign levels unchanged (24 of 24 identical).
+
+Not yet: a mirror-symmetric option (two halves for team play / CTF); it needs the layout to be
+built for half the map and mirrored, a step of its own.

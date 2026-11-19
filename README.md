@@ -92,7 +92,7 @@ settings. A recipe is ten dials from 0 to 1 plus optional raw overrides:
 | `spaciousness` | bigger, taller rooms, wider and higher corridors, more headroom (0 = the compact Quake feel) |
 | `variety` | a wider spread of room sizes, extra footprints (round, hex, diamond, Z, H), domes in big rooms, spiral stairs |
 
-Presets: `compact`, `classic`, `bunker`, `fortress`, `industrial`, `compound`, `techbase` (Doom-era), `runekeep` (Quake-1 flavour), `outpost` (Quake-2 flavour), `grand` (Unreal flavour), `explore`.
+Presets: `compact`, `classic`, `bunker`, `fortress`, `industrial`, `compound`, `techbase` (Doom-era), `runekeep` (Quake-1 flavour), `outpost` (Quake-2 flavour), `grand` (Unreal flavour), `arena` and `duel` (deathmatch, see below), `explore`.
 
 Presets start at `spaciousness` 0.5 (wide corridors, roomy halls); `--space 0` gives the
 original tight Quake-1 levels, byte for byte. `variety` defaults to 0, which changes nothing. Turn them up on top of any recipe from the command line:
@@ -124,6 +124,27 @@ The recipe used is saved beside every export as `<name>.recipe.json`. Without
 Presets are checked for **identity**: `fingerprint.py` describes a level as ~17
 features, and a test requires each preset to be recognisable from its fingerprint
 alone. Why things are built this way: [docs/DECISIONS.md](docs/DECISIONS.md).
+
+## Arena mode (deathmatch)
+
+`--recipe arena` (a two-storey circuit round a central hall) and `--recipe duel` (five or six
+rooms for one-on-one) make deathmatch maps; `--mode arena` turns any recipe into one. No keys,
+exit, secrets or monsters. Instead:
+
+- **No dead ends, no traps**: every room gets a second way out, and the validator checks that
+  every spot you can reach can get back to everywhere else (drops included).
+- **Power-ups where the fights are**: quad, heavy armour and megahealth in the most central room
+  (on high ground when it has some) and spread across the central half of the map.
+- **Fair spawns**: guns are spread out, the strongest in the middle; then every spawn is placed so
+  its walk to the nearest gun is within the same band as every other spawn's (`fairness` in the
+  IR: worst over best, at most 1.5 so far).
+- **Jump pads**: towers with no stairs and a pad that throws you on top (`trigger_push` in Quake
+  1 and 2, aimed so the arc lands on the tower). Down is a drop.
+- Quake exports `info_player_deathmatch`, each game's own guns, ammo and power-ups.
+
+```bash
+python -m badlevel --recipe arena --seed 3 --format q2map
+```
 
 ## Evaluation
 

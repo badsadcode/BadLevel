@@ -179,6 +179,8 @@ def build_graph(cfg: GenConfig, rng: random.Random) -> MissionGraph:
         s = g.add_node("secret", "small", zone=parent.zone, depth=parent.depth)
         g.add_edge(parent.id, s.id, kind="secret")
 
+    if getattr(cfg, "mode", "campaign") == "arena":
+        make_arena(g)
     if cfg.mega_rooms > 0:
         make_mega_rooms(g, cfg, rng)
     if cfg.open_areas > 0:
@@ -189,6 +191,24 @@ def build_graph(cfg: GenConfig, rng: random.Random) -> MissionGraph:
 
 
 CONNECTOR_KINDS = ("stairwell", "lift", "ladder", "spiral")
+
+
+def make_arena(g: MissionGraph):
+    """Deathmatch: no start, no exit, no locks. The path's ends become ordinary rooms (spawns and
+    items go in later, arena.py); keys and secrets are off in arena recipes, and locks are
+    cleared here in case a config asks for them anyway."""
+    for n in g.nodes:
+        if n.kind == "start":
+            n.kind = "combat"
+        elif n.kind == "exit":
+            n.kind = "hub"
+        elif n.kind == "key":
+            n.kind, n.key = "supply", None
+    for e in g.edges:
+        if e.kind == "locked":
+            e.kind, e.key = "open", None
+    for n in g.nodes:
+        n.zone = 0                       # one zone: loops may join any two rooms
 
 
 def make_mega_rooms(g: MissionGraph, cfg: GenConfig, rng: random.Random):

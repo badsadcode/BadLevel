@@ -14,6 +14,7 @@ ENT_COLORS = {
     "secret_door": "#a855f7", "exit": "#10b981", "health": "#f472b6", "megahealth": "#ec4899",
     "ammo": "#eab308", "armor": "#38bdf8", "weapon": "#e5e7eb", "light": "#fde68a",
     "lift": "#f59e0b", "ladder": "#a16207", "window": "#7dd3fc",
+    "spawn": "#4ade80", "quad": "#6366f1", "armor_heavy": "#dc2626", "jumppad": "#f59e0b",
 }
 KIND_LABEL = {"start": "START", "exit": "EXIT", "arena": "ARENA", "hub": "hub", "combat": "fight",
               "supply": "supply", "key": "KEY", "secret": "secret", "stairwell": "stairs ⇅", "spiral": "spiral ⇅",
@@ -218,9 +219,9 @@ new GLTFLoader().parse(bytes.buffer, '', (gltf) => {
     const kind = o.userData && o.userData.kind;
     if (kind && !o.isMesh && kind !== 'light') {
       const col = new THREE.Color(COLORS[kind] || '#ffffff');
-      const geo = kind === 'enemy' ? new THREE.ConeGeometry(0.3, 0.9, 8) : kind === 'player_start' ? new THREE.CylinderGeometry(0.35, 0.35, 1.7, 12) : new THREE.OctahedronGeometry(0.28);
+      const geo = kind === 'enemy' ? new THREE.ConeGeometry(0.3, 0.9, 8) : (kind === 'player_start' || kind === 'spawn') ? new THREE.CylinderGeometry(0.35, 0.35, 1.7, 12) : new THREE.OctahedronGeometry(0.28);
       const mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: 0.45 }));
-      if (kind === 'player_start') mesh.position.y = 0.1;
+      if (kind === 'player_start' || kind === 'spawn') mesh.position.y = 0.1;
       o.add(mesh); entityObjs.push(mesh);
     }
   });
