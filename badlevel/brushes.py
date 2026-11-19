@@ -79,13 +79,14 @@ def build_brushes(level: Level) -> List[Brush]:
             if fslope and z1 == spans[0][0] and min(fslope) > z0:
                 floors.setdefault((fslope, z0, bottom, part), set()).add(c)   # the ground under a ramp
                 continue
-            groups.setdefault((z0, z1, top, bottom, part), set()).add(c)
+            groups.setdefault((z0, z1, top, bottom, part, SKY if c in level.sky_walls else WALL), set()).add(c)
 
     s = level.cell
     brushes: List[Brush] = []
-    for (z0, z1, top, bottom, part), cells in sorted(groups.items(), key=lambda kv: (kv[0][:4], kv[0][4] or "")):
+    for (z0, z1, top, bottom, part, side), cells in sorted(groups.items(),
+                                                           key=lambda kv: (kv[0][:4], kv[0][4] or "", kv[0][5])):
         for (x0, y0, x1, y1) in greedy_rects(cells):
-            brushes.append(Brush((x0 * s, y0 * s, z0), (x1 * s, y1 * s, z1), top, bottom, part=part))
+            brushes.append(Brush((x0 * s, y0 * s, z0), (x1 * s, y1 * s, z1), top, bottom, side, part=part))
     # sloped roofs: cells with the same corners merge along the axis the slope doesn't change on
     for (slope, z1, top, part), cells in sorted(sloped.items(), key=lambda kv: (kv[0][:3], kv[0][3] or "")):
         z00, z10, z11, z01 = slope

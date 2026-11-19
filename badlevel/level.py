@@ -134,6 +134,8 @@ class Level:
     glass: set = field(default_factory=set)
     # open to the sky: the top of these columns is sky, not a ceiling
     sky: set = field(default_factory=set)
+    # solid cells round a vista (vistas.py): their faces are sky, so the view has no edge
+    sky_walls: set = field(default_factory=set)
     # sloped ceilings (smooth vaults and roofs): cell -> corner heights (x0y0, x1y0, x1y1, x0y1) of
     # the top span's ceiling; the span itself keeps the lowest point, so gameplay stays conservative
     ceil_slope: Dict[Cell, Tuple[int, int, int, int]] = field(default_factory=dict)

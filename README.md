@@ -125,6 +125,15 @@ Presets are checked for **identity**: `fingerprint.py` describes a level as ~17
 features, and a test requires each preset to be recognisable from its fingerprint
 alone. Why things are built this way: [docs/DECISIONS.md](docs/DECISIONS.md).
 
+## Vistas: big windows onto the world outside
+
+`grand` halls get **vistas** (`vistas` in a config, 3 in the grand preset, 0 elsewhere): a wall
+of glass in a tall hall's outer wall, 4-12 cells wide, cut up into the vault as a window bay
+so it runs almost to the ceiling. Beyond it a view nobody can walk to: the ground falls away
+below the sill, then smooth hills rise to the horizon, higher at the sides, under open sky. The
+rock round the view is sky too, so it has no edge. It's named `vista:N/terrain`, ready to swap
+for a real skybox and landscape.
+
 ## Facility levels
 
 `--recipe facility` (an underground research complex: in from the surface and down, three

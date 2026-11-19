@@ -32,6 +32,8 @@ def generate(cfg: GenConfig = None, **overrides) -> Level:
             decorate(level, rng)
             cleanup_diagonals(level)
             add_windows(level, rng, cfg.windows, cfg.glazed_chance)
+            from .vistas import add_vistas
+            add_vistas(level)                    # grand halls: a wall of glass onto a landscape (cfg.vistas)
             widen_pinches(level)                 # the player is a box: no 32-unit squeezes
             make_ramps(level)                    # stair corridors as smooth ramps (cfg.ramps)
             if getattr(cfg, "mirror", False):

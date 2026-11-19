@@ -290,7 +290,7 @@ PRESETS: Dict[str, Recipe] = {r.name: r for r in [
            scale=0.85, openness=0.95, verticality=0.75, claustrophobia=0.0, combat=0.55, exploration=0.85,
            loopiness=0.6, regularity=0.45, spaciousness=1.0, variety=0.8,
            overrides={"arch_style": "castle", "open_areas": 2, "mega_rooms": 1, "windows": 14,
-                      "glazed_chance": 0.6, "tall_room_chance": 0.8, "height_scale": 1.5, "merge_chance": 0.5,
+                      "glazed_chance": 0.6, "tall_room_chance": 0.8, "height_scale": 1.5, "merge_chance": 0.5, "vistas": 3,
                       "mega_styles": {"terraces": 2.5, "hangar": 1.5, "works": 0.0},
                       "size_bias": {"small": 0.3, "medium": 1.0, "large": 3.0}}),
     Recipe("facility", "An underground research facility in the Half-Life / Abiotic Factor tradition: in "

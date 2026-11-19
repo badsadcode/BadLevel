@@ -1149,3 +1149,28 @@ is far simpler and exact (`mirror.py`, `cfg.mirror`):
   egyptian or castle. Shaped rooms don't reach their rectangle's east side (the edge is now
   measured per row, and must be flat over the lane's 5 rows), and pilasters and their bases line
   the walls (a lane may cut through the room's own dressing). Now every style in 1-6 attempts.
+
+## D46. Vistas: big windows in the grand halls
+
+The grand preset (D42) left one Unreal habit out: the hall with a wall of glass and a world
+beyond it. `vistas.py` (`cfg.vistas`, 3 in grand, 0 elsewhere; its own random stream):
+- **Site**: a straight, flat stretch of a tall hall's outer wall (the edge measured per row, as
+  in D45), with clean rock behind: 18-26 cells deep and 8 cells each side of the window, a cell
+  of rock round it, nothing stacked above or below (the view goes up to the sky); if that
+  doesn't fit, 14 deep and 5 wide, then 10 and 3. The grid grows east and north if needed.
+- **Window**: a glazed pane (`level.glass`, a `window` entity marked `vista`), 4-12 cells wide.
+  At first the panes were strips under a blank wall: vaults spring low at the walls, so a pane
+  ended at 230 units in a 400-unit hall. Now the two cells in front of it rise to the hall's
+  ceiling (a window bay cut up into the vault, `room:N/window bay`), and the pane runs to 32
+  under it. Pilasters and bases in the way give way to it (they used to break the walls into
+  runs too short for any window; first version: 4-cell windows, none on 4 levels of 6).
+- **View**: sky over all of it; the ground 96-256 below the sill, flat for a few cells, then
+  rising to hills 160-352 above the hall's floor, higher at the sides. Height = A(depth) +
+  B(across), so a cell's four corners are always on one plane (z00 + z11 = z10 + z01): smooth
+  sloped floors that the brush, mesh and glTF exporters already draw. Lights over it.
+- **No edge**: the solid ring round the view (not the window wall) has sky faces
+  (`level.sky_walls`), only where nothing else is open beyond it. Brushes and the mesh give
+  those faces the sky texture; every other level's output is byte for byte unchanged (24 of 24
+  maps, glb hashes equal).
+- Unreachable by construction (glass), so validation and clearance never see it; the compiler
+  keeps it because it's in sight through the pane.

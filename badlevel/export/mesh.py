@@ -177,7 +177,8 @@ def build_mesh(level: Level) -> MeshBuilder:
                     # faces where the ceiling steps (above a lower neighbour ceiling) are ceiling parts
                     is_ceil = b == c and any(nc <= a and nf < a for (nf, nc) in nspans)
                     part = part_of(level, (x, y), (f, c), "ceiling" if is_ceil else "wall", n)
-                    walls.setdefault((part, d, line, a, b, int(is_ceil)), []).append(along)
+                    mat = "sky" if n in level.sky_walls else ("ceiling" if is_ceil else "wall")
+                    walls.setdefault((part, d, line, a, b, mat), []).append(along)
 
     for (part, mat, z), cells in flats.items():
         mb.part = part
@@ -187,7 +188,7 @@ def build_mesh(level: Level) -> MeshBuilder:
             mb.quad(mat, [(X0, Y0, z), (X1, Y0, z), (X1, Y1, z), (X0, Y1, z)], n,
                     [(X0 / u, Y0 / u), (X1 / u, Y0 / u), (X1 / u, Y1 / u), (X0 / u, Y1 / u)])
 
-    for (part, d, line, a, b, is_ceil), alongs in walls.items():
+    for (part, d, line, a, b, mat), alongs in walls.items():
         mb.part = part
         alongs.sort()
         runs = []
@@ -207,7 +208,7 @@ def build_mesh(level: Level) -> MeshBuilder:
             else:
                 corners = [(P0, L, a), (P1, L, a), (P1, L, b), (P0, L, b)]
             uvs = [(P0 / u, a / u), (P1 / u, a / u), (P1 / u, b / u), (P0 / u, b / u)]
-            mb.quad("ceiling" if is_ceil else "wall", corners, normal, uvs)
+            mb.quad(mat, corners, normal, uvs)
     return mb
 
 
@@ -265,6 +266,8 @@ def _sloped_edge(mb: MeshBuilder, level: Level, c, span, spans, d: int, dxy, nsp
     """Side faces of one span of cell c towards neighbour n, where either has a sloped ceiling.
     Every bound is linear along the edge; the edge is split where bounds cross, and in each
     piece the open part of c minus the open parts of n becomes quads."""
+    n_cell = (c[0] + dxy[0], c[1] + dxy[1])
+    wall_mat = "sky" if n_cell in level.sky_walls else "wall"     # the edge of a vista
     s, uvs = level.cell, UV_SCALE
     x, y = c
     dx, dy = dxy
@@ -320,7 +323,7 @@ def _sloped_edge(mb: MeshBuilder, level: Level, c, span, spans, d: int, dxy, nsp
             p0, p1 = pos(t0), pos(t1)
             corners = [(p0[0], p0[1], z[0]), (p1[0], p1[1], z[1]), (p1[0], p1[1], z[2]), (p0[0], p0[1], z[3])]
             a0, a1 = (p0[1], p1[1]) if dx else (p0[0], p1[0])
-            mb.quad("ceiling" if ceil else "wall", corners, normal,
+            mb.quad("ceiling" if ceil else wall_mat, corners, normal,
                     [(a0 / uvs, z[0] / uvs), (a1 / uvs, z[1] / uvs), (a1 / uvs, z[2] / uvs), (a0 / uvs, z[3] / uvs)])
 
 
