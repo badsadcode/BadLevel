@@ -1145,3 +1145,7 @@ is far simpler and exact (`mirror.py`, `cfg.mirror`):
   links, the mission graph (twin nodes and edges), halls. The second player_start is dropped.
 - Checked: spans, corners, hazards and slopes exactly symmetric on 8 of 8 maps; the whole map
   validates as one arena circuit; 1-3 attempts. Exported as Quake 2 CTF / Threewave entities.
+- The compile check caught styled halls: no lane found in 60 attempts with gothic, bunker,
+  egyptian or castle. Shaped rooms don't reach their rectangle's east side (the edge is now
+  measured per row, and must be flat over the lane's 5 rows), and pilasters and their bases line
+  the walls (a lane may cut through the room's own dressing). Now every style in 1-6 attempts.

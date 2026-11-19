@@ -54,17 +54,35 @@ def cut_lanes(level: Level, A: int) -> List[dict]:
     for r in level.rooms:
         if r.is_connector or r.kind in ("secret", "overlook"):
             continue
-        h = min(h0, r.ceil - r.floor)
-        if h < level.config.player_height + 32:
-            continue
-        ex = r.x + r.w                          # the first cell east of the room: its wall
+        hmin = level.config.player_height + 32
+        mine = f"room:{r.id}/"
         for y in range(r.y + LANE_R + 1, r.y + r.h - LANE_R - 1):
             band = range(y - LANE_R, y + LANE_R + 1)
-            # the room side: the edge column and the one inside it open at the room's floor
-            edge = all(r.contains(ex - k, yy) and any(sp[0] == r.floor and sp[1] >= r.floor + h
-                                                       for sp in level.spans.get((ex - k, yy), ()))
-                       and (ex - k, yy) not in level.diag for k in (1, 2) for yy in band)
-            if not edge:
+            # the room's east edge on these rows: flat (shaped rooms have cut corners)
+            edges = {max((x for x in range(r.x, r.x + r.w) if r.contains(x, yy)), default=None) for yy in band}
+            if len(edges) != 1 or None in edges:
+                continue
+            ex = edges.pop() + 1                    # the first cell east of the room: its wall
+            # the room side: the edge column and the one inside it open at the room's floor, or a
+            # piece of the room's own dressing (a pilaster, its base, a pier) the lane may cut through
+            h, edge, cut = min(h0, r.ceil - r.floor), True, []
+            for k in (1, 2):
+                for yy in band:
+                    c = (ex - k, yy)
+                    if not r.contains(*c) or c in level.diag:
+                        edge = False
+                        break
+                    sp = [sp for sp in level.spans.get(c, ()) if sp[0] == r.floor]
+                    if sp:
+                        h = min(h, sp[0][1] - r.floor)
+                    elif (level.part_solid.get(c, "") or level.part_cells.get(c, "")).startswith(mine):
+                        cut.append(c)
+                    else:
+                        edge = False
+                        break
+                if not edge:
+                    break
+            if not edge or h < hmin:
                 continue
             ok = True
             for x in range(ex, A):
@@ -73,7 +91,7 @@ def cut_lanes(level: Level, A: int) -> List[dict]:
                     ok = False
                     break
             if ok:
-                cands.append({"room": r, "y": y, "x0": ex, "floor": r.floor, "height": h,
+                cands.append({"room": r, "y": y, "x0": ex, "floor": r.floor, "height": h, "cut": cut,
                               "score": (A - ex) + abs(y - (r.y + r.h / 2.0)) * 0.5})
     cands.sort(key=lambda c: c["score"])
     lanes: List[dict] = []
@@ -100,6 +118,14 @@ def carve_lanes(level: Level, lanes: List[dict], A: int) -> Optional[dict]:
         path = [(x, y) for x in range(lane["x0"], A)]
         corr = Corridor(cid, -1, lane["room"].id, lane["room"].id, path, [f] * len(path), radius=LANE_R, height=h)
         corr.lane = True
+        for c in lane.get("cut", ()):                # through a pilaster (or its base) in the room's wall
+            gone = level.spans_in(c, f, f + h)
+            top = max([f + h] + [sp[1] for sp in gone])
+            level.replace_in(c, f, f + h, [(f, top)])
+            if not any(o[2] == f"room:{lane['room'].id}" for o in level.owners.get(c, [])):
+                level.owners.setdefault(c, []).append((f, top, f"room:{lane['room'].id}"))
+            level.part_solid.pop(c, None)
+            level.part_cells.pop(c, None)
         for (x, _) in path:
             for yy in range(y - LANE_R, y + LANE_R + 1):
                 level.add_span((x, yy), (f, f + h), f"corridor:{cid}")
