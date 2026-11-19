@@ -92,7 +92,7 @@ settings. A recipe is ten dials from 0 to 1 plus optional raw overrides:
 | `spaciousness` | bigger, taller rooms, wider and higher corridors, more headroom (0 = the compact Quake feel) |
 | `variety` | a wider spread of room sizes, extra footprints (round, hex, diamond, Z, H), domes in big rooms, spiral stairs |
 
-Presets: `compact`, `classic`, `bunker`, `fortress`, `industrial`, `compound`, `techbase` (Doom-era), `runekeep` (Quake-1 flavour), `outpost` (Quake-2 flavour), `grand` (Unreal flavour), `arena` and `duel` (deathmatch, see below), `explore`.
+Presets: `compact`, `classic`, `bunker`, `fortress`, `industrial`, `compound`, `techbase` (Doom-era), `runekeep` (Quake-1 flavour), `outpost` (Quake-2 flavour), `grand` (Unreal flavour), `arena` and `duel` (deathmatch, see below), `facility` and `complex` (Half-Life-style facilities, see below), `explore`.
 
 Presets start at `spaciousness` 0.5 (wide corridors, roomy halls); `--space 0` gives the
 original tight Quake-1 levels, byte for byte. `variety` defaults to 0, which changes nothing. Turn them up on top of any recipe from the command line:
@@ -124,6 +124,26 @@ The recipe used is saved beside every export as `<name>.recipe.json`. Without
 Presets are checked for **identity**: `fingerprint.py` describes a level as ~17
 features, and a test requires each preset to be recognisable from its fingerprint
 alone. Why things are built this way: [docs/DECISIONS.md](docs/DECISIONS.md).
+
+## Facility levels
+
+`--recipe facility` (an underground research complex: in from the surface and down, three
+storeys) and `--recipe complex` (above ground, round a loading yard) build levels in the
+Half-Life / Abiotic Factor tradition:
+
+- **Sectors**: each keycard zone is a sector of the complex (admin, research, storage,
+  maintenance, reactor); the locked doors are the checkpoints. Admin first, reactor last.
+- **Room programs**: every room has a job from its sector and size: lobby, offices, conference
+  rooms, cafeteria, labs, server rooms, storage, workshops, pump rooms, control rooms, a security
+  office for the keycard, a transit station for the exit, and one big hall per sector (atrium,
+  test chamber, warehouse, boiler hall, reactor).
+- **Blockout furniture** for the job: desks, benches, tables, consoles (32-48 units, cover you
+  see over), server racks, shelving, tanks, the reactor core (solid). Always 2-cell aisles and a
+  walkway round the walls; each piece is a named part (`room:7/server racks`) to swap for props.
+- **Vents**: some short loops are ducts 3 wide and 64 high (Quake's player is 56), with no
+  frames or chambers; tagged `corridor:N/vent`. Lifts and stairwells between storeys.
+
+`programs` and `vents` are config fields, off for every other recipe.
 
 ## Arena mode (deathmatch)
 

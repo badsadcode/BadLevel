@@ -468,6 +468,9 @@ def decorate(level: Level, rng: random.Random):
     ctxs: Dict[int, RoomCtx] = {}
     if level.config.underground:
         surface_entrance(level)
+    if getattr(level.config, "programs", False):
+        from . import programs
+        programs.assign(level)                 # facility: sectors and room programs
     sections = architecture.plan(level)        # {} without an arch_style: nothing changes
     tiers = architecture.rank_tiers(level) if sections or level.config.arch_style else {}
     # one deliberate landmark per level, in its biggest space (landmark.py)

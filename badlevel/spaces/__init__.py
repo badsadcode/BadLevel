@@ -58,6 +58,11 @@ class SpaceType:
     def decorate(self, level: Level, room: Room, ctx, rng: random.Random):
         """Pick one weighted option of internal features, then maybe crates."""
         from ..decorate import f_crates
+        prog = room.meta.get("program")
+        if prog:                                         # a facility room: furnished for its job
+            from ..programs import furnish
+            furnish(ctx, prog, rng)
+            return
         options = self.feature_options(room)
         fw = level.config.feature_weights
         if getattr(level.config, "hazards", 0.0) > 0 and room.kind in ("combat", "arena", "hub", "megaroom"):

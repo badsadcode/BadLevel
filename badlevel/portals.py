@@ -113,7 +113,8 @@ def build(level: Level, tiers: Dict[int, str]) -> int:
         if tier is None:
             continue
         rng = random.Random(f"{cfg.seed}/{cfg.variant}/portal/{room.id}")
-        opens = openings(level, room)
+        vents = {c.id for c in level.corridors if getattr(c, "vent", False)}
+        opens = [o for o in openings(level, room) if o["corridor"] not in vents]   # a duct gets no frame
         mouth_cells = {c for o in opens for c in o["cells"]}
         for op in opens:
             jambs = _jambs(level, room, op, style, taken, mouth_cells)

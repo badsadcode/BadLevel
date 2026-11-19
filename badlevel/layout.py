@@ -785,13 +785,18 @@ def build_layout(g: MissionGraph, cfg: GenConfig, rng: random.Random, seed: int)
             if _drop_fits(hi, lo, cfg) and rng.random() < cfg.drop_chance:
                 a, b, drop = hi, lo, True
         r, diag = _corridor_style(g, e, a, b, cfg, rng)
+        vent = (cfg.vents > 0 and not e.tree and e.kind == "open" and not drop
+                and not (a.is_connector or b.is_connector) and _gap(a, b) <= 14       # a short-cut, not a trek
+                and random.Random(f"{cfg.seed}/{cfg.variant}/vent/{e.id}").random() < cfg.vents)
+        if vent:
+            r, diag = 1, False                # a duct: 3 wide, straight runs, low (vent_height)
         a_port, fa = _attachment(a, b)
         b_port, fb = _attachment(b, a)
         path = floors = None
         ceils = None
         # preferred style first, then fall back to a plain narrow corridor
         for (rr, dd) in dict.fromkeys([(r, diag), (r, False), (1, False)]):
-            h = corridor_height(cfg, a, b, rr)
+            h = cfg.vent_height if vent else corridor_height(cfg, a, b, rr)
             env = (min(fa, fb), max(fa, fb) + h)
             # a level loop may cross other corridors at its own height: junctions instead of detours
             cross = fa if (not e.tree and fa == fb and not drop) else None
@@ -821,10 +826,16 @@ def build_layout(g: MissionGraph, cfg: GenConfig, rng: random.Random, seed: int)
             level.notes.append(f"loop {e.a}-{e.b} dropped")
             continue
         diag = diag and any(d[0] and d[1] for d in (_dir(path, i) for i in range(len(path) - 1)))
-        h = corridor_height(cfg, a, b, r)
+        h = cfg.vent_height if vent else corridor_height(cfg, a, b, r)
         corr = carve_corridor(level, router, e.id, a, b, path, floors, ceils, r, k, h, diag,
                               e.kind, e.key, "drop" if drop else None, env)
-        if cfg.corridor_beats and e.kind != "secret":
+        if vent:
+            corr.vent = True
+            tag = f"corridor:{corr.id}"
+            for c, os_ in level.owners.items():
+                if any(o[2] == tag for o in os_):
+                    level.part_cells.setdefault(c, f"{tag}/vent")     # the duct, to swap for a real one
+        if cfg.corridor_beats and e.kind != "secret" and not vent:
             add_beats(level, router, corr, rng)
     if cfg.storeys > 1 and cfg.galleries:
         from .openings import add_galleries

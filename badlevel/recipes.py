@@ -293,6 +293,24 @@ PRESETS: Dict[str, Recipe] = {r.name: r for r in [
                       "glazed_chance": 0.6, "tall_room_chance": 0.8, "height_scale": 1.5, "merge_chance": 0.5,
                       "mega_styles": {"terraces": 2.5, "hangar": 1.5, "works": 0.0},
                       "size_bias": {"small": 0.3, "medium": 1.0, "large": 3.0}}),
+    Recipe("facility", "An underground research facility in the Half-Life / Abiotic Factor tradition: in "
+                       "from the surface and down, sectors behind keycard checkpoints (admin, research, "
+                       "storage, maintenance, reactor), rooms with a job (offices, labs, server rooms, "
+                       "warehouses), lifts and stairwells, vents as the other way round.",
+           scale=0.8, openness=0.35, verticality=0.75, claustrophobia=0.4, combat=0.55, exploration=0.6,
+           loopiness=0.6, regularity=0.85, spaciousness=0.35,
+           overrides={"underground": True, "size_bias": {"small": 2.0, "medium": 1.5, "large": 0.6}, "storeys": 3, "keys": 2, "programs": True, "vents": 0.9,
+                      "arch_style": "industrial", "open_areas": 0, "mega_rooms": 0, "windows": 10,
+                      "glazed_chance": 0.9, "light_variety": 0.5, "diagonal_chance": 0.15,
+                      "connector_weights": {"stairs": 0.15, "stairwell": 0.35, "lift": 0.4, "ladder": 0.1}}),
+    Recipe("complex", "The facility above ground: office blocks, labs and warehouses round a loading yard, "
+                      "two storeys, keycard sectors, vents, glass everywhere.",
+           scale=0.7, openness=0.55, verticality=0.55, claustrophobia=0.25, combat=0.5, exploration=0.6,
+           loopiness=0.6, regularity=0.9, spaciousness=0.35,
+           overrides={"storeys": 2, "keys": 2, "programs": True, "size_bias": {"small": 2.0, "medium": 1.5, "large": 0.6}, "vents": 0.7, "arch_style": "bunker",
+                      "open_areas": 1, "open_buildings": 0.5, "mega_rooms": 0, "windows": 14, "glazed_chance": 0.95,
+                      "diagonal_chance": 0.1,
+                      "connector_weights": {"stairs": 0.3, "stairwell": 0.35, "lift": 0.35, "ladder": 0.0}}),
     Recipe("arena", "Deathmatch in the arena-shooter tradition: a tight circuit of rooms round a central "
                     "hall, loops everywhere and no dead ends, two storeys joined by stairs, lifts and drops, "
                     "jump pads up to high ground, the power-ups where the fights should be.",

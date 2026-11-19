@@ -97,6 +97,7 @@ class Corridor:
     beats: List[dict] = field(default_factory=list)      # chambers, alcoves, vaults along it
     height: int = 128
     diagonal: bool = False    # has 45-degree stretches
+    vent: bool = False        # a low duct (facility levels): no beats, no portal frames
 
 
 @dataclass

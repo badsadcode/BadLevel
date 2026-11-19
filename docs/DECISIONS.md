@@ -1093,3 +1093,32 @@ so it gets its own mode (`cfg.mode = "arena"`) on top of the same generator:
 
 Not yet: a mirror-symmetric option (two halves for team play / CTF); it needs the layout to be
 built for half the map and mirrored, a step of its own.
+
+## D44. Facility levels: sectors, room programs, vents
+
+The last of the classic traditions Tom asked for: Half-Life's Black Mesa and Abiotic Factor's
+underground facility. What makes those places read as real is that every room is *for*
+something, and the complex is divided into departments. Built on the campaign generator:
+- **Sectors** (`programs.py`): each lock zone is a sector; admin first (the way in), reactor
+  last (three zones or more), the middle drawn from research, storage, maintenance. The keycard
+  doors are the checkpoints between them.
+- **Programs**: start = lobby, key = security office, exit = transit, the biggest room of each
+  sector its hall (one each: atrium, test chamber, warehouse, boiler hall, reactor), the rest
+  the sector's everyday rooms that fit their size. A first version gave a sector up to seven
+  "atriums" (spaciousness makes most rooms large); then one per sector. (A name clash, too:
+  `meta["hall"]` already means a merged hall's rooms.)
+- **Furniture**: rows along the long axis with 2-cell aisles and breaks, a 2-cell walkway round
+  the walls, a 2-cell zone in front of every doorway (the features' 3-cell zone swallowed small
+  offices whole), pieces cut back to their free part rather than dropped, and smaller pieces
+  when nothing fits. Measured over 12 levels: 1 lab in 11 furnished at first, now about 85% of
+  the rooms that should have furniture have it (rooms with three doors in a small footprint stay
+  emptier, as real circulation rooms do). Low pieces 32-48 units (cover), tall ones solid.
+  Every piece is a named part.
+- **Vents**: a loop between two rooms at most 14 cells apart becomes a duct (`cfg.vents`, its
+  own random stream): 3 wide (the player box), 64 high, straight, no beats, no portal frames.
+  The first version let a vent run 60 cells across a storey: a trek, not a short-cut.
+- **Presets** `facility` (underground, 3 storeys, industrial, lifts and stairwells, glazed
+  observation windows, smaller rooms: spaciousness 0.35, small and medium sizes preferred) and
+  `complex` (above ground, 2 storeys, bunker style, a loading yard). Programs and vents add no
+  failed attempts (52 vs 67 attempts over 20 levels without them); campaign levels unchanged
+  (24 of 24 identical).
