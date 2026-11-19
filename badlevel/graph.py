@@ -266,7 +266,10 @@ def assign_storeys(g: MissionGraph, cfg: GenConfig, rng: random.Random, main: Li
             e.connector = "drop"          # decided for real in the layout (drop if it fits)
             continue
         kind = rng.choices(kinds, [weights[k] for k in kinds])[0]
-        if kind == "stairs" or e.kind == "secret":
+        packed = getattr(cfg, "packing", 0.0) >= 0.5
+        if packed and kind == "stairs":
+            kind = "stairwell"            # packed plans: doorways through walls can't climb a storey
+        if (kind == "stairs" or e.kind == "secret") and not packed:
             e.connector = "stairs"
             continue
         lo_node = g.nodes[e.a] if sa < sb else g.nodes[e.b]

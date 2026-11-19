@@ -92,7 +92,7 @@ settings. A recipe is ten dials from 0 to 1 plus optional raw overrides:
 | `spaciousness` | bigger, taller rooms, wider and higher corridors, more headroom (0 = the compact Quake feel) |
 | `variety` | a wider spread of room sizes, extra footprints (round, hex, diamond, Z, H), domes in big rooms, spiral stairs |
 
-Presets: `compact`, `classic`, `bunker`, `fortress`, `industrial`, `compound`, `techbase`, `explore`.
+Presets: `compact`, `classic`, `bunker`, `fortress`, `industrial`, `compound`, `techbase` (Doom-era), `runekeep` (Quake-1 flavour), `outpost` (Quake-2 flavour), `grand` (Unreal flavour), `explore`.
 
 Presets start at `spaciousness` 0.5 (wide corridors, roomy halls); `--space 0` gives the
 original tight Quake-1 levels, byte for byte. `variety` defaults to 0, which changes nothing. Turn them up on top of any recipe from the command line:

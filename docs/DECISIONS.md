@@ -1041,3 +1041,21 @@ the last plot a fixed-size room fits in. Measured (`--packing 1`, 4 seeds each):
 57% floor in its outline, bunker 68%, industrial 54%, all valid in 1-5 attempts; corridors are
 14-23% of the floor (connector doors face fixed sides, so some doorways go round). Opt-in for
 these presets (`--packing 1`); techbase packs by default.
+
+## D42. Classic flavours: runekeep, outpost, grand
+
+Tom: "Let's go with all the classic games out there." Three more presets in the design language
+of the 90s shooters (their habits, never their maps, names or art), built only from dials and
+overrides that already exist:
+- **runekeep** (Quake-1 flavour): a dark gothic keep with bits of base in it. Packed plan,
+  three storeys, lava, dim and uneven light, balconies and pits over tall halls, two keys,
+  terraced mega-hall, stairwells and lifts (no ladders).
+- **outpost** (Quake-2 flavour): a military-industrial base. Mostly packed, slime, glazed
+  windows, big crates, catwalks and platforms, a works or hangar mega-hall, lifts and ladders.
+- **grand** (Unreal flavour): big. Full spaciousness and variety, castle style, two yards, tall
+  rooms (1.5x height), many windows, merged halls, large rooms preferred.
+
+One fix came with them: in a packed plan a storey change can't be a stair corridor (the doorway
+passage through a 3-cell wall can't climb a storey), so it becomes a stairwell; secret edges
+keep their level doorway. Runekeep went from 7-36 attempts to 1-8, outpost builds first time.
+Other presets unchanged (24 of 24 levels identical).
