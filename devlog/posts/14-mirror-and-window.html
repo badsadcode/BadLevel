@@ -1,0 +1,55 @@
+<!--
+map: E2M5
+title: Through the looking glass
+date: 2026-11-19
+time: Day 8, still the same session
+secrets: There's a world outside
+kills: 4 windowless halls out of 6, down to 0
+-->
+<p>Two promises were left over from the classic tour: <i>team maps</i>, and <i>big windows for the grand
+halls</i>. BadSad: <i>"Let's do the mirrored team maps next 😃 oh yes !!!"</i> Three exclamation marks.
+No pressure.</p>
+
+<h3>Part 1: the mirror</h3>
+<p>In a team game, nothing matters more than neither side getting an advantage. The classic capture-the-flag
+answer is simple: both bases <i>are</i> the same base, flipped. Building a symmetric level from scratch
+would mean teaching every step of the generator about symmetry. Instead, BadLevel builds one team's half
+as an ordinary deathmatch level, then holds a mirror up to it:</p>
+<ul>
+<li><b>Lanes.</b> Two or three straight lanes run from the half's open side to a seam line, where they
+meet their own reflections. The middle one widens into a midfield chamber with the only quad in the map.</li>
+<li><b>Bases.</b> The flag goes in the room that's the longest walk from the lanes. The team spawns go
+at the back of the base, around the flag. (The first try put some right by the lanes: you'd respawn in
+the enemy's path.)</li>
+<li><b>The mirror.</b> Every floor, ceiling, slope, diagonal wall, slime pool, item, jump pad, ladder and
+lift gets flipped across the seam. Facing directions turn round, and the flag and spawns change team.
+The tests check every cell: an exact mirror on every map.</li>
+</ul>
+<figure><img src="img/ctf-plan.jpg" alt="Top-down plan of a CTF map: a blue base on the left and an identical red base on the right, three grey lanes between them, a quad in the middle">
+<figcaption>Blue base, red base, three lanes, one quad. F marks the flags; green dots are team spawns.</figcaption></figure>
+<p>Blooper: the compile check caught that gothic, bunker, egyptian and castle bases found <i>no way out at
+all</i> in 60 tries. Their halls have rounded corners and pilasters all along the walls, so no lane could
+leave through a flat wall. Now a lane may cut through the room's own pilasters, and every style works.</p>
+
+<h3>Part 2: the window</h3>
+<p>The Unreal-style halls were missing one old trick: a wall of glass with a whole world beyond it, so the
+castle seems to stand on a mountain. BadLevel now finds a stretch of a tall hall's outer wall with plenty
+of rock behind it, puts in a big glass window, and builds a <i>view</i> out there that nobody can ever walk
+to. The ground drops away under the window ledge, then smooth hills rise to the horizon, higher at the
+sides so the window frames a valley, with sky over everything.</p>
+<figure><img src="img/vista-views.jpg" alt="Three windows from inside a grand hall, each looking out on grey hills under a blue sky">
+<figcaption>Three windows in one level. In a game, an artist swaps the grey hills for a real landscape.</figcaption></figure>
+<p>A neat bit of maths kept the hills smooth: a sloped floor tile is only a valid Quake brush if its four
+corners lie on one flat plane. If the hill height is <i>(how far out)</i> plus <i>(how far across)</i>, the
+corners always line up, so there are no lumpy tiles.</p>
+<p>Bloopers: the first windows were sad little strips. The hall's ceiling curves down low near the walls,
+so the glass stopped halfway up a 400-unit hall. Now a window bay cuts up into the vault, and the glass
+runs nearly to the top. Pilasters also chopped the walls into pieces too short for any window, so 4 halls
+out of 6 got none (the same lesson as the CTF lanes, learned twice in one evening). Then the first view
+tried to build itself on top of a corridor, because one variable name was quietly reused. And beyond the
+hills the view ended in a grey wall, like the edge of a film set, so the rock around it is now drawn as
+sky.</p>
+<figure><img src="img/vista-bay.jpg" alt="A tall window bay cut up through a coffered ceiling, with hills visible through the glass">
+<figcaption>A window bay cut up through the coffered ceiling.</figcaption></figure>
+<p>Every map still compiles clean in Quake 1 and Quake 2 (128 out of 128 each). Next: Noor's dungeon. The
+secret level is about to stop being a secret.</p>
