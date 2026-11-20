@@ -195,7 +195,8 @@ function showStats(res) {
     ['Keys', st.keys], ['Doors', st.doors], ['Secrets', st.secrets], ['Lights', st.lights],
     ['Size (m)', st.size_m], ['Time', res.ms + ' ms'],
   ];
-  $('stats').innerHTML = rows.map(([k, v]) => `<div><span>${k}</span><b>${v}</b></div>`).join('');
+  if (res.recipe && res.recipe.startsWith('surprise')) rows.unshift(['Recipe', res.recipe.replace('surprise: ', '')]);
+  $('stats').innerHTML = rows.map(([k, v]) => `<div${k === 'Recipe' ? ' style="grid-column: 1 / -1"' : ''}><span>${k}</span><b>${v}</b></div>`).join('');
   for (const s of info.settings) {
     if (!(s.name in pinned)) setCtl[s.name].set(res.settings[s.name]);
   }

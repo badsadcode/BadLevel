@@ -76,6 +76,10 @@ namespace NoorLevel.Preview
             {
                 ["name"] = r.Name, ["description"] = r.Description,
                 ["dials"] = Recipe.Dials.ToDictionary(d => d, d => (object)r.Get(d)),
+            }).Append(new Dictionary<string, object>
+            {
+                ["name"] = "surprise", ["description"] = "A preset drawn by the seed, with a roll for extras on top (another architecture style, water, torches, vistas, a deathmatch). Same seed, same surprise. The dials don't apply.",
+                ["dials"] = Recipe.Dials.ToDictionary(d => d, d => (object)Recipes.Presets["classic"].Get(d)),
             }).ToList(),
             ["settings"] = Settings.Select(s => new Dictionary<string, object> { ["name"] = s.Name, ["label"] = s.Label, ["min"] = s.Min, ["max"] = s.Max, ["step"] = s.Step }).ToList(),
             ["formats"] = Exporters.Formats.Select(f => new Dictionary<string, object> { ["id"] = f.Id, ["label"] = f.Label, ["ext"] = f.Extension, ["description"] = f.Description }).ToList(),
@@ -85,12 +89,24 @@ namespace NoorLevel.Preview
 
         public static GenConfig ConfigFrom(Dictionary<string, object> req)
         {
-            string preset = req.TryGetValue("preset", out var p) && p is string ps && Recipes.Presets.ContainsKey(ps) ? ps : "classic";
             int seed = (int)(Num(req, "seed") ?? 1);
-            var recipe = Recipes.Presets[preset].Copy();
-            if (req.TryGetValue("dials", out var dv) && dv is Dictionary<string, object> dials)
-                foreach (var d in Recipe.Dials) { var v = Num(dials, d); if (v != null) recipe.Set(d, v.Value); }
-            var cfg = Recipes.Compile(recipe, seed);
+            GenConfig cfg;
+            if (req.TryGetValue("preset", out var sp) && sp as string == "surprise")
+            {
+                // a preset drawn by the seed and extras on top (recipes.surprise); the dials don't apply
+                var (rec, extras, label) = Recipes.Surprise(seed);
+                cfg = Recipes.Compile(rec, seed);
+                Recipes.SetFields(cfg, extras);
+                cfg.Recipe = label;
+            }
+            else
+            {
+                string preset = req.TryGetValue("preset", out var p) && p is string ps && Recipes.Presets.ContainsKey(ps) ? ps : "classic";
+                var recipe = Recipes.Presets[preset].Copy();
+                if (req.TryGetValue("dials", out var dv) && dv is Dictionary<string, object> dials)
+                    foreach (var d in Recipe.Dials) { var v = Num(dials, d); if (v != null) recipe.Set(d, v.Value); }
+                cfg = Recipes.Compile(recipe, seed);
+            }
             var st = req.TryGetValue("settings", out var sv) ? sv as Dictionary<string, object> : null;
             if (Num(st, "main_rooms") is double mr) cfg.MainRooms = (int)mr;
             if (Num(st, "side_rooms") is double sr) cfg.SideRooms = (int)sr;
@@ -133,6 +149,7 @@ namespace NoorLevel.Preview
             v["id"] = id;
             v["ms"] = ms;
             v["settings"] = SettingsOf(cfg);
+            v["recipe"] = cfg.Recipe;
             return ApiResponse.JsonOf(v);
         }
 
