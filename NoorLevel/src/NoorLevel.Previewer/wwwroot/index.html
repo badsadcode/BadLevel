@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NoorLevel Previewer</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">
+    { "imports": { "three": "./vendor/three.module.min.js", "three/addons/": "./vendor/addons/" } }
+  </script>
+</head>
+<body>
+  <aside id="panel">
+    <header>
+      <h1>Noor<span>Level</span></h1>
+      <p class="sub">procedural level blockouts</p>
+    </header>
+
+    <section>
+      <label class="row">
+        <span>Preset</span>
+        <select id="preset"></select>
+      </label>
+      <p id="presetDesc" class="desc"></p>
+      <div class="row seedrow">
+        <span>Seed</span>
+        <button id="seedPrev" title="Previous seed">‹</button>
+        <input id="seed" type="number" value="1" min="1" step="1">
+        <button id="seedNext" title="Next seed">›</button>
+        <button id="seedDice" title="Random seed">🎲</button>
+      </div>
+      <div class="buttons">
+        <button id="generate" class="primary">Generate <kbd>G</kbd></button>
+        <button id="newLevel">New level <kbd>N</kbd></button>
+      </div>
+      <label class="check"><input id="auto" type="checkbox" checked> Regenerate when a slider changes</label>
+    </section>
+
+    <section>
+      <h2>Dials <button id="resetDials" class="link">reset</button></h2>
+      <div id="dials"></div>
+    </section>
+
+    <details id="advanced">
+      <summary>Parameters</summary>
+      <p class="desc">Values the preset and dials give. Move one to pin it (<b>●</b>); click ● to unpin.</p>
+      <div id="settings"></div>
+      <label class="check"><input id="secret" type="checkbox" checked> Secret room</label>
+    </details>
+
+    <section>
+      <h2>Level</h2>
+      <div id="stats" class="stats">—</div>
+    </section>
+
+    <section>
+      <h2>Export</h2>
+      <div id="formats" class="formats"></div>
+      <p id="exportMsg" class="desc"></p>
+    </section>
+  </aside>
+
+  <main id="view">
+    <canvas id="c"></canvas>
+    <div id="toolbar">
+      <button id="modeOrbit" class="on">Orbit</button>
+      <button id="modeWalk">Walk <kbd>Tab</kbd></button>
+      <button id="toggleMap" class="on" title="Minimap (M)">Map</button>
+      <button id="toggleRoof" class="on" title="Hide ceilings in orbit view (C)">Cut ceilings</button>
+    </div>
+    <canvas id="minimap" width="220" height="220"></canvas>
+    <div id="hint"></div>
+    <div id="banner" class="hidden"></div>
+    <div id="busy" class="hidden"><div class="spin"></div><span>Generating…</span></div>
+    <div id="crosshair" class="hidden">+</div>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The generator as a library: no dependencies, usable from .NET 8 apps and from engines on
+       .NET Standard 2.1 (Unity, Godot, ...). -->
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.1;net8.0</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <RootNamespace>NoorLevel</RootNamespace>
+    <AssemblyName>NoorLevel</AssemblyName>
+    <Version>0.1.0</Version>
+    <Description>NoorLevel: procedural FPS level blockouts (the C# home of BadLevel).</Description>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+</Project>

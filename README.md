@@ -28,6 +28,12 @@ seed + config
  Level IR (JSON) ──► .map (Quake/TrenchBroom) · .glb · .html preview · .analysis.json
 ```
 
+## NoorLevel (C#)
+
+BadLevel's core now also lives on as **NoorLevel**: a dependency-free .NET library, a command line
+tool and a Windows previewer app (WebView2) where you generate, tweak with sliders, walk around and
+export to Quake 1/2, Valve 220, glTF, OBJ, STL, JSON and SVG. See [NoorLevel/README.md](NoorLevel/README.md).
+
 ## Live preview
 
 Every push runs the tests, generates fresh levels with the current code and publishes
