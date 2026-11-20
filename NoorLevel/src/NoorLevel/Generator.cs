@@ -35,6 +35,7 @@ namespace NoorLevel
                     Floods.AddFloods(level);               // flooded crypts and sumps (cfg.Floods, cfg.Sumps)
                     if (cfg.Mirror)
                         level = Mirror.MakeTeamMap(level); // team map: this half, lanes, and its mirror image
+                    level.Sky.RemoveWhere(c => !level.Spans.ContainsKey(c));   // (a neighbour's wall member filled a yard's edge cell)
                 }
                 catch (LayoutException e)
                 {

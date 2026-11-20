@@ -142,7 +142,7 @@ public class PreviewApiTests
     public void InfoListsPresetsDialsFormats()
     {
         var info = PreviewApi.Info();
-        Assert.Equal(Recipes.Presets.Count, ((System.Collections.IList)info["presets"]).Count);
+        Assert.Equal(Recipes.Presets.Count + 1, ((System.Collections.IList)info["presets"]).Count);   // + surprise
         Assert.Equal(10, ((string[])info["dials"]).Length);
         Assert.True(((System.Collections.IList)info["formats"]).Count >= 9);
     }
