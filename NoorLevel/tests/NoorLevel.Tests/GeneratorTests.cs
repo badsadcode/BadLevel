@@ -21,7 +21,8 @@ public class GeneratorTests
         var level = Generator.Generate(preset, seed);
         Assert.True(level.Report.Ok, string.Join("; ", level.Report.Errors));
         Assert.Single(level.Entities, e => e.Kind == "player_start");
-        Assert.Contains(level.Entities, e => e.Kind == "exit");
+        if (level.Config.Mode == "arena") Assert.True(level.Entities.Count(e => e.Kind == "spawn") >= 2);   // deathmatch: spawns, no exit
+        else Assert.Contains(level.Entities, e => e.Kind == "exit");
     }
 
     [Fact]

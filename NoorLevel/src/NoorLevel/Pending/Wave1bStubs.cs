@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Collections.Generic;
 
 // STUBS for modules ported in wave 2, called by Decorate.cs, Recipes.cs and Validate.cs. Each is a
@@ -86,6 +87,10 @@ namespace NoorLevel
                 level.Entities.Add(new Entity("spawn", Decorate.At(level, r, c.Value, zOff: 32.0)).With("angle", 0).With("room", r.Id));
                 n++;
             }
+            // arena.py: a player_start on the first spawn too (engines and tools want one)
+            level.Entities.RemoveAll(e => e.Kind == "player_start");
+            var first = level.Entities.FirstOrDefault(e => e.Kind == "spawn");
+            if (first != null) level.Entities.Add(new Entity("player_start", first.Pos).With("angle", 0));
         }
     }
 }

@@ -61,7 +61,7 @@ public class LayoutTests
     [InlineData("hub"), InlineData("central"), InlineData("linear")]
     public void CompositionsBuild(string comp)
     {
-        var level = Generator.Generate("classic", 4, r => r.Overrides = c => c.Composition = comp);
+        var level = Generator.Generate("classic", 4, r => r.Overrides["composition"] = comp);
         Assert.True(level.Report.Ok);
     }
 
@@ -101,16 +101,17 @@ public class LayoutTests
     {
         for (int seed = 1; seed <= 3; seed++)
         {
-            var level = Generator.Generate("classic", seed, r => r.Overrides = c =>
+            var level = Generator.Generate("classic", seed, r =>
             {
+                var o = r.Overrides;
                 switch (lever)
                 {
-                    case "beat_shapes": c.BeatShapes = 1.0; c.BeatSpacing = 10; break;
-                    case "diagonal_pull": c.DiagonalPull = 1.0; c.DiagonalChance = 0.8; break;
-                    case "pacing_contrast": c.PacingContrast = true; c.OpenAreas = 1; break;
-                    case "vents": c.Vents = 1.0; c.Loops = 4; break;
-                    case "yard_setback": c.YardSetback = 3; c.OpenAreas = 1; break;
-                    case "merge": c.MergeChance = 1.0; c.MaxHallRooms = 4; break;
+                    case "beat_shapes": o["beat_shapes"] = 1.0; o["beat_spacing"] = 10; break;
+                    case "diagonal_pull": o["diagonal_pull"] = 1.0; o["diagonal_chance"] = 0.8; break;
+                    case "pacing_contrast": o["pacing_contrast"] = true; o["open_areas"] = 1; break;
+                    case "vents": o["vents"] = 1.0; o["loops"] = 4; break;
+                    case "yard_setback": o["yard_setback"] = 3; o["open_areas"] = 1; break;
+                    case "merge": o["merge_chance"] = 1.0; o["max_hall_rooms"] = 4; break;
                 }
             });
             Assert.True(level.Report.Ok);

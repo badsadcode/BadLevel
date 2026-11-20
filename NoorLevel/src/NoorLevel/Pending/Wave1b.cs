@@ -4,83 +4,37 @@ using System.Linq;
 
 namespace NoorLevel
 {
-    // STUB (wave 1b)
-    // decorate.py helpers the space types call, which the Decorate class doesn't expose yet (it is being
-    // ported in parallel). TODO(wave 1b): once Decorate.cs has them, replace every DecorateStubs.X with
-    // Decorate.X (callers: Spaces/SpaceType.cs, Spaces/Room.cs, Spaces/Corridor.cs) and delete this file.
+    /// <summary>The decorate.py helpers as the space types call them (Func-typed features), forwarding
+    /// to <see cref="Decorate"/>.</summary>
     static class DecorateStubs
     {
-        // features (decorate.f_*): no-ops here
-        public static bool FHazard(RoomCtx ctx, Rng rng) => false;
-        public static bool FChasm(RoomCtx ctx, Rng rng) => false;
-        public static bool FTower(RoomCtx ctx, Rng rng) => false;
-        public static bool FPillars(RoomCtx ctx, Rng rng) => false;
-        public static bool FCrates(RoomCtx ctx, Rng rng) => false;
+        public static bool FHazard(RoomCtx ctx, Rng rng) => Decorate.FHazard(ctx, rng);
+        public static bool FChasm(RoomCtx ctx, Rng rng) => Decorate.FChasm(ctx, rng);
+        public static bool FTower(RoomCtx ctx, Rng rng) => Decorate.FTower(ctx, rng);
+        public static bool FPillars(RoomCtx ctx, Rng rng) => Decorate.FPillars(ctx, rng);
+        public static bool FCrates(RoomCtx ctx, Rng rng) => Decorate.FCrates(ctx, rng);
 
-        // decorate.FEATURES_BY_KIND / CRATE_CHANCE
+        // keep the feature's name (the weight key) when it travels as a Func
+        static readonly Dictionary<Func<RoomCtx, Rng, bool>, string> Names = new Dictionary<Func<RoomCtx, Rng, bool>, string>();
         public static readonly Dictionary<string, List<List<Func<RoomCtx, Rng, bool>>>> FeaturesByKind =
-            new Dictionary<string, List<List<Func<RoomCtx, Rng, bool>>>>();
-        public static readonly Dictionary<string, double> CrateChance = new Dictionary<string, double>();
+            Decorate.FeaturesByKind.ToDictionary(kv => kv.Key,
+                kv => kv.Value.Select(opt => opt.Select(f => Wrap(f)).ToList()).ToList());
+        public static readonly Dictionary<string, double> CrateChance = Decorate.CrateChance;
 
-        // getattr(ctx, "pedestal", None)
-        public static List<Cell> Pedestal(RoomCtx ctx) => null;
-
-        // decorate._door_entity
-        public static Entity DoorEntity(Level level, Corridor corr, string kind) => null;
-
-        // decorate._nearest_open
-        public static Cell NearestOpen(Level level, Room room, double fx, double fy, bool single = false) =>
-            room.Cells().Where(c => !level.Diag.ContainsKey(c) && level.RoomSpans(c, room).Count > 0
-                                    && (!single || level.RoomSpans(c, room).Count == 1))
-                .OrderBy(c => Math.Pow(c.X + 0.5 - fx, 2) + Math.Pow(c.Y + 0.5 - fy, 2)).First();
-
-        // decorate._flat_cell
-        public static bool FlatCell(Level level, Room room, Cell c)
+        static Func<RoomCtx, Rng, bool> Wrap(Decorate.Feature f)
         {
-            var spans = level.RoomSpans(c, room);
-            return spans.Count == 1 && spans[0].Floor == room.Floor && !level.Diag.ContainsKey(c) && room.Contains(c);
+            Func<RoomCtx, Rng, bool> g = (c, r) => f(c, r);
+            Names[g] = Decorate.FeatureName(f);
+            return g;
         }
+        public static string NameOf(Func<RoomCtx, Rng, bool> f) => Names.TryGetValue(f, out var n) ? n : null;
 
-        // decorate._flat_block
-        public static List<Cell> FlatBlock(RoomCtx ctx, double fx, double fy, ICollection<Cell> avoid = null)
-        {
-            List<Cell> best = null; double bestD = 0;
-            foreach (var c in ctx.Room.Cells())
-            {
-                var cells = new List<Cell> { c, c.Offset(1, 0), c.Offset(0, 1), c.Offset(1, 1) };
-                if (cells.All(x => FlatCell(ctx.Level, ctx.Room, x) && (avoid == null || !avoid.Contains(x))))
-                {
-                    double d = Math.Pow(c.X + 1 - fx, 2) + Math.Pow(c.Y + 1 - fy, 2);
-                    if (best == null || d < bestD) { best = cells; bestD = d; }
-                }
-            }
-            return best;
-        }
-
-        // decorate._pick_free
-        public static Cell? PickFree(RoomCtx ctx, Rng rng, HashSet<Cell> taken, bool floorOnly = true)
-        {
-            var r = ctx.Room;
-            var cands = new List<Cell>();
-            foreach (var c in r.Cells())
-            {
-                var spans = ctx.Level.RoomSpans(c, r);
-                if (spans.Count != 1 || taken.Contains(c) || ctx.Clear.Contains(c) || ctx.Level.Diag.ContainsKey(c)) continue;
-                if (floorOnly && spans[0].Floor != r.Floor) continue;
-                cands.Add(c);
-            }
-            if (cands.Count == 0) return null;
-            var pick = rng.Choice(cands);
-            taken.Add(pick);
-            return pick;
-        }
-
-        // decorate._at
-        public static Vec3 At(Level level, Room room, Cell c, bool top = false, double zOff = 24.0)
-        {
-            var spans = level.RoomSpans(c, room);
-            int f = top ? spans[spans.Count - 1].Floor : spans[0].Floor;
-            return new Vec3((c.X + 0.5) * level.CellSize, (c.Y + 0.5) * level.CellSize, f + zOff);
-        }
+        public static List<Cell> Pedestal(RoomCtx ctx) => ctx.Pedestal;
+        public static Entity DoorEntity(Level level, Corridor corr, string kind) => Decorate.DoorEntity(level, corr, kind);
+        public static Cell NearestOpen(Level level, Room room, double fx, double fy, bool single = false) => Decorate.NearestOpen(level, room, fx, fy, single);
+        public static bool FlatCell(Level level, Room room, Cell c) => Decorate.FlatCell(level, room, c);
+        public static List<Cell> FlatBlock(RoomCtx ctx, double fx, double fy, ICollection<Cell> avoid = null) => Decorate.FlatBlock(ctx, fx, fy, avoid);
+        public static Cell? PickFree(RoomCtx ctx, Rng rng, HashSet<Cell> taken, bool floorOnly = true) => Decorate.PickFree(ctx, rng, taken, floorOnly);
+        public static Vec3 At(Level level, Room room, Cell c, bool top = false, double zOff = 24.0) => Decorate.At(level, room, c, top, zOff);
     }
 }

@@ -55,6 +55,8 @@ namespace NoorLevel
         /// <summary>"f_pillars" -> "pillars": a feature's key in feature_weights (FPillars -> pillars).</summary>
         internal static string FeatureName(Func<RoomCtx, Rng, bool> f)
         {
+            var known = DecorateStubs.NameOf(f);                  // a decorate feature carried as a Func: "f_tower"
+            if (known != null) return known.StartsWith("f_") ? known.Substring(2) : known;
             string n = f.Method.Name;
             if (n.Length > 1 && n[0] == 'F' && char.IsUpper(n[1])) n = n.Substring(1);
             return n.ToLowerInvariant();
@@ -73,7 +75,6 @@ namespace NoorLevel
             var options = FeatureOptions(room).ToList();
             var fw = cfg.FeatureWeights;
             string k = room.Kind;
-            // TODO(wave 1b): DecorateStubs.* -> Decorate.* once decorate.py is ported
             if (cfg.Hazards > 0 && (k == "combat" || k == "arena" || k == "hub" || k == "megaroom"))
                 options.Add(new List<Func<RoomCtx, Rng, bool>> { DecorateStubs.FHazard });        // a slime or lava pool
             if (cfg.Chasms > 0 && (k == "combat" || k == "arena" || k == "hub"))
