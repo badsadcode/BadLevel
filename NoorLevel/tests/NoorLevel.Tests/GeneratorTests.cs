@@ -56,7 +56,8 @@ public class GeneratorTests
         foreach (var kv in level.Spans)
             for (int i = 0; i < kv.Value.Count; i++)
             {
-                Assert.True(kv.Value[i].Height >= level.Config.PlayerHeight);
+                if (!(level.OwnerOf(kv.Key, kv.Value[i]) ?? "").StartsWith("window:"))   // slits are 48 tall by design
+                    Assert.True(kv.Value[i].Height >= level.Config.PlayerHeight);
                 if (i > 0) Assert.True(kv.Value[i].Floor > kv.Value[i - 1].Ceil);
             }
     }
