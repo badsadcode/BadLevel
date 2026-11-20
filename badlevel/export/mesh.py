@@ -147,6 +147,9 @@ def build_mesh(level: Level) -> MeshBuilder:
         if (x, y) in fslopes and not corner:
             mb.part = part_of(level, (x, y), spans[0], "floor")
             _sloped_floor(mb, level, x, y)
+        S = level.water.get((x, y))
+        if S is not None and S < spans[0][1]:                  # a water surface (with air above it)
+            flats.setdefault(("water", "water", S), set()).add((x, y))
         for (f, c) in spans:
             if not corner:
                 if not ((x, y) in fslopes and (f, c) == spans[0]):
@@ -182,7 +185,7 @@ def build_mesh(level: Level) -> MeshBuilder:
 
     for (part, mat, z), cells in flats.items():
         mb.part = part
-        n = (0, 0, 1) if mat == "floor" or mat.startswith("hazard") else (0, 0, -1)   # (a hazard pool is a floor)
+        n = (0, 0, 1) if mat in ("floor", "water") or mat.startswith("hazard") else (0, 0, -1)   # (a hazard pool is a floor)
         for (x0, y0, x1, y1) in greedy_rects(cells):
             X0, Y0, X1, Y1 = x0 * s, y0 * s, x1 * s, y1 * s
             mb.quad(mat, [(X0, Y0, z), (X1, Y0, z), (X1, Y1, z), (X0, Y1, z)], n,

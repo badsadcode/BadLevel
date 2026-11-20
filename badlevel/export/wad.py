@@ -31,6 +31,7 @@ TEXTURES: Dict[str, Tuple[Tuple[int, int], int, int, str]] = {
     # (glowing) orange and yellow; the Quake 2 .wal versions stay grey (its palette is ordered differently)
     "*slime0": ((64, 64), 54, 50, "grid"),
     "*lava1": ((64, 64), 247, 244, "grid"),
+    "*water0": ((64, 64), 214, 210, "grid"),       # blues (Quake 1: 208-223)
 }
 
 
@@ -88,7 +89,7 @@ def write_wad(path: str):
 # starts with a 16-step grey ramp, so the same indices give the same greys.
 Q2_NAMES = {"bl_floor": "floor", "bl_wall": "wall", "bl_ceiling": "ceiling", "bl_door": "door",
             "bl_glass": "glass", "trigger": "trigger", "bl_lift": "lift", "bl_ladder": "ladder", "sky1": "sky",
-            "*slime0": "slime", "*lava1": "lava"}
+            "*slime0": "slime", "*lava1": "lava", "*water0": "water"}
 
 
 def make_wal(name: str) -> bytes:
@@ -96,7 +97,7 @@ def make_wal(name: str) -> bytes:
     and the 4 mip levels."""
     size, base, line, pattern = TEXTURES[name]
     if name.startswith("*"):
-        base, line = (4, 2) if "slime" in name else (14, 12)
+        base, line = (4, 2) if "slime" in name else (7, 5) if "water" in name else (14, 12)
     w, h = size
     px = _pixels(size, base, line, pattern)
     mips = [_mip(px, w, h, f) for f in (1, 2, 4, 8)]

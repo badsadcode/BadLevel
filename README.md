@@ -142,6 +142,22 @@ catacombs and the deep, in castle stone.
 
 `chasms`, `torches`, `skylights`, `traps` and `program_set: "dungeon"` work in any config.
 
+## Water: flooded rooms and sumps
+
+Two kinds of water, because they play differently:
+
+- **Wading** (`--floods X`, a chance per room; in a dungeon, its crypts, cells and shrines): the
+  room fills to 32 units (under the player's eyes, so nobody drowns walking). The water spreads
+  through doorways and level corridors at one height and stops where the floor rises: a natural
+  shore. No floor changes, so every route stays walkable. Furniture sticks out of it.
+- **Swimming** (`--sumps X`, a chance per corridor): a straight, level corridor dips five steps
+  into water, with no air along the bottom, and climbs out again. The checker knows about breath:
+  every stretch without air must be at most 14 cells, or the level is rejected.
+
+Quake 1 gets `*water0` volumes, Quake 2 water `.wal`s (warping, see-through), the glTF a
+translucent surface. The dungeon preset floods by default; `--floods`/`--sumps` add water to any
+recipe.
+
 ## Vistas: big windows onto the world outside
 
 `grand` halls get **vistas** (`vistas` in a config, 3 in the grand preset, 0 elsewhere): a wall

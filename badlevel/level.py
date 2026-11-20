@@ -145,6 +145,8 @@ class Level:
     # hazard pools (slime, lava): cell -> liquid kind; a shallow sunken floor, one step down, so
     # walkable and never a trap; exporters make a liquid where the game has one
     hazard: Dict[Cell, str] = field(default_factory=dict)
+    # water (floods.py): cell -> the water's surface height over the cell's lowest span
+    water: Dict[Cell, int] = field(default_factory=dict)
     # named parts, so an artist can find and replace an element ("room:5/vault", "room:7/building 1"):
     #   part_solid    solid cells that are an element (piers, members, jambs, building walls)
     #   part_cells    open cells that are an element (niches, building interiors, portal mouths)

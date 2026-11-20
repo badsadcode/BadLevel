@@ -317,7 +317,7 @@ PRESETS: Dict[str, Recipe] = {r.name: r for r in [
            scale=0.7, openness=0.35, verticality=0.6, claustrophobia=0.55, combat=0.75, exploration=0.85,
            loopiness=0.45, regularity=0.7, spaciousness=0.3,
            overrides={"underground": True, "storeys": 2, "keys": 2, "programs": True, "program_set": "dungeon",
-                      "arch_style": "castle", "torches": True, "chasms": 1.5, "skylights": 0.3, "traps": 0.5,
+                      "arch_style": "castle", "torches": True, "chasms": 1.5, "skylights": 0.3, "traps": 0.5, "floods": 0.5, "sumps": 0.8,
                       "windows": 2, "glazed_chance": 0.0, "open_areas": 0, "mega_rooms": 0, "diagonal_chance": 0.1,
                       "light_variety": 0.4, "crate_scale": 0.5, "tall_room_chance": 0.5,
                       "size_bias": {"small": 1.5, "medium": 1.5, "large": 0.8},

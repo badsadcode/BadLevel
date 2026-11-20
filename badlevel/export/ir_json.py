@@ -41,6 +41,8 @@ def to_dict(level: Level, include_spans: bool = True) -> dict:
         d["sky"] = [list(c) for c in sorted(level.sky)]
         if level.hazard:       # hazard pools: [x, y, "slime" | "lava"] (the floor is one step down)
             d["hazards"] = [[x, y, k] for (x, y), k in sorted(level.hazard.items())]
+        if level.water:
+            d["water"] = [[x, y, S] for (x, y), S in sorted(level.water.items())]
         if level.floor_slope:  # ramps, battered bases: corner heights of a bottom span's floor
             d["floor_slopes"] = [[x, y, *z] for (x, y), z in sorted(level.floor_slope.items())]
         if level.ceil_slope:   # smooth vaults: corner heights (x0y0, x1y0, x1y1, x0y1) of a top span's ceiling

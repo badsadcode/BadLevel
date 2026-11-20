@@ -35,6 +35,7 @@ MATERIALS = {
     "hazard_slime": ("bl_slime", [0.35, 0.85, 0.20, 1.0]),
     "hazard_lava": ("bl_lava", [0.95, 0.35, 0.08, 1.0]),
     "hazard_spikes": ("bl_spikes", [0.45, 0.12, 0.10, 1.0]),
+    "water": ("bl_water", [0.22, 0.45, 0.70, 0.50]),
 }
 
 
@@ -129,6 +130,8 @@ def to_glb(level: Level) -> bytes:
     glb = _Glb()
     materials, mat_index = [], {}
     for key, (name, color) in MATERIALS.items():
+        if (key == "water" and not level.water) or (key == "hazard_spikes" and "spikes" not in level.hazard.values()):
+            continue                                   # only when used: a dry level's .glb is as it was
         m = {"name": name, "pbrMetallicRoughness": {"baseColorFactor": color, "metallicFactor": 0.0,
                                                     "roughnessFactor": 0.9}}
         if color[3] < 1:

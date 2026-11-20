@@ -36,6 +36,8 @@ def generate(cfg: GenConfig = None, **overrides) -> Level:
             add_vistas(level)                    # grand halls: a wall of glass onto a landscape (cfg.vistas)
             widen_pinches(level)                 # the player is a box: no 32-unit squeezes
             make_ramps(level)                    # stair corridors as smooth ramps (cfg.ramps)
+            from .floods import add_floods
+            add_floods(level)                    # flooded crypts and sumps (cfg.floods, cfg.sumps)
             if getattr(cfg, "mirror", False):
                 from .mirror import make_team_map
                 level = make_team_map(level)     # team map: this half, lanes, and its mirror image

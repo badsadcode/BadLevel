@@ -158,6 +158,9 @@ def _validate_arena(level: Level, start: Node, links, by_kind, errors: List[str]
     unreached = _rooms_unreached(level, reach)
     if unreached:
         errors.append(f"rooms unreachable: {unreached}")
+    if level.water:
+        from .floods import breath_report                # every swim on one breath
+        errors += breath_report(level)
     if not errors and getattr(level.config, "check_clearance", True):
         from .clearance import clearance_report
         errors += clearance_report(level)
@@ -259,6 +262,9 @@ def validate(level: Level) -> Dict[str, object]:
             unreached.append(room.id)
     if unreached:
         errors.append(f"rooms unreachable: {unreached}")
+    if level.water:
+        from .floods import breath_report                # every swim on one breath
+        errors += breath_report(level)
     if not errors and getattr(level.config, "check_clearance", True):
         from .clearance import clearance_report       # the player is a box, not a point
         errors += clearance_report(level)

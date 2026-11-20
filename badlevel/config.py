@@ -30,6 +30,8 @@ class GenConfig:
     chasms: float = 0.0          # weight of chasm bridges among room features: a spiked pit, a 2-cell bridge
     skylights: float = 0.0       # weight of grates open to the sky (a shaft of light) among room features
     torches: bool = False        # wall torches instead of ceiling lights (dungeons)
+    floods: float = 0.0          # chance a crypt floods: wading water that spreads to a natural shore
+    sumps: float = 0.0           # chance a level corridor inside a flood dips under the water (a swim)
     traps: float = 0.0           # chance a corridor gets a trap marker (blade, darts, spikes)
     program_set: str = "facility"   # the rooms' jobs when programs is on: facility | dungeon
     programs: bool = False       # facility: sectors per lock zone, rooms with a job and its furniture (programs.py)

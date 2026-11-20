@@ -1203,3 +1203,30 @@ onto what exists (galleries and balconies, portals, castle style, room programs)
   hall, throne room (dais). Big crypts, guardrooms and halls sometimes get a chasm of their own.
 - Preset `dungeon`: underground, 2 storeys, castle, 2 keys, stairs, stairwells and spiral
   stairs (no lifts), little glass. 23 attempts over 8 levels; other presets unchanged.
+
+## D48. Water: wading floods and sumps (Noor's flooded crypt)
+
+Noor's next idea: a flooded crypt with partly submerged corridors. Wading and swimming play
+differently, so they are two features, and the checker learns the difference (`floods.py`):
+- **Wading** (`cfg.floods`): a room's water surface at floor + 32 (WADE; a Quake player's eyes are
+  46 above the feet, so walking never drowns). The water floods outward like water: through
+  openings to every cell whose floor is under the surface, at one height; it stops where the
+  floor rises (a shore). It may not reach a hazard or a floor 160+ under the surface (a pit, a
+  chasm), or spread past 900 cells (a lake): then that room stays dry. No floor changes: routes,
+  validation and clearance are untouched. `level.water`: cell -> surface height.
+- **Sumps** (`cfg.sumps`): a straight, level window of a corridor dips 5 steps of 16, a flat
+  bottom of 2-4 cells, 5 steps up; the duct is 80 high, so neighbouring steps keep 64 of headroom
+  (the first try, 64 high, left 48 between steps: nobody could walk down, 29-51 attempts per
+  level) and at the bottom the ceiling is at the water: no air. Water flush with the corridor's
+  floor (or the flood's surface). Entities standing there move down with the floor. The first
+  version only dipped corridors wet from end to end: none qualified (floods end on stairs); a
+  sump makes its own water.
+- **Breath** (`breath_report`, part of validation): cells with less than 12 units between water
+  and ceiling are "no air"; every connected stretch of them must fit in 14 cells (MAX_SWIM, about
+  2-3 s of swimming), or the level fails.
+- Export: Quake 1 `*water0` liquid brushes (blues 208-223), Quake 2 `badlevel/water` (CONTENTS_
+  WATER, SURF_WARP | SURF_TRANS33), the mesh a translucent `water` surface where there's air above
+  it, the IR `water`. New glTF materials are only emitted when a level uses them, so every dry
+  level's .glb is byte for byte as before (and the spikes material from D47 too).
+- On in the dungeon preset (floods 0.5, sumps 0.8): water in 8 of 10, sumps in 4 of 10, 33
+  attempts over 10 levels, as before. `--floods`/`--sumps` for any recipe (Tom: "it fits any game").

@@ -58,7 +58,8 @@ Q2_TEXTURES = {
     "bl_door": ("badlevel/door", 0, 0), "trigger": ("badlevel/trigger", 0, Q2_SURF_NODRAW),
     "bl_glass": ("badlevel/glass", Q2_CONTENTS_WINDOW, Q2_SURF_TRANS33), "bl_lift": ("badlevel/lift", 0, 0),
     "bl_ladder": ("badlevel/ladder", Q2_CONTENTS_SOLID | Q2_CONTENTS_LADDER, 0),
-    "*slime0": ("badlevel/slime", 16, 8), "*lava1": ("badlevel/lava", 8, 8),   # CONTENTS_SLIME / LAVA, SURF_WARP
+    "*slime0": ("badlevel/slime", 16, 8), "*lava1": ("badlevel/lava", 8, 8),
+    "*water0": ("badlevel/water", 32, 8 | 16),         # CONTENTS_WATER, SURF_WARP | SURF_TRANS33   # CONTENTS_SLIME / LAVA, SURF_WARP
 }
 LIQUIDS = {"slime": "*slime0", "lava": "*lava1"}
 Q2_KEY_ITEMS = {"red": "key_red_key", "blue": "key_blue_key"}
@@ -228,6 +229,25 @@ def to_map(level: Level, game: str = "quake") -> str:
                 lo = (x0 * s_ + ox, y0 * s_ + oy, f)
                 hi = (x1 * s_ + ox, y1 * s_ + oy, f + level.config.step_height - 4)
                 world.append(brush_text(lo, hi, *([LIQUIDS[kind]] * 3)))
+    # water (floods.py): a liquid volume from the floor up to the surface (or to the ceiling, under it)
+    if level.water:
+        from ..brushes import greedy_rects
+        s_ = level.cell
+        vols: Dict[tuple, set] = {}
+        for c, S in level.water.items():
+            sp = level.spans.get(c)
+            if not sp:
+                continue
+            f, top = sp[0]
+            if c in level.floor_slope:
+                f = min(level.floor_slope[c])
+            vols.setdefault((f, min(S, top)), set()).add(c)
+        for (f, t), cells in sorted(vols.items()):
+            if t <= f:
+                continue
+            for (x0, y0, x1, y1) in greedy_rects(cells):
+                world.append(brush_text((x0 * s_ + ox, y0 * s_ + oy, f), (x1 * s_ + ox, y1 * s_ + oy, t),
+                                        *(["*water0"] * 3)))
     # named elements (a vault, piers, a portal, a building) as TrenchBroom groups: func_group, which
     # compilers merge into the world, so the map compiles the same; in the editor each is one click
     parts: Dict[str, List[str]] = {}
