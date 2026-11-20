@@ -128,7 +128,7 @@ Dials: " + string.Join(", ", Recipe.Dials);
             var d = new DirectoryInfo(start);
             for (; d != null; d = d.Parent)
             {
-                foreach (var cand in new[] { "wwwroot", Path.Combine("src", "NoorLevel.Previewer", "wwwroot"), Path.Combine("NoorLevel", "src", "NoorLevel.Previewer", "wwwroot") })
+                foreach (var cand in new[] { "wwwroot", Path.Combine("Previewer", "wwwroot"), Path.Combine("src", "NoorLevel.Previewer", "wwwroot"), Path.Combine("NoorLevel", "src", "NoorLevel.Previewer", "wwwroot") })
                     if (File.Exists(Path.Combine(d.FullName, cand, "index.html"))) return Path.Combine(d.FullName, cand);
             }
         }
