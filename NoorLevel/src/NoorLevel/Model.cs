@@ -114,7 +114,9 @@ namespace NoorLevel
         public string Connector;              // "drop" for one-way drops
         public int Height = 128;
         public bool Diagonal;
+        public bool Vent;                     // a low duct (facility levels)
         public List<int> Junctions = new List<int>();
+        public List<Dictionary<string, object>> Beats = new List<Dictionary<string, object>>();   // chambers, alcoves, vaults along it
     }
 
     public sealed class Entity
@@ -152,10 +154,21 @@ namespace NoorLevel
         public Dictionary<Cell, Span> DiagSpan = new Dictionary<Cell, Span>();
         public HashSet<Cell> Glass = new HashSet<Cell>();
         public HashSet<Cell> Sky = new HashSet<Cell>();
+        public HashSet<Cell> SkyWalls = new HashSet<Cell>();     // solid cells round a vista: sky faces
+        /// <summary>Sloped ceilings: cell -> corner heights (x0y0, x1y0, x1y1, x0y1) of the top span's ceiling.
+        /// The span keeps the lowest point, so gameplay stays conservative.</summary>
+        public Dictionary<Cell, (int, int, int, int)> CeilSlope = new Dictionary<Cell, (int, int, int, int)>();
+        /// <summary>Sloped floors (ramps): corner heights of the bottom span's floor; the span keeps the highest point.</summary>
+        public Dictionary<Cell, (int, int, int, int)> FloorSlope = new Dictionary<Cell, (int, int, int, int)>();
         public Dictionary<Cell, string> Hazard = new Dictionary<Cell, string>();
+        /// <summary>Water: cell -> the surface height over the cell's lowest span.</summary>
+        public Dictionary<Cell, int> Water = new Dictionary<Cell, int>();
         public Dictionary<Cell, string> PartSolid = new Dictionary<Cell, string>();
         public Dictionary<Cell, string> PartCells = new Dictionary<Cell, string>();
+        public Dictionary<Cell, string> PartCeiling = new Dictionary<Cell, string>();
         public List<Link> Links = new List<Link>();
+        public List<List<int>> Halls = new List<List<int>>();    // merged halls: room ids per hall
+        public Dictionary<string, object> Arena = new Dictionary<string, object>();   // arena mode facts
         public MissionGraph Graph;
         public GenConfig Config;
         public List<string> Notes = new List<string>();
@@ -223,6 +236,14 @@ namespace NoorLevel
         }
 
         public Vec3 World(double cx, double cy, double z) => new Vec3(cx * CellSize, cy * CellSize, z);
+
+        public int FloorAt(Cell c, bool top = false) { var s = Spans[c]; return top ? s[s.Count - 1].Floor : s[0].Floor; }
+
+        public Room RoomByNode(int node)
+        {
+            foreach (var r in Rooms) if (r.Node == node) return r;
+            throw new KeyNotFoundException("node " + node);
+        }
 
         public Cell CellOf(Vec3 p) => new Cell((int)Math.Floor(p.X / CellSize), (int)Math.Floor(p.Y / CellSize));
     }

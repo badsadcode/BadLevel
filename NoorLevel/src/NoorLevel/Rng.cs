@@ -99,5 +99,49 @@ namespace NoorLevel
             }
             return options[options.Count - 1];
         }
-    }
+    
+        /// <summary>Python's rng.choices(options, weights)[0].</summary>
+        public T Choices<T>(IList<T> options, IList<double> weights)
+        {
+            double total = 0;
+            foreach (var w in weights) total += Math.Max(0, w);
+            if (total <= 0) return Choice(options);
+            double r = Random() * total;
+            for (int i = 0; i < options.Count; i++)
+            {
+                r -= Math.Max(0, weights[i]);
+                if (r < 0) return options[i];
+            }
+            return options[options.Count - 1];
+        }
+
+        /// <summary>Python's rng.sample(items, k): k distinct items in random order.</summary>
+        public List<T> Sample<T>(IList<T> items, int k)
+        {
+            var pool = new List<T>(items);
+            Shuffle(pool);
+            return pool.GetRange(0, Math.Min(k, pool.Count));
+        }
+
+        public static Rng FromSeed(int seed) => new Rng(Hash("seed:" + seed));
+
+        /// <summary>weights.weighted: pick from options (duplicates add base weight) scaled by bias[key] (default 1).</summary>
+        public T WeightedBias<T, K>(IList<T> options, IDictionary<K, double> bias, Func<T, K> key)
+        {
+            var uniq = new List<T>(); var ws = new List<double>(); var seen = new Dictionary<K, int>();
+            foreach (var o in options)
+            {
+                var k = key(o);
+                if (seen.TryGetValue(k, out var i)) { ws[i] += 1; continue; }
+                seen[k] = uniq.Count; uniq.Add(o); ws.Add(1);
+            }
+            for (int i = 0; i < uniq.Count; i++)
+                if (bias != null && bias.TryGetValue(key(uniq[i]), out var b)) ws[i] *= b;
+            double total = 0; foreach (var w in ws) total += w;
+            if (total <= 0) return Choice(options);
+            return Choices(uniq, ws);
+        }
+
+        public T WeightedBias<T>(IList<T> options, IDictionary<T, double> bias) => WeightedBias(options, bias, o => o);
+}
 }
