@@ -14,7 +14,7 @@ static class Program
 {
     static readonly string Usage = @"noorlevel — procedural FPS level blockouts
 
-  noorlevel generate [--preset classic] [--seed 1] [--dial name=0.7 ...] [--set main_rooms=8 ...]
+  noorlevel generate [--preset classic|surprise] [--seed 1] [--dial name=0.7 ...] [--set main_rooms=8 ...]
                      [--format glb|quake|quake2|valve|map|obj|stl|json|svg ...] [--out folder]
   noorlevel serve [--port 5173] [--www path/to/wwwroot]     the previewer in your browser
   noorlevel presets                                          list presets and dials
