@@ -136,6 +136,14 @@ class OpenAreaSpace(RoomSpace):
             roofscape(level, room, random.Random(f"{level.config.seed}/{level.config.variant}/roofs/{room.id}"))
         if rng.random() < 0.8:
             f_facade(ctx, rng)
+        mk = getattr(level.config, "market", 0.0)
+        if mk > 0:
+            mrng = random.Random(f"{level.config.seed}/{level.config.variant}/market/{room.id}")
+            if mrng.random() < mk:
+                from ..market import f_market
+                if f_market(ctx, mrng):                # streets of stalls; nothing else in the yard
+                    level.sky.difference_update([c for c in room.cells() if c not in level.spans])
+                    return
         yb = getattr(level.config, "open_buildings", 0.0)
         if yb > 0:
             brng = random.Random(f"{level.config.seed}/{level.config.variant}/buildings/{room.id}")

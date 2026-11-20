@@ -332,6 +332,17 @@ PRESETS: Dict[str, Recipe] = {r.name: r for r in [
                       "program_set": "wizard", "arch_style": "gothic", "torches": True, "skylights": 0.3,
                       "open_areas": 0, "mega_rooms": 0, "windows": 4, "glazed_chance": 0.5, "merge_chance": 0.0,
                       "shape_weights": {"round": 2.0, "octagon": 2.0, "rect": 1.0}}),
+    Recipe("market", "A goblin market after Noor's idea: open yards laid out in streets of stalls (counters, "
+                     "booths under roofs, a merchant in each and what they sell), a well in the plaza, halls and "
+                     "storerooms between the yards.",
+           scale=0.6, openness=0.85, verticality=0.3, claustrophobia=0.1, combat=0.5, exploration=0.7,
+           loopiness=0.6, regularity=0.6, spaciousness=0.5,
+           overrides={"open_areas": 3, "market": 1.0, "storeys": 1, "keys": 1, "composition": "hub",
+                      "arch_style": "compound", "open_roofscape": True, "yard_setback": 3, "mega_rooms": 0,
+                      "windows": 6, "glazed_chance": 0.0, "torches": True,
+                      "room_sizes": {"small": (6, 8, 128, 160), "medium": (9, 12, 160, 224),
+                                     "large": (14, 18, 256, 320), "yard": (22, 30, 320, 320),
+                                     "mega": (24, 32, 448, 512)}}),
     Recipe("arena", "Deathmatch in the arena-shooter tradition: a tight circuit of rooms round a central "
                     "hall, loops everywhere and no dead ends, two storeys joined by stairs, lifts and drops, "
                     "jump pads up to high ground, the power-ups where the fights should be.",

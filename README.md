@@ -92,7 +92,7 @@ settings. A recipe is ten dials from 0 to 1 plus optional raw overrides:
 | `spaciousness` | bigger, taller rooms, wider and higher corridors, more headroom (0 = the compact Quake feel) |
 | `variety` | a wider spread of room sizes, extra footprints (round, hex, diamond, Z, H), domes in big rooms, spiral stairs |
 
-Presets: `compact`, `classic`, `bunker`, `fortress`, `industrial`, `compound`, `techbase` (Doom-era), `runekeep` (Quake-1 flavour), `outpost` (Quake-2 flavour), `grand` (Unreal flavour), `arena`, `duel` and `ctf` (deathmatch and capture the flag, see below), `facility` and `complex` (Half-Life-style facilities, see below), `dungeon` and `wizard` (see below), `explore`.
+Presets: `compact`, `classic`, `bunker`, `fortress`, `industrial`, `compound`, `techbase` (Doom-era), `runekeep` (Quake-1 flavour), `outpost` (Quake-2 flavour), `grand` (Unreal flavour), `arena`, `duel` and `ctf` (deathmatch and capture the flag, see below), `facility` and `complex` (Half-Life-style facilities, see below), `dungeon`, `wizard` and `market` (see below), `explore`.
 
 Presets start at `spaciousness` 0.5 (wide corridors, roomy halls); `--space 0` gives the
 original tight Quake-1 levels, byte for byte. `variety` defaults to 0, which changes nothing. Turn them up on top of any recipe from the command line:
@@ -152,6 +152,17 @@ heights, passing over and under each other: impossible-looking, valid geometry, 
 up. Fall into the void and you land on the ground floor, where the helix starts. Off the
 landings: an entrance hall, libraries, alchemy labs (workbenches, a cauldron), a scriptorium,
 dormitories, a summoning chamber, a reliquary for the key, the observatory at the top.
+
+## The goblin market
+
+`--recipe market` (or `market: X` in any config with yards): open yards laid out in streets of
+stalls. Double rows of stalls back to back, each facing a street 4 cells wide, an alley through
+a row now and then, a street round the walls, a plaza with a well in the middle. A stall is a
+counter (40 high: cover you can see over), a booth under a roof at 112 where a `merchant`
+marker stands, walls up to the roof, open sky above, a lantern at the front. Every stall is a
+named part (`room:5/stall 3`) and its merchant says what it sells, from a list that includes
+twitching treasure chests, meat of no known species, escaping mushrooms, teeth (no
+explanation) and swords that scream when swung.
 
 ## Water: flooded rooms and sumps
 

@@ -1260,3 +1260,22 @@ routing, so architecture leaves it alone) and its own mission graph (`cfg.tower`
   telescope), hidden study.
 - Preset `wizard`: 4 storeys, gothic, torches, grates. 14 attempts over 10 levels; other
   presets unchanged (24 of 24 maps, glb hashes equal).
+
+## D50. The goblin market
+
+Noor's third idea, the one Tom and I agreed fits inside what exists: a yard (open area) laid
+out as a market (`market.py`, `cfg.market`, a chance per yard; its own random stream):
+- **Streets**: double rows of stalls back to back (3 deep each), streets 4 wide between them
+  (two player boxes), a 3-cell street round the walls, an alley of 2 through a row 40% of the
+  time, the middle third kept as a plaza with a well (48 high). Stalls only on plain floor,
+  never in a doorway's zone.
+- **A stall**: a counter row (40 high, under an awning), a booth row (headroom 112), walls at the
+  ends and the back up to the roof; a 16-unit roof slab; open sky above. Spans: counter
+  (f+40, f+112) + (f+128, sky), booth (f, f+112) + (f+128, sky): headroom everywhere.
+- **Markers**: a `merchant` in each booth with what it sells (Noor's list: twitching chests,
+  meat of no known species, escaping mushrooms, teeth, screaming swords; and potions, rats on
+  sticks, maps to nowhere, hats, eyes, cursed rings, eels, goblin poetry, odd boots); a lantern
+  at the front. Every stall a named part. "Every stall selling something that bites is an
+  artist's job": BadLevel names the stall and stays out of it.
+- Preset `market`: 3 yards (22-30 cells, compound style with roofscapes), torches indoors, one
+  key. 23-44 stalls a yard; first attempt on 6 of 6 levels; other presets unchanged.
