@@ -72,8 +72,8 @@ def add_floods(level: Level) -> int:
         if room.is_connector or room.kind in ("courtyard", "overlook", "megaroom"):
             continue
         prog = room.meta.get("program", "")
-        if prog and prog not in ("crypt", "catacomb hall", "shrine", "cells"):
-            continue
+        if getattr(cfg, "program_set", "") == "dungeon" and prog and prog not in ("crypt", "catacomb hall", "shrine", "cells"):
+            continue                                      # dungeons flood their crypts; elsewhere any room
         if any(c in level.water for c in room.cells()):
             continue
         rng = random.Random(f"{cfg.seed}/{cfg.variant}/flood/{room.id}")

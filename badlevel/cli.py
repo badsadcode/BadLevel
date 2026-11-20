@@ -69,6 +69,10 @@ def _cfg_from_args(args, seed: int, recipe=None) -> GenConfig:
     monsters = getattr(args, "monsters", None)
     if monsters is not None:
         cfg.enemy_density *= max(0.0, monsters)                 # 0 = none, 0.5 = half, 2 = double
+    for name in ("floods", "sumps"):                          # water in any recipe (floods.py)
+        v = getattr(args, name, None)
+        if v is not None:
+            setattr(cfg, name, max(0.0, min(1.0, v)))
     mode = getattr(args, "mode", None)
     if mode in ("arena", "ctf"):
         from .recipes import arena_mode
@@ -161,6 +165,10 @@ def main(argv=None):
         sp.add_argument("--mode", choices=("campaign", "arena", "ctf"),
                         help="arena: a deathmatch map (spawns, weapons, power-ups, jump pads; no keys, exit or monsters); "
                              "ctf: a mirrored two-team map with flags")
+        sp.add_argument("--floods", type=float, metavar="0-1",
+                        help="chance a room floods (wading water to a natural shore); any recipe")
+        sp.add_argument("--sumps", type=float, metavar="0-1",
+                        help="chance a straight corridor dips under water (a swim, one breath); any recipe")
         sp.add_argument("--crates", type=float, metavar="X",
                         help="scale the crates (cover blocks): 0 = none, 0.5 = half, 2 = double")
         sp.add_argument("--monsters", type=float, metavar="X",

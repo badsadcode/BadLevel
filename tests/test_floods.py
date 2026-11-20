@@ -78,3 +78,18 @@ def test_water_export(levels):
 def test_dry_elsewhere():
     lv = generate(compile_recipe(PRESETS["classic"], 2))
     assert not lv.water
+
+
+def test_water_in_any_recipe(tmp_path):
+    """Tom: "it fits any game". The flags work on every recipe, not only dungeons."""
+    import json
+
+    from badlevel.cli import main as cli_main
+    for name in ("runekeep", "facility"):
+        out = tmp_path / name
+        assert cli_main(["generate", "--recipe", name, "--seed", "3", "--floods", "0.6", "--sumps", "0.6",
+                         "--format", "json", "--out", str(out)]) in (0, None)
+        level = json.load(open(out / "badlevel_3.json"))
+        recipe = json.load(open(out / "badlevel_3.recipe.json"))
+        assert level["water"]
+        assert recipe["config"]["floods"] == 0.6 if "config" in recipe else True
