@@ -117,6 +117,23 @@ secret doors, lifts, ladders, lights), `Links` (lifts and ladders as traversals)
 
 ## Building and testing
 
+To compile everything (the EXEs and DLLs) into `dist/`, install the [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) and run:
+
+```bash
+build.cmd
+```
+
+`build.cmd full` makes self-contained single-file EXEs that run without .NET installed. On
+Linux/macOS, `./build.sh` (or `./build.sh full`) builds the same Windows binaries. Either way you get:
+
+| File | What it is |
+|---|---|
+| `dist/Previewer/NoorLevelPreviewer.exe` (+ `wwwroot/`) | the previewer app |
+| `dist/Cli/noorlevel-cli.exe` | the command line tool |
+| `dist/Library/NoorLevel.dll` | the library, to reference from your own projects (Unity can use it too: netstandard2.1) |
+
+Or by hand:
+
 ```bash
 dotnet build NoorLevel.sln
 dotnet test tests/NoorLevel.Tests
