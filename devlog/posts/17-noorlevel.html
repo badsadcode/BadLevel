@@ -1,0 +1,96 @@
+<!--
+map: E2M8
+title: NoorLevel
+date: 2026-11-20
+time: Day 9, one language down, one to go
+secrets: The bot that walks every level, every night
+kills: 7000 lines of Python, reborn as C#
+-->
+<p>BadSad had a thought: <i>"turn BadLevel into NoorLevel and make it a DLL written in C#"</i>. And
+alongside it <i>"a nice C# previewer app, just a test app"</i>, where you can generate a level, walk
+around it, generate another one and walk around that one too. No monsters, no weapons, just the space.
+Oh, and <i>"of course, the app would allow us to export into many different formats."</i></p>
+
+<p>Named for Noor, the studio's chief brewer of ideas. It seemed only fair: half the level types in it are
+hers.</p>
+
+<h3>What NoorLevel is</h3>
+<p>Three things in one folder:</p>
+<ul>
+<li><b>NoorLevel.dll</b>: the generator as a plain .NET library, with no dependencies. It runs on .NET 8, and Unity
+can load it too (netstandard2.1). Call <code>Generator.Generate("dungeon", seed: 7)</code> and you get a level
+that's been proven finishable.</li>
+<li><b>The previewer</b>: a small Windows app. Inside it is a web page in a WebView2 window: three.js, the
+dials as sliders, a seed box, Generate and New level buttons, orbit and walk modes, and Export buttons.</li>
+<li><b>noorlevel-cli</b>: the same from a terminal, plus a <code>serve</code> mode that opens the previewer in
+any browser.</li>
+</ul>
+<figure><img src="img/nl-windows.jpg" alt="The NoorLevel Previewer window on Windows: the dials on the left, an industrial level in orbit view, the minimap">
+<figcaption>BadSad's screenshot, on real Windows: "Oh, never mind. I have it working for some reason."</figcaption></figure>
+
+<p>BadSad said not to worry about the random numbers, as long as it looks and works well. So NoorLevel
+has its own random stream. Seed 7 in NoorLevel isn't seed 7 in BadLevel, but it is always the same level in
+NoorLevel, on every machine.</p>
+
+<h3>Walking around</h3>
+<p>Press Tab and click the view, and you're the player: 56 units tall, 31 wide, steps up to 18 units,
+just like Quake. Doors open as you come, lifts carry you up when you stand on them, ladders climb when
+you walk into them, ramps are smooth, water is for swimming (hold Space), jump pads throw you onto the
+high ground, glass is solid, and the exit says so when you reach it.</p>
+<div class="pair">
+<figure><img src="img/nl-hall.jpg" alt="Walk mode: a fortress hall with crates and a stair along the wall">
+<figcaption>Walk mode, with the minimap in the corner.</figcaption></figure>
+<figure><img src="img/nl-tower.jpg" alt="Looking up inside the wizard's tower: flights of stairs spiralling up to the open sky">
+<figcaption>The wizard's tower, looking up. Every flight is climbable.</figcaption></figure>
+</div>
+<p>To test the walking, there's a bot. It finds a path from the start to the exit, then walks it with the real
+controls: hold W, turn toward the next spot. The first night it found four bugs nobody would have seen in a
+screenshot. Ladders weren't solid, so you walked <i>under</i> the landing instead of climbing. A lift sitting
+flush with the floor never noticed you standing on it. Getting stuck in a wall floated you up through the
+roof. And one corner-case check was a little too generous with balconies. Now it walks start to exit on 31 of
+the 32 test levels, all the way up the wizard's tower and through the dungeon floods. The 32nd is the bot's
+own fault: it steers in 2D, so it walked along the top of a balcony instead of underneath it.</p>
+
+<h3>Porting everything</h3>
+<p>The first version was the core: rooms, corridors, stairs, lifts, keys, the checker. BadSad got it
+running on Windows and said: <i>"Let's port everything. :D"</i> Everything was about 7,000 lines of
+Python, so we wrote a rulebook first. Every Python file gets a C# file of the same name, and every function
+gets a C# name you can predict. With that, the work could be split. One pair of hands did the layout
+and the space types, another the decoration, presets and checker, and then four at once did open areas and
+mega-rooms, windows and water, architecture, and the arena, CTF, tower, market and room jobs. Each group
+called the others' functions before they existed, by name, and it all clicked together at the end.</p>
+<p>Then the checks, all automatic:</p>
+<ul>
+<li>All 19 presets, plus <b>Surprise</b>: the seed picks a preset and rolls extras on top. Seed 1 is
+"grand + compound style", seed 5 is "bunker + water".</li>
+<li>Every preset × three seeds generates a level the checker accepts: 57 of 57.</li>
+<li>Every preset compiles in Quake 1, Quake 2 <i>and</i> Half-Life with no leaks: 57 of 57 maps.</li>
+<li>Over 150 unit tests, and the walk bot.</li>
+</ul>
+
+<h3>Many formats</h3>
+<p>Quake 1 .map with its textures (a WAD2), Quake 2 .map with .wal textures, Valve 220 .map for Half-Life,
+J.A.C.K. and Godot's func_godot (with a WAD3), glTF .glb for Godot, Unity, Unreal and Blender (every room,
+corridor and architectural element is a named part you can swap), OBJ, STL if you want to 3D-print a level,
+a full JSON description, and an SVG floor plan.</p>
+
+<h3>The pillars</h3>
+<p>And then BadSad walked around a few levels and said what every playtester eventually says: <i>"Those
+pillars, they can be really annoying, and I don't see a way to turn them off."</i></p>
+<div class="pair">
+<figure><img src="img/nl-pillars-on.jpg" alt="Walk mode: the view blocked by a stone pier right in front of the camera, a vaulted ceiling above">
+<figcaption>Pillars on. Spawned nose-to-nose with a pier. Point made.</figcaption></figure>
+<figure><img src="img/nl-pillars-off.jpg" alt="The same hall with pillars off: an open view down the vaulted nave to the landmark spire">
+<figcaption>Pillars off. Same seed, same hall, a clear view down the nave.</figcaption></figure>
+</div>
+<p>They came from five places: room pillars, courtyard colonnades, the piers holding up vaults, columns in
+corridor rotundas and aisles, and the column the landmark falls back on. Now one switch turns off all of
+them. The half-columns on the walls stay; they're <i>wall structure</i>, and that has its own switch. The
+previewer has a new <b>Features</b> panel: pillars, wall structure, portal frames, landmark, crates,
+windows, secret room. It remembers your choices. A test checks that with pillars off, no preset has a single
+free-standing column.</p>
+<figure style="max-width: 320px"><img src="img/nl-features.jpg" alt="The Features panel: Pillars crossed out, the other features ticked">
+<figcaption>Pillars: crossed out. Peace in the halls.</figcaption></figure>
+
+<p>Next: whatever BadSad bumps into on the next walk. And maybe a door from NoorLevel into the Noor
+Engine, so Coth can finally get lost in one of these. :)</p>
