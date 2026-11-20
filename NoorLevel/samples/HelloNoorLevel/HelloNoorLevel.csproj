@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- or, with the compiled DLL: <Reference Include="NoorLevel"><HintPath>path/to/NoorLevel.dll</HintPath></Reference> -->
+    <ProjectReference Include="../../src/NoorLevel/NoorLevel.csproj" />
+  </ItemGroup>
+</Project>

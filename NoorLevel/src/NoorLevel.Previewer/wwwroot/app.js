@@ -13,7 +13,9 @@ const host = window.chrome && window.chrome.webview ? window.chrome.webview : nu
 let info = null;          // presets, dials, settings, formats
 let level = null;         // the last /api/generate answer
 let pinned = {};
-let toggles = {};          // feature switches (pillars, crates...): name -> on          // parameters the user set by hand
+let toggles = {};
+let params = {};           // "All parameters": name -> pinned value (weights: name -> {key: value})
+const paramCtl = {};       // name (or name.key) -> { set(v), row }          // feature switches (pillars, crates...): name -> on          // parameters the user set by hand
 let mode = 'orbit';
 let cutCeilings = true;
 let showMap = true;
@@ -177,7 +179,113 @@ function buildPanel() {
     b.addEventListener('click', () => exportLevel(f));
     fm.appendChild(b);
   }
+  buildParams();
   applyPreset();
+}
+
+// ---------------------------------------------------------------- all parameters
+function fmtParam(p, v) {
+  if (typeof v === 'boolean') return v ? 'on' : 'off';
+  if (p.kind === 'int' || Number.isInteger(p.step)) return String(Math.round(v));
+  return (Math.round(v * 100) / 100).toString();
+}
+
+function paramRow(parent, p, label, get, setPinned, unpin, kindOverride) {
+  const row = document.createElement('div');
+  row.className = 'prow';
+  row.title = p.doc || '';
+  row.dataset.search = (kindOverride ? p.name + '.' + label : p.name + ' ' + label + ' ' + (p.doc || '') + ' ' + p.group).toLowerCase();
+  const lab = document.createElement('label');
+  lab.textContent = label;
+  row.appendChild(lab);
+  const kind = kindOverride || p.kind;
+  let input, out;
+  if (kind === 'bool') {
+    input = document.createElement('input'); input.type = 'checkbox';
+    input.addEventListener('change', () => { setPinned(input.checked); row.classList.add('pinned'); autoGen(); });
+  } else if (kind === 'choice') {
+    input = document.createElement('select');
+    for (const o of p.options) input.add(new Option(o === '' ? '(none)' : o, o));
+    input.addEventListener('change', () => { setPinned(input.value); row.classList.add('pinned'); autoGen(); });
+  } else {
+    input = document.createElement('input'); input.type = 'range';
+    Object.assign(input, { min: p.min, max: p.max, step: p.step });
+    out = document.createElement('b');
+    input.addEventListener('input', () => { out.textContent = fmtParam(p, +input.value); setPinned(+input.value); row.classList.add('pinned'); });
+    input.addEventListener('change', () => autoGen());
+  }
+  row.appendChild(input);
+  if (out) row.appendChild(out);
+  const pin = document.createElement('i');
+  pin.className = 'pin'; pin.textContent = '●'; pin.title = 'Pinned: click to unpin';
+  pin.addEventListener('click', () => { unpin(); row.classList.remove('pinned'); autoGen(); });
+  row.appendChild(pin);
+  parent.appendChild(row);
+  return {
+    row,
+    set(v) {
+      if (v === undefined || v === null) return;
+      if (kind === 'bool') input.checked = !!v;
+      else if (kind === 'choice') input.value = v;
+      else { input.value = v; out.textContent = fmtParam(p, +v); }
+    },
+  };
+}
+
+function buildParams() {
+  const box = $('params');
+  let group = null;
+  for (const p of info.params) {
+    if (p.group !== group) {
+      group = p.group;
+      const h = document.createElement('div');
+      h.className = 'pgroup'; h.textContent = group; h.dataset.group = group;
+      box.appendChild(h);
+    }
+    const label = p.name.replace(/_/g, ' ');
+    if (p.kind === 'weights') {
+      const sub = document.createElement('div');
+      sub.className = 'pweights';
+      const h = document.createElement('div');
+      h.className = 'prow'; h.innerHTML = `<label>${label}</label>`; h.title = p.doc || ''; h.dataset.search = (p.name + ' ' + (p.doc || '')).toLowerCase();
+      box.appendChild(h);
+      for (const k of p.options) {
+        paramCtl[p.name + '.' + k] = paramRow(sub, p, k, null,
+          (v) => { params[p.name] = { ...(params[p.name] || {}), [k]: v }; countPins(); },
+          () => { if (params[p.name]) { delete params[p.name][k]; if (!Object.keys(params[p.name]).length) delete params[p.name]; } countPins(); },
+          'float');
+      }
+      box.appendChild(sub);
+    } else {
+      paramCtl[p.name] = paramRow(box, p, label, null,
+        (v) => { params[p.name] = v; countPins(); },
+        () => { delete params[p.name]; countPins(); });
+    }
+  }
+  $('paramSearch').addEventListener('input', () => {
+    const q = $('paramSearch').value.trim().toLowerCase();
+    for (const el of box.querySelectorAll('.prow')) el.style.display = !q || el.dataset.search.includes(q) ? '' : 'none';
+    for (const el of box.querySelectorAll('.pgroup')) el.style.display = q ? 'none' : '';
+  });
+  $('unpinAll').addEventListener('click', () => {
+    params = {};
+    for (const c of Object.values(paramCtl)) c.row.classList.remove('pinned');
+    countPins(); autoGen();
+  });
+}
+
+function countPins() {
+  const n = Object.values(params).reduce((a, v) => a + (v && typeof v === 'object' ? Object.keys(v).length : 1), 0);
+  $('pinCount').textContent = n ? `(${n} pinned)` : '';
+}
+
+function showParams(values) {
+  if (!values) return;
+  for (const p of info.params) {
+    if (p.kind === 'weights') {
+      for (const k of p.options) if (!(params[p.name] && k in params[p.name])) paramCtl[p.name + '.' + k].set(values[p.name][k]);
+    } else if (!(p.name in params)) paramCtl[p.name].set(values[p.name]);
+  }
 }
 
 function applyPreset() {
@@ -198,6 +306,7 @@ async function generate() {
     dials: Object.fromEntries(info.dials.map((d) => [d, +dialCtl[d].input.value])),
     settings: { ...pinned },
     toggles: { ...toggles },
+    params: JSON.parse(JSON.stringify(params)),
   };
   $('busy').classList.remove('hidden');
   try {
@@ -222,6 +331,7 @@ function showStats(res) {
   ];
   if (res.recipe && res.recipe.startsWith('surprise')) rows.unshift(['Recipe', res.recipe.replace('surprise: ', '')]);
   $('stats').innerHTML = rows.map(([k, v]) => `<div${k === 'Recipe' ? ' style="grid-column: 1 / -1"' : ''}><span>${k}</span><b>${v}</b></div>`).join('');
+  showParams(res.params);
   for (const s of info.settings) {
     if (!(s.name in pinned)) setCtl[s.name].set(res.settings[s.name]);
   }

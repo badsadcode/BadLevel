@@ -218,7 +218,8 @@ namespace NoorLevel
                             gap = Math.Max(cfg.RoomGap + 4, climb + 2 * cfg.CorridorRadius + 6);   // a tight ring
                         if (setback != 0 && (node.Kind == "courtyard" || parent.Kind == "courtyard"))
                             gap += setback;                    // an open area keeps room around it for its roofs
-                        bool stack = multi && t % 3 == 2 && !merge;
+                        // rooms over rooms: every third try (BadLevel), or with Stacking the first tries
+                        bool stack = multi && !merge && (cfg.Stacking > 0 && t < (int)(cfg.Stacking * tries * 0.6) || t % 3 == 2);
                         diagPlace = diagWish && t < tries / 2 && !stack;
                         int x, y;
                         if (merge)
@@ -262,9 +263,21 @@ namespace NoorLevel
                             var others = rooms.Values.Where(o => !VerticalConflict(cand.Slot, o.Slot)
                                                                   && Math.Abs(o.X - parent.X) + Math.Abs(o.Y - parent.Y) < 40).ToList();
                             if (others.Count == 0) continue;
-                            var o = rng.Choice(others);
-                            x = o.X + rng.Int(-(w / 2), Math.Max(0, o.W - w / 2));
-                            y = o.Y + rng.Int(-(h / 2), Math.Max(0, o.H - h / 2));
+                            Room o;
+                            if (cfg.Stacking > 0 && t < (int)(cfg.Stacking * tries * 0.6))
+                            {
+                                // Stacking: the nearest rooms first, the new one centred over / under it (a little play)
+                                others = others.OrderBy(q => Math.Abs(q.X + q.W / 2.0 - parent.X - parent.W / 2.0) + Math.Abs(q.Y + q.H / 2.0 - parent.Y - parent.H / 2.0)).ThenBy(q => q.Id).ToList();
+                                o = others[Math.Min(others.Count - 1, (t / 2) % Math.Max(1, Math.Min(4, others.Count)))];
+                                x = o.X + (o.W - w) / 2 + rng.Int(-2, 2);
+                                y = o.Y + (o.H - h) / 2 + rng.Int(-2, 2);
+                            }
+                            else
+                            {
+                                o = rng.Choice(others);
+                                x = o.X + rng.Int(-(w / 2), Math.Max(0, o.W - w / 2));
+                                y = o.Y + rng.Int(-(h / 2), Math.Max(0, o.H - h / 2));
+                            }
                         }
                         else
                         {

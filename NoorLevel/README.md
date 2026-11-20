@@ -71,9 +71,11 @@ then open http://localhost:5173.
 * **Dials**: the ten design dials (scale, openness, verticality, claustrophobia, combat,
   exploration, loopiness, regularity, spaciousness, variety). With *Regenerate when a slider
   changes* on, letting go of a slider makes a new level.
-* **Parameters**: the numbers the preset and dials give (main rooms, side rooms, loops, keys,
-  storeys, 45° corridors, one-way drops, corridor height, secret room). Move one to pin it (●);
-  click ● to give it back to the dials.
+* **Parameters**: the ones you reach for most: map size (the level's longer side in metres), storeys
+  (up to 6), rooms over rooms (stacking), main and side rooms, loops, keys, 45° corridors, one-way drops,
+  corridor height. Move one to pin it (●); click ● to give it back to the dials.
+* **All parameters**: every one of the ~85 settings, grouped, with a search box and a description on each.
+* **Features**: switch off pillars, wall structure, portal frames, the landmark, crates, windows, the secret room.
 * **Orbit** (drag, right-drag, wheel; ceilings cut away so you see inside) and **Walk** (Tab):
   click the view, then WASD + mouse, Space jumps, Shift runs. Stairs step up, ledges drop, doors
   open as you come, ramps are smooth, you **swim** in water (Space swims up), **jump pads** throw you
@@ -133,6 +135,10 @@ noorlevel-cli serve --port 5173
 ```
 
 ## Using the DLL
+
+**The full guide: [docs/USING_THE_DLL.md](docs/USING_THE_DLL.md)** (adding it to a project, Unity and Godot,
+every parameter, reading a level, exporting, a mesh for your own engine), and the parameter reference
+**[docs/PARAMETERS.md](docs/PARAMETERS.md)**. A short taste:
 
 ```csharp
 using NoorLevel;

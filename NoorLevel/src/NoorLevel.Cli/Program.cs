@@ -20,6 +20,7 @@ static class Program
                      [--format glb|noorengine|quake|quake2|valve|map|obj|stl|json|svg ...] [--out folder]
   noorlevel serve [--port 5173] [--www path/to/wwwroot]     the previewer in your browser
   noorlevel presets                                          list presets and dials
+  noorlevel params                                           list every parameter (--set name=value)
   noorlevel formats                                          list export formats
   noorlevel sweep [seeds]                                    generate every preset, report
 
@@ -38,6 +39,19 @@ Dials: " + string.Join(", ", Recipe.Dials);
                 case "presets":
                     foreach (var r in Recipes.Presets.Values)
                         Console.WriteLine($"{r.Name,-11} {r.Description}\n            " + string.Join("  ", Recipe.Dials.Select(d => $"{d}={r.Get(d):0.##}")));
+                    return 0;
+                case "params":
+                    foreach (var g in ConfigDocs.All.GroupBy(x => x.Group))
+                    {
+                        Console.WriteLine($"[{g.Key}]");
+                        foreach (var x in g)
+                        {
+                            string range = x.Kind == "bool" ? "true|false" : x.Kind == "choice" ? string.Join("|", x.Options.Select(o => o == "" ? "\"\"" : o))
+                                : x.Kind == "weights" ? string.Join(",", x.Options.Select(o => $"{x.Name}.{o}")) : $"{x.Min}..{x.Max}";
+                            Console.WriteLine($"  {x.Name,-22} {range}");
+                            if (!string.IsNullOrEmpty(x.Doc)) Console.WriteLine($"  {"",-22} {x.Doc}");
+                        }
+                    }
                     return 0;
                 case "formats":
                     foreach (var f in Exporters.Formats) Console.WriteLine($"{f.Id,-7} {f.Label,-24} {f.Description}");
@@ -80,8 +94,19 @@ Dials: " + string.Join(", ", Recipe.Dials);
         foreach (var kv in o.TryGetValue("dial", out var dl) ? dl : new List<string>()) { var p = kv.Split('='); dials[p[0]] = double.Parse(p[1], CultureInfo.InvariantCulture); }
         foreach (var kv in o.TryGetValue("set", out var sl) ? sl : new List<string>())
         {
-            var p = kv.Split('=');
-            sets[p[0]] = p[1] == "true" || p[1] == "false" ? (object)(p[1] == "true") : double.Parse(p[1], CultureInfo.InvariantCulture);
+            // name=value; a weight as dict.key=value (feature_weights.pillars=0); a choice as text (arch_style=gothic)
+            int eq = kv.IndexOf('=');
+            string k = kv.Substring(0, eq), v = kv.Substring(eq + 1);
+            object val = v == "true" || v == "false" ? (object)(v == "true")
+                : double.TryParse(v, NumberStyles.Float, CultureInfo.InvariantCulture, out var dv) ? dv : v;
+            int dot = k.IndexOf('.');
+            if (dot > 0)
+            {
+                string dk = k.Substring(0, dot);
+                if (!(sets.TryGetValue(dk, out var sub) && sub is Dictionary<string, object> sd)) sets[dk] = sd = new Dictionary<string, object>();
+                sd[k.Substring(dot + 1)] = val;
+            }
+            else sets[k] = val;
         }
         req["dials"] = dials; req["settings"] = sets;
         // --off pillars,crates,wall_structure,portal_frames,landmark,windows,secret

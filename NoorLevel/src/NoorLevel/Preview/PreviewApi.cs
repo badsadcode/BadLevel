@@ -32,7 +32,8 @@ namespace NoorLevel.Preview
         public static readonly (string Name, string Label, double Min, double Max, double Step)[] Settings =
         {
             ("main_rooms", "Main rooms", 2, 20, 1), ("side_rooms", "Side rooms", 0, 12, 1), ("loops", "Loops", 0, 8, 1),
-            ("keys", "Keys", 0, 2, 1), ("storeys", "Storeys", 1, 4, 1), ("diagonal_chance", "45° corridors", 0, 1, 0.05),
+            ("keys", "Keys", 0, 2, 1), ("storeys", "Storeys", 1, 6, 1), ("stacking", "Rooms over rooms", 0, 1, 0.05),
+            ("map_size", "Map size (m, 0 = auto)", 0, 400, 8), ("diagonal_chance", "45° corridors", 0, 1, 0.05),
             ("drop_chance", "One-way drops", 0, 1, 0.05), ("corridor_height", "Corridor height", 96, 256, 16),
         };
 
@@ -93,6 +94,11 @@ namespace NoorLevel.Preview
                 ["name"] = "surprise", ["description"] = "A preset drawn by the seed, with a roll for extras on top (another architecture style, water, torches, vistas, a deathmatch). Same seed, same surprise. The dials don't apply.",
                 ["dials"] = Recipe.Dials.ToDictionary(d => d, d => (object)Recipes.Presets["classic"].Get(d)),
             }).ToList(),
+            ["params"] = ConfigDocs.All.Select(p => new Dictionary<string, object>
+            {
+                ["group"] = p.Group, ["name"] = p.Name, ["kind"] = p.Kind, ["doc"] = p.Doc, ["min"] = p.Min, ["max"] = p.Max, ["step"] = p.Step,
+                ["options"] = p.Options,
+            }).ToList(),
             ["toggles"] = Toggles.Select(t => new Dictionary<string, object> { ["name"] = t.Name, ["label"] = t.Label, ["help"] = t.Help }).ToList(),
             ["settings"] = Settings.Select(s => new Dictionary<string, object> { ["name"] = s.Name, ["label"] = s.Label, ["min"] = s.Min, ["max"] = s.Max, ["step"] = s.Step }).ToList(),
             ["formats"] = Exporters.Formats.Select(f => new Dictionary<string, object> { ["id"] = f.Id, ["label"] = f.Label, ["ext"] = f.Extension, ["description"] = f.Description }).ToList(),
@@ -120,16 +126,11 @@ namespace NoorLevel.Preview
                     foreach (var d in Recipe.Dials) { var v = Num(dials, d); if (v != null) recipe.Set(d, v.Value); }
                 cfg = Recipes.Compile(recipe, seed);
             }
-            var st = req.TryGetValue("settings", out var sv) ? sv as Dictionary<string, object> : null;
-            if (Num(st, "main_rooms") is double mr) cfg.MainRooms = (int)mr;
-            if (Num(st, "side_rooms") is double sr) cfg.SideRooms = (int)sr;
-            if (Num(st, "loops") is double lp) cfg.Loops = (int)lp;
-            if (Num(st, "keys") is double k) cfg.Keys = (int)k;
-            if (Num(st, "storeys") is double s) cfg.Storeys = (int)s;
-            if (Num(st, "diagonal_chance") is double dc) cfg.DiagonalChance = dc;
-            if (Num(st, "drop_chance") is double dr) cfg.DropChance = dr;
-            if (Num(st, "corridor_height") is double ch) cfg.CorridorHeight = (int)ch;
-            if (st != null && st.TryGetValue("secret", out var sec) && sec is bool b) cfg.Secret = b;
+            // any GenConfig parameter by name (the quick "settings" and the full "params" panel alike):
+            // numbers, switches, choices, and weights (dictionaries merge into the recipe's own)
+            foreach (var key in new[] { "settings", "params" })
+                if (req.TryGetValue(key, out var pv) && pv is Dictionary<string, object> ps2 && ps2.Count > 0)
+                    Recipes.SetFields(cfg, ps2, merge: true, what: "unknown parameter");
             var tg = req.TryGetValue("toggles", out var tv) ? tv as Dictionary<string, object> : null;
             bool Off(string k) => tg != null && tg.TryGetValue(k, out var v) && v is bool on && !on;
             if (Off("pillars")) cfg.Pillars = false;
@@ -142,11 +143,25 @@ namespace NoorLevel.Preview
             return cfg;
         }
 
-        public static Dictionary<string, object> SettingsOf(GenConfig c) => new Dictionary<string, object>
+        public static Dictionary<string, object> SettingsOf(GenConfig c) =>
+            Settings.ToDictionary(x => x.Name, x => Recipes.ConfigField(x.Name).GetValue(c));
+
+        /// <summary>Every parameter's value in a compiled config (weights: every listed key, 1 when the recipe leaves it).</summary>
+        public static Dictionary<string, object> ValuesOf(GenConfig c)
         {
-            ["main_rooms"] = c.MainRooms, ["side_rooms"] = c.SideRooms, ["loops"] = c.Loops, ["keys"] = c.Keys, ["storeys"] = c.Storeys,
-            ["diagonal_chance"] = c.DiagonalChance, ["drop_chance"] = c.DropChance, ["corridor_height"] = c.CorridorHeight, ["secret"] = c.Secret,
-        };
+            var outp = new Dictionary<string, object>();
+            foreach (var p in ConfigDocs.All)
+            {
+                var v = Recipes.ConfigField(p.Name).GetValue(c);
+                if (p.Kind == "weights")
+                {
+                    var d = (System.Collections.IDictionary)v;
+                    outp[p.Name] = p.Options.ToDictionary(k => k, k => d != null && d.Contains(k) ? Convert.ToDouble(d[k], CultureInfo.InvariantCulture) : 1.0);
+                }
+                else outp[p.Name] = v;
+            }
+            return outp;
+        }
 
         ApiResponse Generate(string body)
         {
@@ -171,6 +186,7 @@ namespace NoorLevel.Preview
             v["id"] = id;
             v["ms"] = ms;
             v["settings"] = SettingsOf(cfg);
+            v["params"] = ValuesOf(cfg);
             v["recipe"] = cfg.Recipe;
             return ApiResponse.JsonOf(v);
         }

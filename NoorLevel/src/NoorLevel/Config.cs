@@ -81,6 +81,12 @@ namespace NoorLevel
 
         // storeys (more)
         public bool Underground = false;     // in from the surface and down
+        /// <summary>Rooms over rooms: 0 = as BadLevel (now and then a room on another storey sits over or under
+        /// a neighbour), up to 1 = every room on another storey tries that first. Needs Storeys &gt; 1.</summary>
+        public double Stacking = 0.0;
+        /// <summary>The level's footprint: the longer side in metres (cells), 0 = whatever the recipe gives.
+        /// The generator fits the level to it by changing room counts and sizes (within about 15%).</summary>
+        public int MapSize = 0;
 
         // storeys
         public int Storeys = 1;

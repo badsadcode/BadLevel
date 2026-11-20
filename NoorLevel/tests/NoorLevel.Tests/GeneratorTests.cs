@@ -253,3 +253,45 @@ public class NoorEngineExportTests
         Assert.True(route.Split('\n').Count(l => l.TrimStart().StartsWith("{ ")) > 20, "Coth's route is too short");
     }
 }
+
+public class ParameterTests
+{
+    /// <summary>Every documented parameter is a real GenConfig field, and the API sets any of them by name.</summary>
+    [Fact]
+    public void EveryDocumentedParameterExists()
+    {
+        foreach (var p in ConfigDocs.All) Assert.True(Recipes.ConfigField(p.Name) != null, p.Name);
+        var cfg = Recipes.Compile(Recipes.Presets["classic"], 1);
+        Recipes.SetFields(cfg, new Dictionary<string, object> { ["arch_style"] = "egyptian", ["storeys"] = 5.0, ["stacking"] = 0.8,
+            ["feature_weights"] = new Dictionary<string, object> { ["pillars"] = 0.0 } }, merge: true);
+        Assert.Equal("egyptian", cfg.ArchStyle);
+        Assert.Equal(5, cfg.Storeys);
+        Assert.Equal(0.0, cfg.FeatureWeights["pillars"]);
+        Assert.True(cfg.FeatureWeights.ContainsKey("none"));      // merged, not replaced
+    }
+
+    [Theory]
+    [InlineData("classic", 80), InlineData("dungeon", 120), InlineData("industrial", 160)]
+    public void MapSizeFitsTheLevel(string preset, int size)
+    {
+        var cfg = Recipes.Compile(Recipes.Presets[preset], 2);
+        cfg.MapSize = size;
+        var level = Generator.Generate(cfg);
+        Assert.True(level.Report.Ok);
+        int got = Generator.Footprint(level);
+        Assert.InRange(got, (int)(size * 0.6), (int)(size * 1.35));
+    }
+
+    [Fact]
+    public void SixStoreysAndStackingMakeValidLevels()
+    {
+        foreach (var seed in new[] { 1, 2 })
+        {
+            var cfg = Recipes.Compile(Recipes.Presets["fortress"], seed);
+            cfg.Storeys = 6; cfg.Stacking = 1.0;
+            var level = Generator.Generate(cfg);
+            Assert.True(level.Report.Ok);
+            Assert.True(level.Rooms.Select(r => r.Storey).Distinct().Count() >= 4);
+        }
+    }
+}
