@@ -116,6 +116,7 @@ namespace NoorLevel
         public int Height = 128;
         public bool Diagonal;
         public bool Vent;                     // a low duct (facility levels)
+        public bool Sump;                     // dips under water (floods.py make_sumps)
         public List<int> Junctions = new List<int>();
         public List<Dictionary<string, object>> Beats = new List<Dictionary<string, object>>();   // chambers, alcoves, vaults along it
     }

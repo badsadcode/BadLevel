@@ -51,23 +51,10 @@ namespace NoorLevel
         public static void Assign(Level level) { }   // STUB: wave 2
     }
 
-    /// <summary>STUB: dungeon.py.</summary>
-    public static partial class Dungeon
-    {
-        public static int AddSkylights(Level level) => 0;   // STUB: wave 2
-        public static int AddTraps(Level level) => 0;   // STUB: wave 2
-    }
-
     /// <summary>STUB: portals.py.</summary>
     public static partial class Portals
     {
         public static int Build(Level level, Dictionary<int, string> tiers) => 0;   // STUB: wave 2
-    }
-
-    /// <summary>STUB: floods.py.</summary>
-    public static partial class Floods
-    {
-        public static List<string> BreathReport(Level level) => new List<string>();   // STUB: wave 2
     }
 
     /// <summary>STUB: arena.py. Not a pure no-op: the arena validator needs at least two spawn points,
