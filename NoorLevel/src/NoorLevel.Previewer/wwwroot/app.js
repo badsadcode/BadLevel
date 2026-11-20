@@ -208,6 +208,7 @@ let cols = new Map();       // collision columns
 let bounds = null;          // map-unit bounds
 let movers = [];            // doors / secret doors / lifts: solid boxes that move
 let ladders = [];
+let pads = [];              // jump pads: step on one and it throws you onto its target
 let keys = [];
 let exitBox = null;
 let lightSpots = [];
@@ -241,6 +242,7 @@ async function showLevel(res, glb) {
     xlo = Math.min(xlo, c[0]); xhi = Math.max(xhi, c[0] + 1); ylo = Math.min(ylo, c[1]); yhi = Math.max(yhi, c[1] + 1);
   }
   for (const f of res.floor_slopes || []) { const col = cols.get(ck(f[0], f[1])); if (col) col.slope = f.slice(2); }
+  for (const g of res.glass || []) cols.delete(ck(g[0], g[1]));       // glazed windows: solid to walk into
   for (const w of res.water || []) { const col = cols.get(ck(w[0], w[1])); if (col) col.water = w[2]; }
   const s = res.cell;
   bounds = { x0: xlo * s, x1: xhi * s, y0: ylo * s, y1: yhi * s, z0: zlo, z1: zhi };
@@ -260,7 +262,7 @@ function box3(lo, hi, material) {
 
 function buildEntities(res) {
   dyn.clear();
-  movers = []; ladders = []; keys = []; exitBox = null; lightSpots = []; keysFound = 0; finished = false;
+  movers = []; ladders = []; keys = []; pads = []; exitBox = null; lightSpots = []; keysFound = 0; finished = false;
   $('banner').classList.add('hidden');
   const glow = new THREE.SphereGeometry(0.07, 10, 8);
   for (const e of res.entities) {
@@ -296,6 +298,41 @@ function buildEntities(res) {
       mesh.position.set(e.pos[0] * S, (e.pos[2] + 16) * S, -e.pos[1] * S);
       dyn.add(mesh);
       keys.push({ pos: e.pos, mesh, color: p.color, got: false });
+    } else if (e.kind === 'jumppad') {
+      const top = e.lo[2] + 4;
+      const mesh = box3(e.lo, [e.hi[0], e.hi[1], top], new THREE.MeshLambertMaterial({ color: 0x40d0ff, emissive: 0x1070a0 }));
+      dyn.add(mesh);
+      const link = (res.links || []).find((l) => l.kind === 'jumppad' && Math.hypot(l.a[0] - e.pos[0], l.a[1] - e.pos[1]) < 64);
+      const target = (p.target && p.target.length === 3) ? p.target : link ? link.b : [e.pos[0], e.pos[1], e.pos[2] + 256];
+      pads.push({ lo: e.lo, hi: e.hi, top, target });
+    } else if (e.kind === 'flag' || e.kind === 'spawn') {
+      const team = p.team === 2 || p.team === 'blue' ? 0x4070ff : p.team ? 0xff4040 : 0x7be495;
+      const g = new THREE.Group();
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, e.kind === 'flag' ? 2.2 : 0.6), new THREE.MeshLambertMaterial({ color: 0xdddddd }));
+      pole.position.y = e.kind === 'flag' ? 1.1 : 0.3;
+      g.add(pole);
+      if (e.kind === 'flag') {
+        const cloth = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.55), new THREE.MeshLambertMaterial({ color: team, emissive: team, emissiveIntensity: 0.3, side: THREE.DoubleSide }));
+        cloth.position.set(0.45, 1.9, 0);
+        g.add(cloth);
+      } else {
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(0.45, 0.05, 6, 24), new THREE.MeshBasicMaterial({ color: team }));
+        ring.rotation.x = Math.PI / 2; ring.position.y = 0.05;
+        g.add(ring);
+      }
+      g.position.set(e.pos[0] * S, (e.pos[2] - 24) * S, -e.pos[1] * S);
+      dyn.add(g);
+    } else if (e.kind === 'torch') {
+      const m = new THREE.Mesh(glow, new THREE.MeshBasicMaterial({ color: 0xffa040 }));
+      m.position.set(e.pos[0] * S, e.pos[2] * S, -e.pos[1] * S);
+      dyn.add(m);
+      lightSpots.push(new THREE.Vector3(e.pos[0] * S, e.pos[2] * S, -e.pos[1] * S));
+    } else if (e.kind === 'trap') {
+      const m = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.05, 0.5), new THREE.MeshBasicMaterial({ color: 0xff3030 }));
+      m.position.set(e.pos[0] * S, (e.pos[2] - 22) * S, -e.pos[1] * S);
+      dyn.add(m);
+    } else if (e.kind === 'window' && e.lo && p.glazed) {
+      dyn.add(box3(e.lo, e.hi, mat('glass')));
     } else if (e.kind === 'light') {
       const m = new THREE.Mesh(glow, new THREE.MeshBasicMaterial({ color: 0xfff0c8 }));
       m.position.set(e.pos[0] * S, e.pos[2] * S, -e.pos[1] * S);
@@ -380,7 +417,9 @@ const keysDown = new Set();
 
 function respawn() {
   if (!level) return;
-  const st = level.entities.find((e) => e.kind === 'player_start');
+  // a campaign level has a player start; an arena / CTF map has spawn points: use one of them
+  const spawns = level.entities.filter((e) => e.kind === 'spawn');
+  const st = level.entities.find((e) => e.kind === 'player_start') || spawns[Math.floor(Math.random() * spawns.length)];
   if (!st) return;
   P.x = st.pos[0]; P.y = st.pos[1];
   const p = probe(P.x, P.y, st.pos[2] - 24, STEP + 24);
@@ -472,7 +511,7 @@ function tick(dt) {
   let wx = fwd * cy + side * sy, wy = fwd * sy - side * cy;
   const wl = Math.hypot(wx, wy);
   if (wl > 0) { wx /= wl; wy /= wl; }
-  const k = P.ground ? Math.min(1, 12 * dt) : Math.min(1, 2.5 * dt);
+  const k = P.ground ? Math.min(1, 12 * dt) : P.launched ? 0 : Math.min(1, 2.5 * dt);   // a jump pad's throw keeps its course
   P.vx += (wx * speed - P.vx) * k;
   P.vy += (wy * speed - P.vy) * k;
 
@@ -513,6 +552,17 @@ function tick(dt) {
     if (movers.some((m) => m.kind !== 'ladder' && P.x + R > m.lo[0] && P.x - R < m.hi[0] && P.y + R > m.lo[1] && P.y - R < m.hi[1] && P.z < m.hi[2] && P.z + H > m.lo[2])) P.z += 1;
   }
   if (P.z < bounds.z0 - 800) respawn();
+
+  // jump pads (the same throw as Quake's trigger_push from the .map: gravity 800, peaking 64 over the target)
+  if (P.ground) P.launched = false;
+  for (const pad of pads) {
+    if (P.ground && P.x > pad.lo[0] && P.x < pad.hi[0] && P.y > pad.lo[1] && P.y < pad.hi[1] && Math.abs(P.z - pad.top) < 8) {
+      const dx = pad.target[0] - P.x, dy = pad.target[1] - P.y, rise = pad.target[2] - 24 - P.z, d = Math.hypot(dx, dy);
+      const apex = Math.max(rise, 0) + 64, vz = Math.sqrt(2 * GRAV * apex);
+      const t = vz / GRAV + Math.sqrt(2 * (apex - rise) / GRAV);
+      P.vx = dx / t; P.vy = dy / t; P.vz = vz; P.ground = false; P.launched = true;
+    }
+  }
 
   // things to touch
   for (const key of keys) {

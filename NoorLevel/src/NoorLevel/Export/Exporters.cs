@@ -157,6 +157,7 @@ namespace NoorLevel.Export
                 // ramps: [x, y, z00, z10, z11, z01] (the bottom span's floor at the corners); water: [x, y, surface]; hazards: [x, y, kind]
                 ["floor_slopes"] = level.FloorSlope.OrderBy(k => k.Key).Select(kv => new[] { kv.Key.X, kv.Key.Y, kv.Value.Item1, kv.Value.Item2, kv.Value.Item3, kv.Value.Item4 }).ToList(),
                 ["water"] = level.Water.OrderBy(k => k.Key).Select(kv => new[] { kv.Key.X, kv.Key.Y, kv.Value }).ToList(),
+                ["glass"] = level.Glass.OrderBy(c => c).Select(c => new[] { c.X, c.Y }).ToList(),
                 ["hazard"] = level.Hazard.OrderBy(k => k.Key).Select(kv => new object[] { kv.Key.X, kv.Key.Y, kv.Value }).ToList(),
                 ["links"] = level.Links.Select(l => new Dictionary<string, object> { ["kind"] = l.Kind, ["a"] = l.A, ["b"] = l.B }).ToList(),
                 ["stats"] = Stats(level),
