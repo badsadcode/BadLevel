@@ -78,3 +78,14 @@ def test_dart_traps_are_real_in_quake(levels):
         assert q1.count('"classname" "trap_spikeshooter"') == len(darts)
         assert q2.count('"classname" "target_blaster"') == len(darts)
         assert q1.count('"_badlevel_kind" "tripwire"') == len(darts)
+
+
+def test_monsters_fit_the_place(levels):
+    """Each level type has its own cast in Quake (cfg.monster_set); the classic presets keep theirs."""
+    import re
+    q1 = set(re.findall(r'"classname" "(monster_\w+)"', to_map(levels[3], "quake")))
+    assert q1 and q1 <= {"monster_zombie", "monster_knight", "monster_hell_knight"}
+    lv = generate(compile_recipe(PRESETS["wizard"], 2))
+    assert "monster_wizard" in to_map(lv, "quake") and "monster_flyer" in to_map(lv, "quake2")
+    classic = set(re.findall(r'"classname" "(monster_\w+)"', to_map(generate(compile_recipe(PRESETS["classic"], 2)), "quake")))
+    assert classic <= {"monster_army", "monster_knight", "monster_ogre"}

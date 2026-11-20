@@ -27,6 +27,13 @@ TEXTURES = {"floor": "bl_floor", "wall": "bl_wall", "ceiling": "bl_ceiling", "sk
 
 KEY_ITEMS = {"red": ("item_key2", 8), "blue": ("item_key1", 16)}  # gold / silver
 ENEMIES = {1: "monster_army", 2: "monster_knight", 3: "monster_ogre"}
+# monsters that fit the place (cfg.monster_set): per tier, a list the level's monsters rotate through
+MONSTER_SETS = {
+    "base": {1: ("monster_army", "monster_dog"), 2: ("monster_enforcer",), 3: ("monster_ogre", "monster_enforcer")},
+    "keep": {1: ("monster_knight", "monster_army"), 2: ("monster_hell_knight", "monster_knight"), 3: ("monster_ogre", "monster_demon1")},
+    "dungeon": {1: ("monster_zombie", "monster_knight"), 2: ("monster_knight", "monster_zombie"), 3: ("monster_hell_knight",)},
+    "wizard": {1: ("monster_wizard", "monster_knight"), 2: ("monster_wizard", "monster_hell_knight"), 3: ("monster_shalrath",)},
+}
 # Quake's spawnflags 256 / 512 / 1024: not in easy / normal / hard. Of every 4 monsters, all 4 are
 # in hard, 3 in normal, 2 in easy (the order the level lists them, so each room thins evenly)
 SKILL_FLAGS = (0, 256, 0, 256 | 512)
@@ -64,6 +71,12 @@ Q2_TEXTURES = {
 LIQUIDS = {"slime": "*slime0", "lava": "*lava1"}
 Q2_KEY_ITEMS = {"red": "key_red_key", "blue": "key_blue_key"}
 Q2_ENEMIES = {1: "monster_soldier_light", 2: "monster_soldier", 3: "monster_gunner"}
+Q2_MONSTER_SETS = {
+    "base": {1: ("monster_soldier", "monster_soldier_light"), 2: ("monster_infantry", "monster_soldier_ss"), 3: ("monster_gunner",)},
+    "keep": {1: ("monster_infantry",), 2: ("monster_berserk",), 3: ("monster_gladiator",)},
+    "dungeon": {1: ("monster_parasite", "monster_mutant"), 2: ("monster_mutant",), 3: ("monster_brain",)},
+    "wizard": {1: ("monster_flyer",), 2: ("monster_floater", "monster_flyer"), 3: ("monster_brain",)},
+}
 Q2_ITEMS = {"health": "item_health", "megahealth": "item_health_mega", "ammo": "ammo_shells",
             "armor": "item_armor_jacket"}
 Q2_WEAPONS = {"shotgun": "weapon_supershotgun", "rocket_launcher": "weapon_rocketlauncher",
@@ -336,9 +349,15 @@ def to_map(level: Level, game: str = "quake") -> str:
             p = {"classname": "light", "origin": origin, "light": e.props.get("intensity", 300),
                  "wait": Q2_LIGHT_FADE if q2 else LIGHT_FADE}
         elif e.kind == "enemy":
-            p = {"classname": (Q2_ENEMIES if q2 else ENEMIES).get(e.props.get("tier", 1), "monster_army"),
-                 "origin": origin}
             k = n_enemy = n_enemy + 1                      # skill levels: easy 1/2, normal 3/4, hard all
+            tier = e.props.get("tier", 1)
+            mset = (Q2_MONSTER_SETS if q2 else MONSTER_SETS).get(getattr(level.config, "monster_set", ""))
+            if mset:                                       # monsters that fit the place
+                opts = mset.get(tier, mset[1])
+                cls = opts[k % len(opts)]
+            else:
+                cls = (Q2_ENEMIES if q2 else ENEMIES).get(tier, "monster_army")
+            p = {"classname": cls, "origin": origin}
             if SKILL_FLAGS[k % 4]:
                 p["spawnflags"] = SKILL_FLAGS[k % 4]
         elif e.kind == "key":

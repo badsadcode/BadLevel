@@ -1288,3 +1288,17 @@ shooter set in the corridor's last cell against one wall, aimed across: Quake 1'
 `trap_spikeshooter`, Quake 2's `target_blaster` (10 damage). The marker stays too (an
 `info_null` with the trap's type), for other games. Blades and spike floors stay markers: neither
 Quake has an entity for them that wouldn't need new code. No geometry changes; routes unchanged.
+
+## D52. Monsters that fit the place (Quake)
+
+Every level used Quake 1's grunt / knight / ogre trio (Quake 2: light soldier / soldier /
+gunner), whatever it was. `cfg.monster_set` picks a cast per level type, a list per difficulty
+tier that the level's monsters rotate through (exporter only: positions and counts unchanged):
+- **base** (techbase, outpost, facility, complex): grunts and dogs, Enforcers, ogres; Q2
+  soldiers, infantry and machine-gun soldiers, gunners.
+- **keep** (runekeep, grand, market): knights and grunts, death knights, ogres and fiends; Q2
+  infantry, berserkers, gladiators.
+- **dungeon**: zombies and knights, death knights; Q2 parasites and mutants, brains.
+- **wizard**: Scrags (they fly: the tower's void is theirs), knights and death knights, a Vore
+  at the top; Q2 flyers and floaters, brains.
+The original presets keep the default trio (24 of 24 golden maps unchanged).
