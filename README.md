@@ -30,7 +30,7 @@ seed + config
 
 ## NoorLevel (C#)
 
-BadLevel's core now also lives on as **NoorLevel**: a dependency-free .NET library, a command line
+All of BadLevel now also lives on as **NoorLevel**, a full C# port (all 19 presets): a dependency-free .NET library, a command line
 tool and a Windows previewer app (WebView2) where you generate, tweak with sliders, walk around and
 export to Quake 1/2, Valve 220, glTF, OBJ, STL, JSON and SVG. See [NoorLevel/README.md](NoorLevel/README.md).
 

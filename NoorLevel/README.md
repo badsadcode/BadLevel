@@ -23,13 +23,28 @@ NoorLevel/
   tests/NoorLevel.Tests/    xunit
 ```
 
-The generator is a port of BadLevel's core: a **mission graph** (critical path, locked doors and
-their keys, side rooms, a secret, loops), **storeys** climbed by stairs, stairwells, spiral stairs,
-lifts and ladders, **rooms** of many shapes (rectangles, L, T, U, plus, ring, octagon, hexagon,
-diamond, round…), an **A\* corridor router** with widths and 45° runs, stairs on straight runs and
-one-way drops, room features (pillars, platforms, pits, balconies, crates), lights, and a
-**validator** that proves every level is finishable: directed reachability, keys before their doors,
-no softlocks, every room reached, and a player-sized box fits everywhere it has to.
+The generator is a full port of BadLevel: a **mission graph** (critical path, locked doors and
+their keys, side rooms, a secret, loops; hub / central / linear compositions), **storeys** climbed by
+stairs, stairwells, spiral stairs, lifts and ladders (or in from the surface and down, underground),
+**rooms** of many shapes, **merged halls**, **corridor beats** (chambers, rotundas, aisles), **courtyards**
+open to the sky with roofscapes and free-standing buildings, **mega-rooms** (hangars, works halls,
+terraces), **divided floor plans**, an **A\* corridor router** with widths, 45° runs, vents, one-way drops,
+stairs and smooth **ramps**; **architecture** in styles (gothic, industrial, bunker, compound, castle,
+egyptian, sci-fi): hall cross-sections with piers and sloped vaults and roofs, structure along the walls,
+framed portals, a landmark; **windows** (slits and glass), galleries, overlooks and **vistas** onto a
+landscape; room features (pillars, platforms, pits, balconies, crates, hazard pools, spiked chasms with
+bridges, jump-pad towers); **dungeons** (torches, grates open to the sky, traps, flooded crypts and
+sumps); the **wizard's tower** (a helix hall), the **goblin market** (streets of stalls), **room programs**
+(facility sectors, dungeon wings, the wizard's libraries); **arena**, **duel** and **CTF** maps (spawns,
+mirrored team halves, flags); and a **validator** that proves every level is finishable: directed
+reachability, keys before their doors, no softlocks, enough air under water, every room reached, and a
+player-sized box fits everywhere it has to.
+
+All 19 BadLevel presets are here (compact, classic, bunker, fortress, industrial, compound, techbase,
+runekeep, outpost, grand, facility, complex, dungeon, wizard, market, arena, ctf, duel, explore) plus
+**surprise** (a preset drawn by the seed with extras rolled on top). Monsters, weapons and items are
+left out on purpose: NoorLevel makes the space, the game fills it (arena maps record where the weapons
+and power-ups would go in `Level.Arena`).
 
 It does not reproduce Python's random numbers (it has its own xoshiro256\*\* stream), so seed 7 in
 NoorLevel is a different level from seed 7 in BadLevel, but the same seed always gives the same
@@ -52,7 +67,7 @@ dotnet run --project src/NoorLevel.Cli -- serve
 
 then open http://localhost:5173.
 
-* **Preset**, **seed** (‹ › and 🎲), **Generate** (G) and **New level** (N, a random seed).
+* **Preset** (all 19, plus Surprise), **seed** (‹ › and 🎲), **Generate** (G) and **New level** (N, a random seed).
 * **Dials**: the ten design dials (scale, openness, verticality, claustrophobia, combat,
   exploration, loopiness, regularity, spaciousness, variety). With *Regenerate when a slider
   changes* on, letting go of a slider makes a new level.
@@ -61,7 +76,8 @@ then open http://localhost:5173.
   click ● to give it back to the dials.
 * **Orbit** (drag, right-drag, wheel; ceilings cut away so you see inside) and **Walk** (Tab):
   click the view, then WASD + mouse, Space jumps, Shift runs. Stairs step up, ledges drop, doors
-  open as you come, **lifts** take you up when you stand on them (and come when you wait by
+  open as you come, ramps are smooth, you **swim** in water (Space swims up), **jump pads** throw you
+  onto the high ground, glass is solid, **lifts** take you up when you stand on them (and come when you wait by
   them), **ladders** climb when you walk into them, E opens secret doors, R respawns. Reach the
   green exit and it says so. The minimap (M) shows where you are.
 * **Export** to any of the formats below. In the app you get a Save dialog; in a browser, a download.
@@ -141,11 +157,9 @@ dotnet test tests/NoorLevel.Tests
 
 The Windows previewer builds on Linux/macOS too (`EnableWindowsTargeting`), it just only runs on Windows.
 
-## Not yet ported from BadLevel
+## How the port was done
 
-The core is here; the feature modules come next: hall cross-sections and styles, windows and
-vistas, water and floods, dungeons, the wizard's tower, the goblin market, arena / CTF modes,
-facility, mega-rooms, courtyards, sloped vaults. Monsters, weapons and items are left out on
-purpose: NoorLevel makes the space, the game fills it.
+`PORTING.md` is the rulebook: every Python module has a C# file of the same name and every function a
+predictable C# name, so the modules could be ported in parallel and still call each other.
 
 three.js (MIT) is bundled in `wwwroot/vendor` so the previewer works offline.
