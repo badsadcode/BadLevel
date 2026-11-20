@@ -1302,3 +1302,17 @@ tier that the level's monsters rotate through (exporter only: positions and coun
 - **wizard**: Scrags (they fly: the tower's void is theirs), knights and death knights, a Vore
   at the top; Q2 flyers and floaters, brains.
 The original presets keep the default trio (24 of 24 golden maps unchanged).
+
+## D53. Surprise me, and the bug it found
+
+`--recipe surprise` (`recipes.surprise`): the seed draws a preset, then rolls extras: another
+architecture style (35%), water (30%), torches (25%), vistas (25%), a deathmatch (10%, not for
+arena presets or the tower). Combinations nobody planned, every one through the same checker.
+
+Its first eight seeds found a crash no test had: `runekeep` seed 4 (and so surprise seed 4)
+failed to export, KeyError in build_brushes. Three 45-degree half cells had lost their spans:
+a mega-room's structure (`MegaBuilder._ok`) skipped the room's own half cells but not the
+level's, so a structure filled a corridor's or a packed wall's diagonal cell solid and left its
+`level.diag` entry behind. `_ok` now refuses any cell in `level.diag`. Present since runekeep
+(D42); golden levels unchanged. Then a sweep: every preset, seeds 1-6, generated and exported
+(.map for both Quakes, .glb), no diagonal cell without a span.

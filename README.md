@@ -94,6 +94,10 @@ settings. A recipe is ten dials from 0 to 1 plus optional raw overrides:
 
 Presets: `compact`, `classic`, `bunker`, `fortress`, `industrial`, `compound`, `techbase` (Doom-era), `runekeep` (Quake-1 flavour), `outpost` (Quake-2 flavour), `grand` (Unreal flavour), `arena`, `duel` and `ctf` (deathmatch and capture the flag, see below), `facility` and `complex` (Half-Life-style facilities, see below), `dungeon`, `wizard` and `market` (see below), `explore`.
 
+`--recipe surprise` draws a preset from the seed and rolls extras on top (another style, water,
+torches, vistas, now and then a deathmatch): `surprise: wizard + egyptian style`. Same seed, same
+surprise; the mix is in the level's config.
+
 Presets start at `spaciousness` 0.5 (wide corridors, roomy halls); `--space 0` gives the
 original tight Quake-1 levels, byte for byte. `variety` defaults to 0, which changes nothing. Turn them up on top of any recipe from the command line:
 

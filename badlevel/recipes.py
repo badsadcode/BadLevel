@@ -381,6 +381,34 @@ PRESETS: Dict[str, Recipe] = {r.name: r for r in [
 ]}
 
 
+def surprise(seed: int):
+    """``--recipe surprise``: a preset drawn by the seed, and a roll for extras on top (another
+    architecture style, water, torches, vistas, a deathmatch). Returns (recipe, extras, label);
+    the extras are config fields to set after compiling. Same seed, same surprise."""
+    import random
+    from .architecture import STYLES
+    rng = random.Random(f"surprise/{seed}")
+    name = rng.choice(sorted(PRESETS))
+    extras, bits = {}, [name]
+    if rng.random() < 0.35:
+        extras["arch_style"] = rng.choice(STYLES)
+        bits.append(f"{extras['arch_style']} style")
+    if rng.random() < 0.3:
+        extras["floods"], extras["sumps"] = 0.5, 0.5
+        bits.append("water")
+    if rng.random() < 0.25:
+        extras["torches"] = True
+        bits.append("torches")
+    if rng.random() < 0.25:
+        extras["vistas"] = 2
+        bits.append("vistas")
+    if rng.random() < 0.1 and name not in ("arena", "duel", "ctf", "wizard"):
+        extras.update({"mode": "arena", "keys": 0, "secret": False, "enemy_density": 0.0, "pickup_density": 0.0,
+                       "loops": 4, "long_loop_chance": 0.0, "jump_pads": 1.0})
+        bits.append("deathmatch")
+    return PRESETS[name], extras, "surprise: " + " + ".join(bits)
+
+
 def get_recipe(name_or_path: str) -> Recipe:
     if name_or_path in PRESETS:
         return PRESETS[name_or_path]

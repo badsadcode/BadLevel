@@ -36,6 +36,11 @@ def _parse_seeds(text: str):
 def _cfg_from_args(args, seed: int, recipe=None) -> GenConfig:
     from .recipes import compile_recipe, get_recipe
     cfg = GenConfig(seed=seed)
+    extras = {}
+    if recipe is None and getattr(args, "recipe", None) == "surprise":
+        from .recipes import surprise
+        recipe, extras, label = surprise(seed)               # a preset and a roll of extras
+        print(label, flush=True)
     recipe = recipe or (get_recipe(args.recipe) if getattr(args, "recipe", None) else None)
     space = getattr(args, "space", None)
     if recipe is not None:
@@ -44,6 +49,11 @@ def _cfg_from_args(args, seed: int, recipe=None) -> GenConfig:
             recipe = dataclasses.replace(recipe, spaciousness=max(0.0, min(1.0, space)))
             space = None
         cfg = compile_recipe(recipe, seed)
+        for k, v in extras.items():
+            setattr(cfg, k, v)
+        if extras or getattr(args, "recipe", None) == "surprise":
+            from .recipes import surprise
+            cfg.recipe = surprise(seed)[2]
     if args.config:
         with open(args.config) as fh:
             cfg = GenConfig.from_dict({**json.load(fh), "seed": seed})
@@ -143,7 +153,8 @@ def main(argv=None):
         if name == "compare":
             sp.add_argument("--recipes", default="all", help="comma separated preset names or .json files, or 'all'")
         else:
-            sp.add_argument("--recipe", help="preset name (see `badlevel presets`) or a recipe .json file")
+            sp.add_argument("--recipe", help="preset name (see `badlevel presets`), a recipe .json file, or 'surprise' "
+                                             "(a preset and extras drawn by the seed)")
         sp.add_argument("--out", default="out")
         sp.add_argument("--formats", default=",".join(FORMATS))
         sp.add_argument("--config", help="JSON file with GenConfig fields")
@@ -194,7 +205,7 @@ def main(argv=None):
         names = list(PRESETS) if args.recipes == "all" else [n.strip() for n in args.recipes.split(",")]
         jobs = [(get_recipe(n), seed) for n in names for seed in seeds]
     else:
-        rec = get_recipe(args.recipe) if args.recipe else None
+        rec = get_recipe(args.recipe) if args.recipe and args.recipe != "surprise" else None   # (surprise: per seed)
         jobs = [(rec, seed) for seed in seeds]
     cards = []
     for recipe, seed in jobs:

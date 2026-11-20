@@ -57,7 +57,8 @@ class _Builder:
                 self.level.spans.pop(c, None)
 
     def _ok(self, cells) -> bool:
-        return all(self.room.contains(*c) and not self.room.is_diag(*c) and c not in self.ctx.clear
+        return all(self.room.contains(*c) and not self.room.is_diag(*c) and c not in self.level.diag   # (any 45-degree cell)
+                   and c not in self.ctx.clear
                    and c not in self.ctx.used and c not in self.occupied for c in cells)
 
     def _floor_connected(self) -> bool:
