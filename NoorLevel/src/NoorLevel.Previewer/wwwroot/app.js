@@ -30,7 +30,7 @@ camera.rotation.order = 'YXZ';
 const orbit = new OrbitControls(camera, canvas);
 orbit.enableDamping = true;
 orbit.dampingFactor = 0.12;
-scene.add(new THREE.HemisphereLight(0xdfe6ff, 0x3a2f28, 1.6));
+scene.add(new THREE.HemisphereLight(0xdfe6ff, 0x6e645c, 1.7));
 const sun = new THREE.DirectionalLight(0xfff1dd, 1.1);
 sun.position.set(0.4, 1, 0.25);
 scene.add(sun);
