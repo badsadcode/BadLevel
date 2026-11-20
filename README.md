@@ -92,7 +92,7 @@ settings. A recipe is ten dials from 0 to 1 plus optional raw overrides:
 | `spaciousness` | bigger, taller rooms, wider and higher corridors, more headroom (0 = the compact Quake feel) |
 | `variety` | a wider spread of room sizes, extra footprints (round, hex, diamond, Z, H), domes in big rooms, spiral stairs |
 
-Presets: `compact`, `classic`, `bunker`, `fortress`, `industrial`, `compound`, `techbase` (Doom-era), `runekeep` (Quake-1 flavour), `outpost` (Quake-2 flavour), `grand` (Unreal flavour), `arena`, `duel` and `ctf` (deathmatch and capture the flag, see below), `facility` and `complex` (Half-Life-style facilities, see below), `dungeon` (see below), `explore`.
+Presets: `compact`, `classic`, `bunker`, `fortress`, `industrial`, `compound`, `techbase` (Doom-era), `runekeep` (Quake-1 flavour), `outpost` (Quake-2 flavour), `grand` (Unreal flavour), `arena`, `duel` and `ctf` (deathmatch and capture the flag, see below), `facility` and `complex` (Half-Life-style facilities, see below), `dungeon` and `wizard` (see below), `explore`.
 
 Presets start at `spaciousness` 0.5 (wide corridors, roomy halls); `--space 0` gives the
 original tight Quake-1 levels, byte for byte. `variety` defaults to 0, which changes nothing. Turn them up on top of any recipe from the command line:
@@ -141,6 +141,17 @@ catacombs and the deep, in castle stone.
   catacomb hall, a throne room on a dais. Every piece is a named part.
 
 `chasms`, `torches`, `skylights`, `traps` and `program_set: "dungeon"` work in any config.
+
+## The wizard's tower
+
+`--recipe wizard`: one tall round hall is the spine of the level. A stair 3-4 cells wide
+spirals up inside its wall (a gentle helix, a flat landing at every storey, each landing a
+quarter turn round from the last so the doors face every way), round an open void from the
+ground floor to the sky. Straight flights cross the void, one per direction at different
+heights, passing over and under each other: impossible-looking, valid geometry, and short cuts
+up. Fall into the void and you land on the ground floor, where the helix starts. Off the
+landings: an entrance hall, libraries, alchemy labs (workbenches, a cauldron), a scriptorium,
+dormitories, a summoning chamber, a reliquary for the key, the observatory at the top.
 
 ## Water: flooded rooms and sumps
 

@@ -1230,3 +1230,33 @@ differently, so they are two features, and the checker learns the difference (`f
   level's .glb is byte for byte as before (and the spikes material from D47 too).
 - On in the dungeon preset (floods 0.5, sumps 0.8): water in 8 of 10, sumps in 4 of 10, 33
   attempts over 10 levels, as before. `--floods`/`--sumps` for any recipe (Tom: "it fits any game").
+
+## D49. The wizard's tower
+
+Noor: "a wizard's tower with impossible staircases"; she and Tom agreed: impossible-looking,
+perfectly valid. `tower.py`, a new vertical space type (`tower`, a connector to placement and
+routing, so architecture leaves it alone) and its own mission graph (`cfg.tower`):
+- **Helix**: a ring 3.5 cells wide inside a round hall of radius 8-10. Height along the unrolled
+  angle: a flat landing (2.5 cells each side) at every storey, landings DELTA = a quarter turn
+  apart, so 1.25 turns per storey and about 5-6 units per cell (test: never more than 16 per
+  cell). Laps over the same cell are stacked spans ~200 apart; the ground floor runs under the
+  helix where it is 96+ up. Heights quantised to 8.
+- **Void**: the middle, ground to sky. Falls land on the ground floor (no trap: the helix starts
+  there). The whole tower is open to the sky.
+- **Flights**: every straight flight the helix allows in four directions: from a helix point at
+  140+ across the void to the point half a lap round, rising at most 15 per cell; picked spread
+  over the height (160+ apart), one per direction, each with headroom (player + slab + 16)
+  against everything already in its columns. The first pick (one per lap, at angles a quarter
+  turn per lap plus DELTA) put two flights on one line, one above the other; the next (a window
+  per lap) found none at all, the helix meeting each direction only every 0.8 storeys.
+- **Ports**: a landing's wall cells per storey; corridors attach at the landing nearest the
+  other room's height (`_port_floor` asks the room's `landings`).
+- **Graph** (`build_tower_graph`): the tower is the hub; per storey 1-3 rooms in a chain off its
+  landing; start on the ground floor, exit at the top; keycard locks on the doors of the upper
+  landings (storeys S/2 and S-1), each key in a room on a storey below.
+- **Programs** (`program_set: "wizard"`): apprentice, study and sanctum sectors; entrance hall,
+  library, alchemy lab (workbenches, a cauldron), scriptorium, study, dormitory, lecture hall,
+  great library, summoning chamber (a raised circle), reliquary (the key), observatory (a
+  telescope), hidden study.
+- Preset `wizard`: 4 storeys, gothic, torches, grates. 14 attempts over 10 levels; other
+  presets unchanged (24 of 24 maps, glb hashes equal).

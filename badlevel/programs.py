@@ -45,9 +45,17 @@ DUNGEON_PROGRAMS = {
     "catacombs": (["crypt", "crypt", "shrine", "storeroom"], "catacomb hall"),
     "deep": (["shrine", "crypt", "cells"], "throne room"),
 }
+# the wizard's tower (cfg.program_set = "wizard"): the apprentices below, the study, the sanctum
+WIZARD_PROGRAMS = {
+    "apprentice": (["library", "storeroom", "alchemy lab", "dormitory"], "lecture hall"),
+    "study": (["library", "alchemy lab", "scriptorium", "study"], "great library"),
+    "sanctum": (["summoning chamber", "study", "alchemy lab"], "summoning hall"),
+}
+WIZARD_FIXED = {"start": "entrance hall", "exit": "observatory", "key": "reliquary", "secret": "hidden study"}
 DUNGEON_FIXED = {"start": "gatehouse", "exit": "stair down", "key": "vault", "secret": "hidden cache"}
 FIXED = {"start": "lobby", "exit": "transit", "key": "security", "secret": "closet"}
-MIN_SIDE.update({"library": 8, "armory": 8, "cells": 9, "crypt": 8, "storeroom": 7, "guardroom": 7, "shrine": 8})
+MIN_SIDE.update({"scriptorium": 8, "alchemy lab": 8, "summoning chamber": 9, "dormitory": 8, "study": 6,
+                 "library": 8, "armory": 8, "cells": 9, "crypt": 8, "storeroom": 7, "guardroom": 7, "shrine": 8})
 
 
 def sectors_for(zones: int, seed) -> List[str]:
@@ -69,14 +77,21 @@ def dungeon_sectors(zones: int, seed) -> List[str]:
     return (["keep", "prison", "catacombs"])[:zones - 1] + ["deep"]
 
 
+def wizard_sectors(zones: int, seed) -> List[str]:
+    return ["apprentice", "study", "sanctum"][:max(1, zones)] if zones <= 3 else \
+        ["apprentice"] + ["study"] * (zones - 2) + ["sanctum"]
+
+
 def assign(level: Level):
     """Every ordinary room gets a sector (from its lock zone) and a program."""
     cfg = level.config
     g = level.graph
     zones = max(n.zone for n in g.nodes) + 1
-    dungeon = getattr(cfg, "program_set", "facility") == "dungeon"
-    table, fixed = (DUNGEON_PROGRAMS, DUNGEON_FIXED) if dungeon else (SECTOR_PROGRAMS, FIXED)
-    names = dungeon_sectors(zones, cfg.seed) if dungeon else sectors_for(zones, cfg.seed)
+    pset = getattr(cfg, "program_set", "facility")
+    dungeon = pset in ("dungeon", "wizard")                 # (their own fallbacks, not the facility's)
+    table, fixed = {"dungeon": (DUNGEON_PROGRAMS, DUNGEON_FIXED), "wizard": (WIZARD_PROGRAMS, WIZARD_FIXED)}.get(
+        pset, (SECTOR_PROGRAMS, FIXED))
+    names = {"dungeon": dungeon_sectors, "wizard": wizard_sectors}.get(pset, sectors_for)(zones, cfg.seed)
     rng = random.Random(f"{cfg.seed}/{cfg.variant}/programs")
     halls = set()                                    # one big hall per sector, the biggest room first
     for room in sorted(level.rooms, key=lambda r: (r.kind != "arena", -r.w * r.h)):
@@ -212,7 +227,8 @@ FALLBACK = {"office": ("desks", 32), "lab": ("benches", 40), "control": ("consol
             "server": ("server racks", None), "storage": ("shelving", None), "pump": ("tanks", None),
             "security": ("counter", 48), "cafeteria": ("tables", 32),
             "crypt": ("sarcophagi", 40), "library": ("bookshelves", None), "armory": ("weapon racks", 64),
-            "storeroom": ("barrels", 48), "cells": ("cell walls", None)}
+            "storeroom": ("barrels", 48), "cells": ("cell walls", None),
+            "alchemy lab": ("workbenches", 40), "scriptorium": ("writing desks", 32), "study": ("bookshelves", None)}
 
 
 def _chasm(ctx, rng) -> bool:
@@ -308,7 +324,31 @@ def furnish(ctx, prog: str, rng: random.Random) -> None:
     elif prog == "throne room":
         f_platform(ctx, rng)                           # the dais
         f_pillars(ctx, rng)
-    # closet, hidden cache, stair down: empty
+    # --- the wizard's tower ----------------------------------------------------------------
+    elif prog == "entrance hall":
+        f_pillars(ctx, rng)
+    elif prog == "alchemy lab":
+        rows(ctx, rng, "workbenches", 1, 3, 4, 2, height=40)
+        block(ctx, "cauldron", 2, 2, 32)
+    elif prog == "scriptorium":
+        rows(ctx, rng, "writing desks", 1, 2, 2, 2, height=32)
+    elif prog == "study":
+        block(ctx, "desk", 3 if r.w >= r.h else 2, 2 if r.w >= r.h else 3, 32)
+        rows(ctx, rng, "bookshelves", 1, 4, 4, 2, margin=2)
+    elif prog == "dormitory":
+        rows(ctx, rng, "beds", 2, 2, 1, 2, height=24)
+    elif prog in ("lecture hall", "great library"):
+        f_balcony(ctx, rng)
+        rows(ctx, rng, "bookshelves" if prog == "great library" else "benches", 1, 3, 5, 2,
+             height=None if prog == "great library" else 32)
+    elif prog in ("summoning chamber", "summoning hall"):
+        block(ctx, "summoning circle", 4, 4, 8)          # a raised ring to stand on (8: a step)
+        f_pillars(ctx, rng)
+    elif prog == "reliquary":
+        rows(ctx, rng, "reliquaries", 1, 3, 2, 3, height=48)
+    elif prog == "observatory":
+        block(ctx, "telescope", 2, 2, None)
+    # closet, hidden cache, stair down, hidden study: empty
     small = FALLBACK.get(prog)
     if small and not any(v.startswith(f"room:{r.id}/{small[0]}") for v in
                          list(ctx.level.part_cells.values()) + list(ctx.level.part_solid.values())):

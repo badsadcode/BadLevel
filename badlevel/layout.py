@@ -317,6 +317,8 @@ def _composed_dir(comp: str, root: Room, parent: Room, from_root: bool, node, sp
 
 def _port_floor(room: Room, other_floor: int, other_top: Optional[int] = None) -> int:
     """Height at which a corridor from ``room`` towards a room at ``other_floor`` attaches."""
+    if room.meta.get("landings"):                   # a tower: the landing nearest that height
+        return min(room.meta["landings"], key=lambda f: abs(f - other_floor))
     if room.top_floor is None:
         return room.floor
     target = other_floor if other_top is None else other_floor

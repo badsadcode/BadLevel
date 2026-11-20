@@ -322,6 +322,16 @@ PRESETS: Dict[str, Recipe] = {r.name: r for r in [
                       "light_variety": 0.4, "crate_scale": 0.5, "tall_room_chance": 0.5,
                       "size_bias": {"small": 1.5, "medium": 1.5, "large": 0.8},
                       "connector_weights": {"stairs": 0.4, "stairwell": 0.35, "spiral": 0.25, "lift": 0.0, "ladder": 0.0}}),
+    Recipe("wizard", "A wizard's tower after Noor's idea: one tall round hall with a stair spiralling up "
+                     "inside its wall round an open void, flights crossing the void at every height like an "
+                     "Escher drawing, the sky at the top; libraries, alchemy labs and a summoning chamber off "
+                     "its landings, the observatory at the top.",
+           scale=0.55, openness=0.45, verticality=0.9, claustrophobia=0.3, combat=0.6, exploration=0.8,
+           loopiness=0.2, regularity=0.5, spaciousness=0.4,
+           overrides={"tower": True, "storeys": 4, "keys": 2, "composition": "central", "programs": True,
+                      "program_set": "wizard", "arch_style": "gothic", "torches": True, "skylights": 0.3,
+                      "open_areas": 0, "mega_rooms": 0, "windows": 4, "glazed_chance": 0.5, "merge_chance": 0.0,
+                      "shape_weights": {"round": 2.0, "octagon": 2.0, "rect": 1.0}}),
     Recipe("arena", "Deathmatch in the arena-shooter tradition: a tight circuit of rooms round a central "
                     "hall, loops everywhere and no dead ends, two storeys joined by stairs, lifts and drops, "
                     "jump pads up to high ground, the power-ups where the fights should be.",

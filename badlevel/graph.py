@@ -92,6 +92,9 @@ class MissionGraph:
 
 
 def build_graph(cfg: GenConfig, rng: random.Random) -> MissionGraph:
+    if getattr(cfg, "tower", False):
+        from .tower import build_tower_graph
+        return build_tower_graph(cfg, rng)          # the wizard's tower: a helix as the level's spine
     g = MissionGraph()
     n_main = max(3, cfg.main_rooms)
     n_keys = max(0, min(cfg.keys, len(KEY_COLORS), n_main - 2))
@@ -190,7 +193,7 @@ def build_graph(cfg: GenConfig, rng: random.Random) -> MissionGraph:
     return g
 
 
-CONNECTOR_KINDS = ("stairwell", "lift", "ladder", "spiral")
+CONNECTOR_KINDS = ("stairwell", "lift", "ladder", "spiral", "tower")
 
 
 def make_arena(g: MissionGraph):

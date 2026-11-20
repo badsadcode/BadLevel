@@ -26,6 +26,7 @@ class GenConfig:
     mode: str = "campaign"       # campaign (start -> keys -> exit) | arena (deathmatch: spawns, items, loops; arena.py)
     jump_pads: float = 0.0       # weight of jump-pad towers among room features (high ground with no stairs)
     vistas: int = 0              # big windows in grand halls onto a sky and hills outside (vistas.py)
+    tower: bool = False          # the wizard's tower: a helix hall as the level's spine (tower.py)
     mirror: bool = False         # arena: a team map, the level's half and its mirror image (mirror.py)
     chasms: float = 0.0          # weight of chasm bridges among room features: a spiked pit, a 2-cell bridge
     skylights: float = 0.0       # weight of grates open to the sky (a shaft of light) among room features
