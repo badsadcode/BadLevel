@@ -36,6 +36,18 @@ namespace NoorLevel.Preview
             ("drop_chance", "One-way drops", 0, 1, 0.05), ("corridor_height", "Corridor height", 96, 256, 16),
         };
 
+        /// <summary>On/off switches for things people may not want in a level (all on by default).</summary>
+        public static readonly (string Name, string Label, string Help)[] Toggles =
+        {
+            ("pillars", "Pillars", "Free-standing columns: room pillars, yard colonnades, piers under vaults, corridor colonnades"),
+            ("wall_structure", "Wall structure", "Half-columns, recesses and end features along hall walls"),
+            ("portal_frames", "Portal frames", "Jambs and arched / lintelled heads round corridor openings"),
+            ("landmark", "Landmark", "One deliberate landmark in a styled level's biggest space"),
+            ("crates", "Crates", "Crates and low cover walls"),
+            ("windows", "Windows", "Slits and glass panes between spaces"),
+            ("secret", "Secret room", "A secret room behind a hidden door"),
+        };
+
         public Level Get(int id) { lock (gate) return levels.TryGetValue(id, out var l) ? l : null; }
 
         public ApiResponse Handle(string method, string path, IDictionary<string, string> query, string body)
@@ -81,6 +93,7 @@ namespace NoorLevel.Preview
                 ["name"] = "surprise", ["description"] = "A preset drawn by the seed, with a roll for extras on top (another architecture style, water, torches, vistas, a deathmatch). Same seed, same surprise. The dials don't apply.",
                 ["dials"] = Recipe.Dials.ToDictionary(d => d, d => (object)Recipes.Presets["classic"].Get(d)),
             }).ToList(),
+            ["toggles"] = Toggles.Select(t => new Dictionary<string, object> { ["name"] = t.Name, ["label"] = t.Label, ["help"] = t.Help }).ToList(),
             ["settings"] = Settings.Select(s => new Dictionary<string, object> { ["name"] = s.Name, ["label"] = s.Label, ["min"] = s.Min, ["max"] = s.Max, ["step"] = s.Step }).ToList(),
             ["formats"] = Exporters.Formats.Select(f => new Dictionary<string, object> { ["id"] = f.Id, ["label"] = f.Label, ["ext"] = f.Extension, ["description"] = f.Description }).ToList(),
         };
@@ -117,6 +130,15 @@ namespace NoorLevel.Preview
             if (Num(st, "drop_chance") is double dr) cfg.DropChance = dr;
             if (Num(st, "corridor_height") is double ch) cfg.CorridorHeight = (int)ch;
             if (st != null && st.TryGetValue("secret", out var sec) && sec is bool b) cfg.Secret = b;
+            var tg = req.TryGetValue("toggles", out var tv) ? tv as Dictionary<string, object> : null;
+            bool Off(string k) => tg != null && tg.TryGetValue(k, out var v) && v is bool on && !on;
+            if (Off("pillars")) cfg.Pillars = false;
+            if (Off("wall_structure")) cfg.ArchWalls = false;
+            if (Off("portal_frames")) cfg.ArchPortals = false;
+            if (Off("landmark")) cfg.ArchLandmark = false;
+            if (Off("crates")) cfg.CrateScale = 0;
+            if (Off("windows")) { cfg.Windows = 0; cfg.Vistas = 0; }
+            if (Off("secret")) cfg.Secret = false;
             return cfg;
         }
 

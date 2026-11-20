@@ -92,6 +92,7 @@ namespace NoorLevel
                 foreach (var f in opt)
                 {
                     string name = FeatureName(f);
+                    if (!cfg.Pillars && (name == "pillars" || name == "colonnade")) return 0.0;   // pillars off
                     double def = name == "tower" ? pads : name == "chasm" ? cfg.Chasms : 1.0;
                     w *= fw.TryGetValue(name, out var x) ? x : def;
                 }

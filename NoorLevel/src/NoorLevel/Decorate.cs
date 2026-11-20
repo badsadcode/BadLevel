@@ -111,6 +111,7 @@ namespace NoorLevel
         // ------------------------------------------------------------------
         public static bool FPillars(RoomCtx ctx, Rng rng)
         {
+            if (!ctx.Level.Config.Pillars) return false;            // pillars off (GenConfig.Pillars)
             var r = ctx.Room;
             if (Math.Min(r.W, r.H) < 9) return false;
             int spacing = rng.Choice(new[] { 4, 5 });
@@ -693,7 +694,7 @@ namespace NoorLevel
                 var ctx = new RoomCtx(level, room);
                 ctxs[room.Id] = ctx;
                 sections.TryGetValue(room.Id, out var sec);
-                int piers = sec != null ? Architecture.PlacePiers(level, room, sec, ctx) : 0;
+                int piers = sec != null && level.Config.Pillars ? Architecture.PlacePiers(level, room, sec, ctx) : 0;
                 if (tiers.TryGetValue(room.Id, out var tier))
                 {
                     var wall = Walls.Articulate(level, room, ctx, sec, tier);

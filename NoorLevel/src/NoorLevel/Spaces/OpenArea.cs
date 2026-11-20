@@ -65,6 +65,7 @@ namespace NoorLevel
         /// so they stop at 5-7 m with open sky above (indoor pillars run floor to ceiling).</summary>
         public static bool FColonnade(RoomCtx ctx, Rng rng)
         {
+            if (!ctx.Level.Config.Pillars) return false;            // pillars off (GenConfig.Pillars)
             var room = ctx.Room;
             if (Math.Min(room.W, room.H) < 9) return false;
             int spacing = rng.Choice(new[] { 4, 5 });

@@ -193,3 +193,28 @@ public class SlopeWaterExportTests
                 File.WriteAllText(Path.Combine(dump, $"dressed_{g}.map"), MapExport.ToMap(level, g));
     }
 }
+
+public class PillarSwitchTests
+{
+    public static IEnumerable<object[]> Presets() => Recipes.Presets.Keys.Select(p => new object[] { p });
+
+    /// <summary>Tom: "those pillars can be really annoying". With Pillars off no preset has a free-standing
+    /// column of any kind: room pillars, yard colonnades, piers under vaults, corridor colonnades, the
+    /// landmark's column fallback.</summary>
+    [Theory]
+    [MemberData(nameof(Presets))]
+    public void PillarsOffMeansNoColumns(string preset)
+    {
+        foreach (var seed in new[] { 1, 2 })
+        {
+            var cfg = Recipes.Compile(Recipes.Presets[preset], seed);
+            cfg.Pillars = false;
+            var level = Generator.Generate(cfg);
+            Assert.True(level.Report.Ok);
+            Assert.DoesNotContain(level.PartSolid.Values, p => p.EndsWith("/pillars") || p.EndsWith("/piers") || p.EndsWith("/colonnade"));
+            Assert.DoesNotContain(level.Rooms, r => r.Features.Contains("pillars") || r.Features.Contains("colonnade"));
+            Assert.All(level.Corridors.SelectMany(c => c.Beats), b => Assert.Equal(0, (int)b["pillars"]));
+            Assert.DoesNotContain(level.Rooms, r => r.Meta.TryGetValue("landmark", out var lm) && lm is Dictionary<string, object> d && d.TryGetValue("shape", out var s) && (string)s == "column");
+        }
+    }
+}

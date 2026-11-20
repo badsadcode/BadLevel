@@ -15,6 +15,7 @@ static class Program
     static readonly string Usage = @"noorlevel — procedural FPS level blockouts
 
   noorlevel generate [--preset classic|surprise] [--seed 1] [--dial name=0.7 ...] [--set main_rooms=8 ...]
+                     [--off pillars,crates,wall_structure,portal_frames,landmark,windows,secret]
                      [--format glb|quake|quake2|valve|map|obj|stl|json|svg ...] [--out folder]
   noorlevel serve [--port 5173] [--www path/to/wwwroot]     the previewer in your browser
   noorlevel presets                                          list presets and dials
@@ -82,6 +83,10 @@ Dials: " + string.Join(", ", Recipe.Dials);
             sets[p[0]] = p[1] == "true" || p[1] == "false" ? (object)(p[1] == "true") : double.Parse(p[1], CultureInfo.InvariantCulture);
         }
         req["dials"] = dials; req["settings"] = sets;
+        // --off pillars,crates,wall_structure,portal_frames,landmark,windows,secret
+        var offs = new Dictionary<string, object>();
+        foreach (var t in (o.TryGetValue("off", out var ol) ? ol : new List<string>()).SelectMany(x => x.Split(','))) offs[t.Trim()] = false;
+        req["toggles"] = offs;
         var cfg = PreviewApi.ConfigFrom(req);
         var sw = Stopwatch.StartNew();
         var level = Generator.Generate(cfg);

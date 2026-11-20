@@ -67,6 +67,10 @@ namespace NoorLevel
         public int ArchHeadroom = 112;
         public bool ArchLandmark = true;
         public bool ArchSmooth = true;
+        /// <summary>Free-standing columns anywhere: room pillars, yard colonnades, architectural piers under
+        /// vaults, columns in corridor rotundas / aisles / chambers. False: none of them (NoorLevel, for Tom:
+        /// "those pillars can be really annoying"). Wall members (half-columns on walls) are ArchWalls.</summary>
+        public bool Pillars = true;
 
         // merged halls
         public int MaxHallRooms = 3;

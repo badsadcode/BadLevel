@@ -12,7 +12,8 @@ const host = window.chrome && window.chrome.webview ? window.chrome.webview : nu
 // ---------------------------------------------------------------- state
 let info = null;          // presets, dials, settings, formats
 let level = null;         // the last /api/generate answer
-let pinned = {};          // parameters the user set by hand
+let pinned = {};
+let toggles = {};          // feature switches (pillars, crates...): name -> on          // parameters the user set by hand
 let mode = 'orbit';
 let cutCeilings = true;
 let showMap = true;
@@ -137,7 +138,30 @@ function buildPanel() {
     });
     setCtl[s.name] = ctl;
   }
-  $('secret').addEventListener('change', () => { pinned.secret = $('secret').checked; autoGen(); });
+  // on/off features (pillars, wall structure, crates...): all on unless switched off; remembered between runs
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem('noorlevel.toggles') || '{}'); } catch (e) { saved = {}; }
+  for (const t of info.toggles) {
+    toggles[t.name] = saved[t.name] !== false;
+    const lab = document.createElement('label');
+    lab.className = 'check' + (toggles[t.name] ? '' : ' off');
+    lab.title = t.help;
+    lab.innerHTML = `<input type="checkbox" ${toggles[t.name] ? 'checked' : ''}> ${t.label}`;
+    const box = lab.querySelector('input');
+    box.addEventListener('change', () => {
+      toggles[t.name] = box.checked;
+      lab.classList.toggle('off', !box.checked);
+      try { localStorage.setItem('noorlevel.toggles', JSON.stringify(toggles)); } catch (e) { /* private mode */ }
+      autoGen();
+    });
+    $('toggles').appendChild(lab);
+  }
+  $('allOn').addEventListener('click', () => {
+    for (const lab of $('toggles').children) { const b = lab.querySelector('input'); if (!b.checked) { b.checked = true; lab.classList.remove('off'); } }
+    for (const k in toggles) toggles[k] = true;
+    try { localStorage.removeItem('noorlevel.toggles'); } catch (e) { /* private mode */ }
+    autoGen();
+  });
   $('resetDials').addEventListener('click', () => { applyPreset(); autoGen(); });
   $('generate').addEventListener('click', () => generate());
   $('newLevel').addEventListener('click', () => newLevel());
@@ -173,6 +197,7 @@ async function generate() {
     seed: Math.max(1, Math.floor(+$('seed').value || 1)),
     dials: Object.fromEntries(info.dials.map((d) => [d, +dialCtl[d].input.value])),
     settings: { ...pinned },
+    toggles: { ...toggles },
   };
   $('busy').classList.remove('hidden');
   try {
@@ -200,7 +225,6 @@ function showStats(res) {
   for (const s of info.settings) {
     if (!(s.name in pinned)) setCtl[s.name].set(res.settings[s.name]);
   }
-  if (!('secret' in pinned)) $('secret').checked = res.settings.secret;
 }
 
 // ---------------------------------------------------------------- level -> scene

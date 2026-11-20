@@ -210,6 +210,7 @@ namespace NoorLevel
                     if (ok) break;
                 }
                 if (!ok) continue;
+                if (!level.Config.Pillars) pillars.Clear();      // (no columns: carve those cells too)
                 var cells = new List<Cell>();
                 var pillarSet = new HashSet<Cell>(pillars);
                 foreach (var c in zone)

@@ -99,7 +99,7 @@ namespace NoorLevel
             foreach (int scale in new[] { 3, 2, 1 }.Where(k => big >= 14 * k || k == 1))
             {
                 var got = Place_(level, room, ctx, sec, name, scale);
-                if (got == null && scale == 1) got = Place_(level, room, ctx, sec, "column", 1);
+                if (got == null && scale == 1 && level.Config.Pillars) got = Place_(level, room, ctx, sec, "column", 1);   // (no column with pillars off)
                 if (got != null) return got;
             }
             return null;
