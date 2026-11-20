@@ -56,7 +56,8 @@ public class GeneratorTests
         foreach (var kv in level.Spans)
             for (int i = 0; i < kv.Value.Count; i++)
             {
-                Assert.True(kv.Value[i].Height >= level.Config.PlayerHeight);
+                Assert.True(kv.Value[i].Height >= level.Config.PlayerHeight
+                            || (level.OwnerOf(kv.Key, kv.Value[i]) ?? "").StartsWith("window:"));   // (as validate.py: window slits)
                 if (i > 0) Assert.True(kv.Value[i].Floor > kv.Value[i - 1].Ceil);
             }
     }
