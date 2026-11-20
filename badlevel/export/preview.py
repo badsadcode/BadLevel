@@ -41,6 +41,7 @@ def map_svg(level: Level) -> str:
              f'<rect width="{W}" height="{H}" class="bg"/>']
     # flip Y so +Y (north in the editor) points up
     fy = lambda y: (level.height - 1 - y) * s
+    runs = {}                                       # (y, colour) -> x cells: drawn as row runs
     for (x, y), spans in level.spans.items():
         col = _height_color(spans[-1][0], lo, hi)
         if (x, y) in level.diag:
@@ -48,7 +49,20 @@ def map_svg(level: Level) -> str:
             pts = " ".join(f"{(x + a) * s},{(level.height - y - b) * s}" for a, b in tri)
             parts.append(f'<polygon points="{pts}" fill="{col}"/>')
             continue
-        parts.append(f'<rect x="{x * s}" y="{fy(y)}" width="{s}" height="{s}" fill="{col}"/>')
+        runs.setdefault((y, col), []).append(x)
+    for (y, col), xs in sorted(runs.items()):
+        xs.sort()
+        start = prev = xs[0]
+        for x in xs[1:] + [None]:
+            if x is not None and x == prev + 1:
+                prev = x
+                continue
+            parts.append(f'<rect x="{start * s}" y="{fy(y)}" width="{(prev - start + 1) * s}" height="{s}" fill="{col}"/>')
+            if x is not None:
+                start = prev = x
+    for (x, y), spans in level.spans.items():
+        if (x, y) in level.diag:
+            continue
         if len(spans) > 1:
             parts.append(f'<rect x="{x * s + 1}" y="{fy(y) + 1}" width="{s - 2}" height="{s - 2}" '
                          f'fill="none" stroke="#fff" stroke-opacity=".55" stroke-width=".8"/>')
