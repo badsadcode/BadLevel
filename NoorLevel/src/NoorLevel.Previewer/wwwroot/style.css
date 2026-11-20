@@ -88,3 +88,6 @@ main { flex: 1; position: relative; min-width: 0; }
 @keyframes spin { to { transform: rotate(360deg); } }
 #crosshair { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); color: #fff9; font-size: 18px; pointer-events: none; }
 .hidden { display: none !important; }
+/* the pin dot only on what you've set by hand */
+.slider .pin, .prow .pin { visibility: hidden; }
+.slider.pinned .pin, .prow.pinned .pin { visibility: visible; }

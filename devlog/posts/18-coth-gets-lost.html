@@ -1,0 +1,74 @@
+<!--
+map: E2M9
+title: Coth gets lost
+date: 2026-11-20
+time: Day 9, past the point of sensible bedtimes
+secrets: He is still lost
+kills: 0 goblins, 1 rounding error in every .glb ever exported
+-->
+<p>A while ago Noor laid out the plan for testing the dungeons: <i>"The dungeon generator builds the
+dungeon. The engine renders it. Coth gets lost inside it. And we call it quality assurance."</i> It was a
+joke. Then BadSad said: <i>"Let's do Coth in a NoorLevel dungeon 😃"</i>. So here we are.</p>
+
+<p>Coth is BadSad's friend, and a wild-haired wanderer in <i>The Uncounted</i>. In the Noor Engine he's a
+sprite painted from eight directions, so whichever way he walks, you see the right side of him.</p>
+<figure><img src="img/coth-eight.jpg" alt="Coth from eight directions: front, three-quarter, side, back and round again, holding a sword">
+<figcaption>Coth, all the way round. Every direction has the same expression: delighted to be lost.</figcaption></figure>
+
+<h3>Reading the engine first</h3>
+<p>The Noor Engine is BadSad's own: C++, Vulkan, physics by Jolt, scripts in Luau and C#. Its levels are JSON
+scenes full of entities. One thing already plugs into it from outside: <b>BadBuilding</b>, BadSad's building
+generator, whose buildings arrive as <i>Noor Interchange</i> assets: a GLB, a manifest saying who made it
+and from which seed, and the recipe to make it again. So NoorLevel does the same. A dungeon becomes an
+asset of kind <code>level</code>, made by NoorLevel, checked against the engine's own schema.</p>
+
+<h3>The export</h3>
+<p>NoorLevel now writes a whole Noor Engine project. Open the folder in NoorEditor, press Play, and you're
+in:</p>
+<ul>
+<li><b>The dungeon</b>, every room, corridor, vault and pier its own mesh with its own collider. Click one in
+the editor and swap it for real art; the rest stays.</li>
+<li><b>Every torch and lamp</b> is a point light (the engine lights you with the sixteen nearest).</li>
+<li><b>You</b>, first person, borrowed from the engine's own FPS sample, minus the shooting. Sized to
+NoorLevel's stairs and headroom.</li>
+<li><b>Coth</b>, with a character controller, so he walks on the floors and up the stairs like you do.</li>
+</ul>
+
+<h3>How Coth gets lost</h3>
+<p>Coth doesn't know the dungeon. NoorLevel does. So it works out a route for him from the level itself: it
+starts him halfway in, picks a room he can actually walk to (no lifts or ladders for Coth; he's a sprite of
+habit), finds the way there, then picks another, and another, and finally brings him back round. The route
+goes into his script as a list of points. He walks it, stops in each room to look around, and goes on.</p>
+<figure><img src="img/coth-route.jpg" alt="A dungeon floor plan with a gold line wandering through it, orange dots in the rooms where Coth stops">
+<figcaption>Coth's walk through dungeon seed 1. Orange: where he stops to look around. Green: where you start.
+White ring: where he starts. You have to go and find him.</figcaption></figure>
+<p>The game is simple. The screen says <i>"Coth is 37 m away"</i>. When you find him, he stops and looks at
+you, and the screen says: <i>"You found Coth! He was lost. He is still lost."</i> Then he wanders off again.</p>
+
+<h3>Testing an engine we can't run</h3>
+<p>The Noor Engine builds on Windows with Vulkan; our test machine is Linux with no graphics card. So
+everything that could be checked was checked another way. The manifest went through the engine's JSON schema.
+Both scripts went through the real Luau compiler. Coth's script ran against a pretend engine for thirty minutes
+of game time and walked his whole route, more than once. And the GLB went through the official glTF validator,
+which found a real bug: the bounding numbers in every .glb NoorLevel had ever written were rounded to four
+decimals and didn't quite match the data. Strict importers can refuse that. Fixed: zero errors now.</p>
+<p>BadSad gets to be the first to see Coth walk through a NoorLevel dungeon in the actual engine. We're waiting
+for the screenshot.</p>
+
+<h3>Also new</h3>
+<p>BadSad asked three more things, and got them:</p>
+<ul>
+<li><b>Map size.</b> Set the level's longer side in metres, say 120, and the generator fits the level to it:
+fewer rooms or more, smaller or bigger, and if it's still too big, the courtyard goes. Usually within 15%.</li>
+<li><b>More floors, rooms over rooms.</b> Up to six storeys, and a new <i>Rooms over rooms</i> slider that makes
+rooms on other storeys try to sit right over or under their neighbours first: three to four times as many
+stacked rooms.</li>
+<li><b>Every parameter in the app.</b> All 85 of them, in an <b>All parameters</b> panel with a search box and a
+description on each, generated from the code so none can go missing. And a guide to using the DLL in your own
+project, with a parameter reference built from the same list.</li>
+</ul>
+<figure style="max-width: 320px"><img src="img/nl-allparams.jpg" alt="The All parameters panel: grouped sliders, switches and choices with a search box">
+<figcaption>All of them. Even the ones nobody should touch.</figcaption></figure>
+
+<p>The real mini-game, with goals and goblins, waits for the Noor Engine to grow into it. For now, Coth has
+somewhere to wander. :)</p>
