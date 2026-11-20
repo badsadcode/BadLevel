@@ -27,8 +27,26 @@ namespace NoorLevel.Export
             new ExportFormat { Id = "obj", Label = "Wavefront .obj + .mtl", Extension = ".zip", Description = "Any 3D tool" },
             new ExportFormat { Id = "stl", Label = "STL (binary)", Extension = ".stl", Description = "3D printing / mesh tools" },
             new ExportFormat { Id = "json", Label = "NoorLevel JSON", Extension = ".json", Description = "The full level: columns, rooms, corridors, entities, links, graph" },
+            new ExportFormat { Id = "noorengine", Label = "NoorEngine project", Extension = ".zip", Description = "Open in NoorEditor and press Play: the level, lights, a first-person player, and Coth wandering it" },
             new ExportFormat { Id = "svg", Label = "Top-down map (.svg)", Extension = ".svg", Description = "A floor plan, coloured by height" },
         };
+
+        /// <summary>Where Coth's sprite files are (NoorEngine's samples/Hillside/Assets/Sprites), for the NoorEngine
+        /// export; found next to the app (a "Coth" folder) or set by the app.</summary>
+        public static string CothDir = FindCoth();
+
+        static string FindCoth()
+        {
+            try
+            {
+                foreach (var start in new[] { AppContext.BaseDirectory, Directory.GetCurrentDirectory() })
+                    for (var d = new DirectoryInfo(start); d != null; d = d.Parent)
+                        foreach (var cand in new[] { "Coth", Path.Combine("NoorEngine", "samples", "Hillside", "Assets", "Sprites"), Path.Combine("noorengine", "samples", "Hillside", "Assets", "Sprites") })
+                            if (File.Exists(Path.Combine(d.FullName, cand, "coth.noorsprite"))) return Path.Combine(d.FullName, cand);
+            }
+            catch (Exception) { }
+            return null;
+        }
 
         public static byte[] Export(Level level, string format, out string fileName)
         {
@@ -60,6 +78,9 @@ namespace NoorLevel.Export
                 case "json":
                     fileName = stem + ".json";
                     return Encoding.UTF8.GetBytes(Json.Write(LevelJson.ToIr(level)));
+                case "noorengine":
+                    fileName = $"{stem}_noorengine.zip";
+                    return NoorEngineExport.Zip(level, CothDir);
                 case "svg":
                     fileName = stem + ".svg";
                     return Encoding.UTF8.GetBytes(Svg.ToSvg(level));

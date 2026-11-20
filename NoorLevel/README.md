@@ -94,9 +94,33 @@ then open http://localhost:5173.
 | `obj` | `.obj` + `.mtl` | any 3D tool |
 | `stl` | binary STL | 3D printing |
 | `json` | the whole level: columns, rooms, corridors, entities, links, mission graph | your own tools |
+| `noorengine` | a NoorEngine project: the level as a Noor Interchange asset (GLB + `.noor.json` + recipe), a scene with every part as a mesh with a static collider, point lights, a first-person player, and **Coth** wandering the rooms | NoorEditor: open the folder, press Play |
 | `svg` | a top-down plan, coloured by height | docs, sharing |
 
 All three .map flavours compile with ericw-tools without leaks (checked on every preset).
+
+## Into the Noor Engine (Coth gets lost)
+
+`--format noorengine` (or the **NoorEngine project** export button) writes a folder you open in
+NoorEditor and play:
+
+```bash
+noorlevel-cli generate --preset dungeon --seed 1 --format noorengine --coth path/to/NoorEngine/samples/Hillside/Assets/Sprites
+```
+
+- The level arrives the way BadBuilding's buildings do: a Noor Interchange asset of kind `level`
+  (manifest checked against NoorEngine's `noor.asset.schema.json`), every room, corridor and element
+  its own mesh (`room:5/vault`), placed as its own entity with a static mesh collider.
+- The lamps and torches become point lights (the engine draws the 16 nearest).
+- The player: a character controller (1.7 m, steps 0.6 m) with a first-person script made from the
+  engine's FPS sample, and a HUD that says how far Coth is.
+- **Coth** (The Uncounted): his 8-direction sprite on a character controller, and a script with a
+  route NoorLevel works out from the level itself (only places he can walk to). He starts halfway in,
+  wanders from room to room, looks around in each, and stops to look at you when you find him.
+  (`--coth` copies his sprite files in; without it, copy them from NoorEngine's
+  `samples/Hillside/Assets/Sprites` into `Assets/Sprites`.) The previewer finds them by itself when a
+  `Coth` folder sits next to the app.
+- Scale: one cell is one metre. Doors, lifts and keys are left open in this first export.
 
 ## Command line
 

@@ -218,3 +218,38 @@ public class PillarSwitchTests
         }
     }
 }
+
+public class NoorEngineExportTests
+{
+    /// <summary>The NoorEngine project: a manifest the engine accepts, a scene whose ids are unique UUIDs with
+    /// parents that exist, one mesh entity (with a collider) per glTF mesh, the player, and Coth with a route.</summary>
+    [Theory]
+    [InlineData("dungeon"), InlineData("wizard"), InlineData("grand")]
+    public void ProjectIsComplete(string preset)
+    {
+        var level = Generator.Generate(preset, 1);
+        var files = NoorEngineExport.Project(level).ToDictionary(f => f.Path, f => f.Data);
+        Assert.Contains(files.Keys, k => k.EndsWith(".noorproj"));
+        var manifest = (Dictionary<string, object>)Json.Parse(Encoding.UTF8.GetString(files.First(f => f.Key.EndsWith(".noor.json")).Value));
+        Assert.Equal("level", manifest["kind"]);
+        Assert.Equal("NoorLevel", ((Dictionary<string, object>)manifest["generator"])["tool"]);
+        Assert.Matches("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", (string)manifest["id"]);
+        var glb = files.First(f => f.Key.EndsWith(".glb")).Value;
+        int jlen = BitConverter.ToInt32(glb, 12);
+        var gltf = (Dictionary<string, object>)Json.Parse(Encoding.UTF8.GetString(glb, 20, jlen));
+        int meshes = ((List<object>)gltf["meshes"]).Count;
+        var scene = (Dictionary<string, object>)Json.Parse(Encoding.UTF8.GetString(files.First(f => f.Key.EndsWith(".noorscene")).Value));
+        var ents = ((List<object>)scene["entities"]).Cast<Dictionary<string, object>>().ToList();
+        var ids = ents.Select(e => (string)e["id"]).ToList();
+        Assert.Equal(ids.Count, ids.Distinct().Count());
+        Assert.All(ents, e => Assert.True(e["parent"] == null || ids.Contains((string)e["parent"])));
+        var comps = ents.Select(e => (Dictionary<string, object>)e["components"]).ToList();
+        Assert.Equal(meshes, comps.Count(c => c.ContainsKey("mesh")));
+        Assert.All(comps.Where(c => c.ContainsKey("mesh")), c => Assert.True((double)((Dictionary<string, object>)c["mesh"])["mesh_index"] < meshes));
+        Assert.Single(ents, e => (string)e["name"] == "Player");
+        var coth = ents.Single(e => (string)e["name"] == "Coth");
+        Assert.Equal(NoorEngineExport.CothSheet, ((Dictionary<string, object>)((Dictionary<string, object>)coth["components"])["sprite"])["sheet"]);
+        var route = Encoding.UTF8.GetString(files["Scripts/coth_wander.luau"]);
+        Assert.True(route.Split('\n').Count(l => l.TrimStart().StartsWith("{ ")) > 20, "Coth's route is too short");
+    }
+}

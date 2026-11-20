@@ -18,7 +18,7 @@ namespace NoorLevel.Export
                 case null: sb.Append("null"); break;
                 case string s: Str(sb, s); break;
                 case bool b: sb.Append(b ? "true" : "false"); break;
-                case float f: sb.Append(Num(f)); break;
+                case float f: sb.Append(float.IsNaN(f) || float.IsInfinity(f) ? "0" : f.ToString("R", CultureInfo.InvariantCulture)); break;   // exact (glTF accessor min/max must match the data)
                 case double d: sb.Append(Num(d)); break;
                 case int or long or short or byte or uint or ulong: sb.Append(Convert.ToString(o, CultureInfo.InvariantCulture)); break;
                 case Vec3 v: sb.Append('[').Append(Num(v.X)).Append(',').Append(Num(v.Y)).Append(',').Append(Num(v.Z)).Append(']'); break;

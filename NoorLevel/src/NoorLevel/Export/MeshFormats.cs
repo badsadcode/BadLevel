@@ -14,8 +14,12 @@ namespace NoorLevel.Export
     {
         public const double Scale = 1.0 / 32.0;
 
-        public static byte[] ToGlb(Level level, bool entities = true)
+        public static byte[] ToGlb(Level level, bool entities = true) => ToGlb(level, entities, out _);
+
+        /// <summary>The .glb, and the name of each mesh in it (mesh i is part names[i]: a room, a corridor, an element).</summary>
+        public static byte[] ToGlb(Level level, bool entities, out List<string> meshNames)
         {
+            meshNames = new List<string>();
             var mb = LevelMesh.Build(level, entities);
             var bin = new MemoryStream(); var bw = new BinaryWriter(bin);
             var views = new List<object>(); var accessors = new List<object>(); var mats = new List<object>();
@@ -80,6 +84,7 @@ namespace NoorLevel.Export
                 }
                 if (prims.Count == 0) continue;
                 meshes.Add(new Dictionary<string, object> { ["name"] = part.Key, ["primitives"] = prims });
+                meshNames.Add(part.Key);
                 partNodes.Add(new Dictionary<string, object> { ["name"] = part.Key, ["mesh"] = meshes.Count - 1, ["extras"] = new Dictionary<string, object> { ["part"] = part.Key } });
             }
             Align();
