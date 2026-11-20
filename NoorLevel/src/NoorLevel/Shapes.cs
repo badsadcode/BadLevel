@@ -221,14 +221,17 @@ namespace NoorLevel
             return s;
         }
 
-        static readonly string[] Extra = { "round", "hex", "diamond", "Z", "H" };
-        static readonly Dictionary<string, string[]> BySize = new Dictionary<string, string[]>
+        // offered only when a recipe asks for them (the variety dial): existing levels stay as they were
+        public static readonly string[] ExtraShapes = { "round", "hex", "diamond", "Z", "H" };
+        public static readonly Corner[] Corners = AllCorners;
+        public static readonly Dictionary<string, string[]> ShapesBySize = new Dictionary<string, string[]>
         {
             ["small"] = new[] { "rect", "rect", "chamfer", "chamfer", "octagon" },
             ["medium"] = new[] { "rect", "chamfer", "chamfer", "octagon", "L", "L", "T", "U" },
             ["large"] = new[] { "chamfer", "octagon", "octagon", "L", "T", "U", "plus", "ring", "ring" },
+            ["yard"] = new[] { "rect", "rect", "chamfer", "chamfer", "L", "U", "plus", "octagon" },
         };
-        static readonly Dictionary<string, string[]> ByKind = new Dictionary<string, string[]>
+        public static readonly Dictionary<string, string[]> ShapesByKind = new Dictionary<string, string[]>
         {
             ["secret"] = new[] { "rect", "chamfer" },
             ["arena"] = new[] { "octagon", "ring", "plus", "chamfer" },
@@ -237,13 +240,13 @@ namespace NoorLevel
 
         public static Shape Pick(int w, int h, string size, string kind, Rng rng, Dictionary<string, double> weights)
         {
-            var options = (ByKind.TryGetValue(kind, out var k) ? k : BySize.TryGetValue(size, out var s) ? s : new[] { "rect" }).ToList();
-            if (weights != null && weights.ContainsKey("rect") && !options.Contains("rect")) options.Add("rect");
-            if (weights != null && kind != "secret")
-                options.AddRange(Extra.Where(n => weights.TryGetValue(n, out var v) && v > 0 && !options.Contains(n)));
+            var options = (ShapesByKind.TryGetValue(kind, out var k) ? k : ShapesBySize.TryGetValue(size, out var s) ? s : new[] { "rect" }).ToList();
+            if (weights != null && weights.Count > 0 && weights.ContainsKey("rect") && !options.Contains("rect")) options.Add("rect");
+            if (weights != null && weights.Count > 0 && kind != "secret")
+                options.AddRange(ExtraShapes.Where(n => weights.TryGetValue(n, out var v) && v > 0 && !options.Contains(n)));
             for (int i = 0; i < 8; i++)
             {
-                var shape = Make(w, h, rng.Weighted(options, weights), rng);
+                var shape = Make(w, h, rng.WeightedBias(options, weights), rng);
                 if (shape.Ok()) return shape;
             }
             return new Shape(w, h);

@@ -63,9 +63,10 @@ namespace NoorLevel
         public HashSet<Cell> Mask;            // local open cells (null = the whole rectangle)
         public Dictionary<Cell, Corner> Diag = new Dictionary<Cell, Corner>();   // local 45-degree half cells
 
-        public static readonly string[] ConnectorKinds = { "stairwell", "lift", "ladder", "spiral" };
+        public static string[] ConnectorKinds => MissionGraph.ConnectorKinds;
 
-        public bool IsConnector => Array.IndexOf(ConnectorKinds, Kind) >= 0;
+        /// <summary>Joins storeys: its space type is vertical (stairwell, lift, ladder, spiral, tower).</summary>
+        public bool IsConnector => Spaces.SpaceFor(Kind).Vertical;
 
         public (int Lo, int Hi) Slot => (Floor - 64, Ceil);
 
