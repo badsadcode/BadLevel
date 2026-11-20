@@ -23,7 +23,9 @@ namespace NoorLevel.Export
             ["nl_floor"] = ("noorlevel/floor", 0, 0), ["nl_wall"] = ("noorlevel/wall", 0, 0), ["nl_ceiling"] = ("noorlevel/ceiling", 0, 0),
             ["sky1"] = ("noorlevel/sky", 0, 4), ["nl_door"] = ("noorlevel/door", 0, 0), ["trigger"] = ("noorlevel/trigger", 0, 128),
             ["nl_glass"] = ("noorlevel/glass", 2, 16), ["nl_lift"] = ("noorlevel/lift", 0, 0), ["nl_ladder"] = ("noorlevel/ladder", 1 | 0x20000000, 0),
+            ["*slime0"] = ("noorlevel/slime", 16, 8), ["*lava1"] = ("noorlevel/lava", 8, 8), ["*water0"] = ("noorlevel/water", 32, 8 | 16),
         };
+        static readonly Dictionary<string, string> Liquids = new Dictionary<string, string> { ["slime"] = "*slime0", ["lava"] = "*lava1" };
         static readonly Dictionary<string, (string Q1, int Flag, string Q2)> Keys = new Dictionary<string, (string, int, string)>
         {
             ["red"] = ("item_key2", 8, "key_red_key"), ["blue"] = ("item_key1", 16, "key_blue_key"),
@@ -90,7 +92,41 @@ namespace NoorLevel.Export
                 return sb.Append('}').ToString();
             }
 
+            /// <summary>A box whose bottom is a sloped plane through its corner heights (a smooth vault cell).</summary>
+            public string Sloped(Brush b, string top, string bottom, string side)
+            {
+                double x1 = b.X0, y1 = b.Y0, x2 = b.X1, y2 = b.Y1, z2 = b.Z1;
+                var (z00, z10, z11, z01) = b.Slope.Value;
+                var inside = new P((x1 + x2) / 2, (y1 + y2) / 2, (Math.Max(Math.Max(z00, z10), Math.Max(z11, z01)) + z2) / 2.0);
+                var sb = new StringBuilder("{\n");
+                sb.Append(FaceLine(new P(x1, y1, z2), new P(x1, y1 + 1, z2), new P(x1, y1, z2 + 1), side, inside)).Append('\n');
+                sb.Append(FaceLine(new P(x1, y1, z2), new P(x1, y1, z2 + 1), new P(x1 + 1, y1, z2), side, inside)).Append('\n');
+                sb.Append(FaceLine(new P(x2, y2, z2), new P(x2, y2 + 1, z2), new P(x2 + 1, y2, z2), top, inside)).Append('\n');
+                sb.Append(FaceLine(new P(x2, y2, z2), new P(x2 + 1, y2, z2), new P(x2, y2, z2 + 1), side, inside)).Append('\n');
+                sb.Append(FaceLine(new P(x2, y2, z2), new P(x2, y2, z2 + 1), new P(x2, y2 + 1, z2), side, inside)).Append('\n');
+                sb.Append(FaceLine(new P(x1, y1, z00), new P(x2, y1, z10), new P(x2, y2, z11), bottom, inside)).Append('\n');
+                return sb.Append('}').ToString();
+            }
+
+            /// <summary>A box whose top is a sloped plane through its corner heights (a ramp cell).</summary>
+            public string TopSloped(Brush b, string top, string bottom, string side)
+            {
+                double x1 = b.X0, y1 = b.Y0, z1 = b.Z0, x2 = b.X1, y2 = b.Y1;
+                var (z00, z10, z11, z01) = b.TopSlope.Value;
+                var inside = new P((x1 + x2) / 2, (y1 + y2) / 2, (z1 + Math.Min(Math.Min(z00, z10), Math.Min(z11, z01))) / 2.0);
+                var sb = new StringBuilder("{\n");
+                sb.Append(FaceLine(new P(x1, y1, z1), new P(x1, y1 + 1, z1), new P(x1, y1, z1 + 1), side, inside)).Append('\n');
+                sb.Append(FaceLine(new P(x1, y1, z1), new P(x1, y1, z1 + 1), new P(x1 + 1, y1, z1), side, inside)).Append('\n');
+                sb.Append(FaceLine(new P(x1, y1, z1), new P(x1 + 1, y1, z1), new P(x1, y1 + 1, z1), bottom, inside)).Append('\n');
+                sb.Append(FaceLine(new P(x2, y2, z1), new P(x2 + 1, y2, z1), new P(x2, y2, z1 + 1), side, inside)).Append('\n');
+                sb.Append(FaceLine(new P(x2, y2, z1), new P(x2, y2, z1 + 1), new P(x2, y2 + 1, z1), side, inside)).Append('\n');
+                sb.Append(FaceLine(new P(x1, y1, z00), new P(x2, y1, z10), new P(x2, y2, z11), top, inside)).Append('\n');
+                return sb.Append('}').ToString();
+            }
+
             public string Text(Brush b) => b.Corner != null ? Prism(b, Tex[b.Side])
+                : b.Slope != null ? Sloped(b, Tex[b.Top], Tex[b.Bottom], Tex[b.Side])
+                : b.TopSlope != null ? TopSloped(b, Tex[b.Top], Tex[b.Bottom], Tex[b.Side])
                 : Box(new P(b.X0, b.Y0, b.Z0), new P(b.X1, b.Y1, b.Z1), Tex[b.Top], Tex[b.Bottom], Tex[b.Side]);
         }
 
@@ -100,6 +136,21 @@ namespace NoorLevel.Export
             foreach (var (k, v) in props) sb.Append('"').Append(k).Append("\" \"").Append(v is double d ? F(d) : Convert.ToString(v, CultureInfo.InvariantCulture)).Append("\"\n");
             if (brushes != null) foreach (var b in brushes) sb.Append(b).Append('\n');
             return sb.Append('}').ToString();
+        }
+
+        /// <summary>trigger_push for a jump pad: speed and angles that land on the target (gravity 800).</summary>
+        public static (double Speed, double Pitch, double Yaw) JumpLaunch(Vec3 pad, Vec3 target, double gravity = 800, double clear = 64)
+        {
+            // (port of arena.jump_launch) velocity = speed * 10 along (pitch, yaw), pitch negative up
+            double dx = target.X - pad.X, dy = target.Y - pad.Y, rise = target.Z - pad.Z, d = Math.Sqrt(dx * dx + dy * dy);
+            double apex = Math.Max(rise, 0) + clear;
+            double vz = Math.Sqrt(2 * gravity * apex);
+            double t = vz / gravity + Math.Sqrt(2 * (apex - rise) / gravity);
+            double vx = d / t;
+            double speed = Math.Sqrt(vx * vx + vz * vz) / 10.0;
+            double pitch = -Math.Atan2(vz, vx) * 180 / Math.PI;
+            double yaw = ((Math.Atan2(dy, dx) * 180 / Math.PI) % 360 + 360) % 360;
+            return (Math.Round(speed, 1), Math.Round(pitch, 1), Math.Round(yaw, 1));
         }
 
         public static (int X, int Y) Centre(List<Brush> brushes)
@@ -132,9 +183,48 @@ namespace NoorLevel.Export
                 $"// Generated by NoorLevel (seed {level.Seed})",
                 Ent(world, brushes.Where(b => b.Part == null).Select(w.Text)),
             };
+            // liquids: hazard pools (a liquid one step deep; spikes are a hurt trigger) and water volumes
+            int sc = level.CellSize;
+            var worldExtra = new List<string>();
+            var hurts = new List<(Vec3, Vec3)>();
+            foreach (var pool in level.Hazard.Where(kv => level.Spans.ContainsKey(kv.Key)).GroupBy(kv => (level.Spans[kv.Key][0].Floor, kv.Value)).OrderBy(g => g.Key.Floor).ThenBy(g => g.Key.Value, StringComparer.Ordinal))
+                foreach (var (x0, y0, x1, y1) in Brushes.GreedyRects(pool.Select(kv => kv.Key)))
+                {
+                    var lo = new Vec3(x0 * sc + ox, y0 * sc + oy, pool.Key.Floor);
+                    if (pool.Key.Value == "spikes") { hurts.Add((lo, new Vec3(x1 * sc + ox, y1 * sc + oy, pool.Key.Floor + 64))); continue; }
+                    if (!Liquids.TryGetValue(pool.Key.Value, out var liq)) continue;
+                    worldExtra.Add(w.Box(lo, new Vec3(x1 * sc + ox, y1 * sc + oy, pool.Key.Floor + level.Config.StepHeight - 4), liq));
+                }
+            var vols = new Dictionary<(int, int), List<Cell>>();
+            foreach (var kv in level.Water)
+            {
+                if (!level.Spans.TryGetValue(kv.Key, out var sp) || sp.Count == 0) continue;
+                int f = sp[0].Floor, top = sp[0].Ceil;
+                if (level.FloorSlope.TryGetValue(kv.Key, out var fs)) f = Math.Min(Math.Min(fs.Item1, fs.Item2), Math.Min(fs.Item3, fs.Item4));
+                var key = (f, Math.Min(kv.Value, top));
+                if (!vols.TryGetValue(key, out var l)) vols[key] = l = new List<Cell>();
+                l.Add(kv.Key);
+            }
+            foreach (var kv in vols.OrderBy(k => k.Key))
+            {
+                if (kv.Key.Item2 <= kv.Key.Item1) continue;
+                foreach (var (x0, y0, x1, y1) in Brushes.GreedyRects(kv.Value))
+                    worldExtra.Add(w.Box(new Vec3(x0 * sc + ox, y0 * sc + oy, kv.Key.Item1), new Vec3(x1 * sc + ox, y1 * sc + oy, kv.Key.Item2), "*water0"));
+            }
+            if (worldExtra.Count > 0) outp[3] = outp[3].Substring(0, outp[3].Length - 1) + string.Join("\n", worldExtra) + "\n}";
             int gid = 0;
             foreach (var grp in brushes.Where(b => b.Part != null).GroupBy(b => b.Part).OrderBy(g => g.Key, StringComparer.Ordinal))
-                outp.Add(Ent(new (string, object)[] { ("classname", "func_group"), ("_tb_type", "_tb_group"), ("_tb_name", grp.Key), ("_tb_id", ++gid) }, grp.Select(w.Text)));
+            {
+                var part = grp.Key;
+                int slash = part.IndexOf('/');
+                string area = slash < 0 ? part : part.Substring(0, slash), element = slash < 0 ? "" : part.Substring(slash + 1);
+                string label = area.Replace(":", " ");
+                if (area.StartsWith("room:") && int.TryParse(area.Substring(5), out var rid) && rid < level.Rooms.Count) label = $"room {rid} {level.Rooms[rid].Kind}";
+                outp.Add(Ent(new (string, object)[] { ("classname", "func_group"), ("_tb_type", "_tb_group"), ("_tb_name", element.Length > 0 ? $"{label}: {element}" : label), ("_tb_id", ++gid), ("_noorlevel_part", part) }, grp.Select(w.Text)));
+            }
+            foreach (var (lo, hi) in hurts)
+                outp.Add(Ent(new (string, object)[] { ("classname", "trigger_hurt"), ("dmg", 1000), ("_noorlevel_kind", "spikes") }, new[] { w.Box(lo, hi, "trigger") }));
+            int nTrap = 0;
 
             int nDoor = 0;
             double fade = q2 ? 0.85 : 0.5;
@@ -150,6 +240,56 @@ namespace NoorLevel.Export
                         if (!hl) lp.Add(("wait", fade)); else lp[2] = ("_light", $"255 240 220 {(e.Props.TryGetValue("intensity", out var lj) ? lj : 300)}");
                         outp.Add(Ent(lp));
                         break;
+                    case "torch":
+                        outp.Add(Ent(new (string, object)[] { ("classname", q2 || hl ? "light" : "light_torch_small_walltorch"), ("origin", Origin(e.Pos)),
+                            ("light", e.Props.TryGetValue("intensity", out var ti) ? ti : 170), ("_color", "1 0.72 0.42"), ("wait", fade) }));
+                        break;
+                    case "spawn":
+                        outp.Add(Ent(new (string, object)[] { ("classname", "info_player_deathmatch"), ("origin", Origin(e.Pos)), ("angle", e.Props.TryGetValue("angle", out var sa) ? sa : 0) }));
+                        if (e.Props.TryGetValue("team", out var team) && team != null)
+                            outp.Add(Ent(new (string, object)[] { ("classname", $"info_player_team{team}"), ("origin", Origin(e.Pos)), ("angle", e.Props.TryGetValue("angle", out var sa2) ? sa2 : 0) }));
+                        break;
+                    case "flag":
+                        outp.Add(Ent(new (string, object)[] { ("classname", $"item_flag_team{e.Props["team"]}"), ("origin", Origin(e.Pos)) }));
+                        break;
+                    case "jumppad":
+                    {
+                        var (lo, hi) = Bx(e);
+                        outp.Add(Ent(new (string, object)[] { ("classname", "func_group"), ("_noorlevel_kind", "jumppad") }, new[] { w.Box(lo, new Vec3(hi.X, hi.Y, lo.Z + 4), "nl_lift") }));
+                        var tgt = e.Props.TryGetValue("target", out var tv) && tv is Vec3 tvv ? tvv : new Vec3(e.Pos.X, e.Pos.Y, e.Pos.Z + 256);
+                        var (speed, pitch, yaw) = JumpLaunch(new Vec3(e.Pos.X, e.Pos.Y, lo.Z + 4 - 0), tgt);
+                        outp.Add(Ent(new (string, object)[] { ("classname", "trigger_push"), ("speed", speed), ("angles", $"{F(pitch)} {F(yaw)} 0"), ("_noorlevel_target", Origin(tgt)) },
+                            new[] { w.Box(new Vec3(lo.X, lo.Y, lo.Z + 4), new Vec3(hi.X, hi.Y, lo.Z + 20), "trigger") }));
+                        break;
+                    }
+                    case "window":
+                    {
+                        if (!(e.Props.TryGetValue("glazed", out var gz) && gz is bool gzb && gzb)) break;   // a slit is just a hole
+                        var (lo, hi) = Bx(e);
+                        var wp = new List<(string, object)> { ("classname", "func_wall"), ("_noorlevel_kind", "window_glass") };
+                        if (game == MapGame.Quake) wp.Add(("alpha", "0.35"));
+                        if (hl) { wp.Add(("rendermode", 2)); wp.Add(("renderamt", 90)); }
+                        outp.Add(Ent(wp, new[] { w.Box(lo, hi, "nl_glass") }));
+                        break;
+                    }
+                    case "trap":
+                    {
+                        if (!(e.Props.TryGetValue("type", out var tt) && (string)tt == "darts")) goto default;
+                        string name = $"nl_trap{++nTrap}";
+                        var at = At(e.Pos); double f = at.Z - 24;
+                        int r = (Convert.ToInt32(e.Props.TryGetValue("width", out var wv) ? wv : 3) - 1) / 2;
+                        double half = (r + 0.5) * level.CellSize;
+                        Vec3 tlo, thi, shooter; int angle;
+                        if (e.Props.TryGetValue("axis", out var axv) && (string)axv == "x")
+                        { tlo = new Vec3(at.X - 8, at.Y - half, f); thi = new Vec3(at.X + 8, at.Y + half, f + 72); shooter = new Vec3(at.X, at.Y + half - 12, f + 40); angle = 270; }
+                        else
+                        { tlo = new Vec3(at.X - half, at.Y - 8, f); thi = new Vec3(at.X + half, at.Y + 8, f + 72); shooter = new Vec3(at.X + half - 12, at.Y, f + 40); angle = 180; }
+                        outp.Add(Ent(new (string, object)[] { ("classname", "trigger_multiple"), ("target", name), ("wait", 1.5), ("_noorlevel_kind", "tripwire") }, new[] { w.Box(tlo, thi, "trigger") }));
+                        var tp = new List<(string, object)> { ("classname", q2 ? "target_blaster" : "trap_spikeshooter"), ("targetname", name), ("origin", $"{F(shooter.X)} {F(shooter.Y)} {F(shooter.Z)}"), ("angle", angle) };
+                        if (q2) { tp.Add(("dmg", 10)); tp.Add(("speed", 800)); }
+                        outp.Add(Ent(tp));
+                        break;
+                    }
                     case "key":
                         var color = (string)e.Props["color"];
                         outp.Add(Ent(new (string, object)[] { ("classname", hl ? "info_target" : q2 ? Keys[color].Q2 : Keys[color].Q1), ("origin", Origin(e.Pos)), ("_noorlevel_key", color) }));

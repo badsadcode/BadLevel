@@ -145,3 +145,49 @@ public class PreviewApiTests
         Assert.True(((System.Collections.IList)info["formats"]).Count >= 9);
     }
 }
+
+public class SlopeWaterExportTests
+{
+    /// <summary>A level with a vaulted ceiling, a ramp, water, a lava pool and spikes injected
+    /// (until the modules that make them are in): every exporter must handle them.</summary>
+    public static Level Dressed()
+    {
+        var level = Generator.Generate("classic", 1);
+        var room = level.Rooms.Where(r => !r.IsConnector).OrderByDescending(r => r.W * r.H).First();
+        var cells = room.Cells().Where(c => level.Spans.TryGetValue(c, out var s) && s.Count == 1 && !level.Diag.ContainsKey(c)).ToList();
+        foreach (var c in cells)
+        {
+            var sp = level.Spans[c][0];
+            int u = c.X - room.X;
+            // a barrel vault along y: low at the walls, high in the middle (the span keeps the lowest point)
+            int h(int x) => sp.Ceil + (int)(64 * Math.Sin(Math.PI * Math.Clamp((double)x / room.W, 0, 1)));
+            level.CeilSlope[c] = (h(u), h(u + 1), h(u + 1), h(u));
+        }
+        var ramp = cells.Where(c => c.Y == room.Y + 1).OrderBy(c => c.X).Take(4).ToList();
+        for (int i = 0; i < ramp.Count; i++)
+        {
+            var c = ramp[i]; var sp = level.Spans[c][0];
+            level.FloorSlope[c] = (sp.Floor - 16 + 4 * i, sp.Floor - 12 + 4 * i, sp.Floor - 12 + 4 * i, sp.Floor - 16 + 4 * i);
+        }
+        foreach (var c in cells.Where(c => c.Y == room.Y + room.H / 2).Take(5)) level.Water[c] = level.Spans[c][0].Floor + 40;
+        foreach (var c in cells.Where(c => c.Y == room.Y + room.H / 2 + 2).Take(3)) level.Hazard[c] = "lava";
+        foreach (var c in cells.Where(c => c.Y == room.Y + room.H / 2 + 3).Take(3)) level.Hazard[c] = "spikes";
+        return level;
+    }
+
+    [Fact]
+    public void EveryFormatHandlesSlopesAndWater()
+    {
+        var level = Dressed();
+        foreach (var f in Exporters.Formats) Assert.True(Exporters.Export(level, f.Id, out _).Length > 1000, f.Id);
+        var map = MapExport.ToMap(level, MapGame.Quake);
+        Assert.Contains("*water0", map);
+        Assert.Contains("*lava1", map);
+        Assert.Contains("trigger_hurt", map);
+        Assert.Equal(map.Count(c => c == '{'), map.Count(c => c == '}'));
+        var dump = Environment.GetEnvironmentVariable("NOORLEVEL_DUMP");
+        if (!string.IsNullOrEmpty(dump))
+            foreach (var g in new[] { MapGame.Quake, MapGame.Quake2, MapGame.Valve220 })
+                File.WriteAllText(Path.Combine(dump, $"dressed_{g}.map"), MapExport.ToMap(level, g));
+    }
+}

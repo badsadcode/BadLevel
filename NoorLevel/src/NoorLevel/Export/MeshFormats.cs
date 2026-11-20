@@ -18,7 +18,10 @@ namespace NoorLevel.Export
         {
             var mb = LevelMesh.Build(level, entities);
             var bin = new MemoryStream(); var bw = new BinaryWriter(bin);
-            var views = new List<object>(); var accessors = new List<object>(); var prims = new List<object>(); var mats = new List<object>();
+            var views = new List<object>(); var accessors = new List<object>(); var mats = new List<object>();
+            var matIndex = new Dictionary<string, int>();
+            var meshes = new List<object>();
+            var partNodes = new List<object>();
             void Align() { while (bin.Length % 4 != 0) bw.Write((byte)0); }
             int View(int offset, int length, int? target)
             {
@@ -26,49 +29,63 @@ namespace NoorLevel.Export
                 if (target != null) v["target"] = target.Value;
                 views.Add(v); return views.Count - 1;
             }
-            foreach (var g in mb.Groups.Values.Where(g => g.Idx.Count > 0).OrderBy(g => g.Material, StringComparer.Ordinal))
+            int Mat(string name)
             {
-                int n = g.VertexCount;
-                float[] mn = { float.MaxValue, float.MaxValue, float.MaxValue }, mx = { float.MinValue, float.MinValue, float.MinValue };
-                Align(); int off = (int)bin.Length;
-                for (int i = 0; i < n; i++)
-                {
-                    float x = (float)(g.Pos[3 * i] * Scale), y = (float)(g.Pos[3 * i + 2] * Scale), z = (float)(-g.Pos[3 * i + 1] * Scale);
-                    bw.Write(x); bw.Write(y); bw.Write(z);
-                    mn[0] = Math.Min(mn[0], x); mn[1] = Math.Min(mn[1], y); mn[2] = Math.Min(mn[2], z);
-                    mx[0] = Math.Max(mx[0], x); mx[1] = Math.Max(mx[1], y); mx[2] = Math.Max(mx[2], z);
-                }
-                int pv = View(off, n * 12, 34962);
-                accessors.Add(new Dictionary<string, object> { ["bufferView"] = pv, ["componentType"] = 5126, ["count"] = n, ["type"] = "VEC3", ["min"] = mn, ["max"] = mx });
-                int pa = accessors.Count - 1;
-                off = (int)bin.Length;
-                for (int i = 0; i < n; i++) { bw.Write(g.Nrm[3 * i]); bw.Write(g.Nrm[3 * i + 2]); bw.Write(-g.Nrm[3 * i + 1]); }
-                accessors.Add(new Dictionary<string, object> { ["bufferView"] = View(off, n * 12, 34962), ["componentType"] = 5126, ["count"] = n, ["type"] = "VEC3" });
-                int na = accessors.Count - 1;
-                off = (int)bin.Length;
-                for (int i = 0; i < n; i++) { bw.Write(g.Uv[2 * i]); bw.Write(-g.Uv[2 * i + 1]); }
-                accessors.Add(new Dictionary<string, object> { ["bufferView"] = View(off, n * 8, 34962), ["componentType"] = 5126, ["count"] = n, ["type"] = "VEC2" });
-                int ua = accessors.Count - 1;
-                off = (int)bin.Length;
-                foreach (var ix in g.Idx) bw.Write((uint)ix);
-                accessors.Add(new Dictionary<string, object> { ["bufferView"] = View(off, g.Idx.Count * 4, 34963), ["componentType"] = 5125, ["count"] = g.Idx.Count, ["type"] = "SCALAR" });
-                int ia = accessors.Count - 1;
-                var col = LevelMesh.ColorOf(g.Material);
+                if (matIndex.TryGetValue(name, out var i)) return i;
+                var col = LevelMesh.ColorOf(name);
                 var mat = new Dictionary<string, object>
                 {
-                    ["name"] = "nl_" + g.Material,
+                    ["name"] = "nl_" + name,
                     ["pbrMetallicRoughness"] = new Dictionary<string, object> { ["baseColorFactor"] = col, ["metallicFactor"] = 0.0, ["roughnessFactor"] = 0.9 },
                 };
-                if (col[3] < 1) mat["alphaMode"] = "BLEND";
+                if (col[3] < 1) { mat["alphaMode"] = "BLEND"; mat["doubleSided"] = true; }
                 mats.Add(mat);
-                prims.Add(new Dictionary<string, object>
+                return matIndex[name] = mats.Count - 1;
+            }
+            // one mesh per named part (a room, a corridor, an element like "room:5/vault"), a primitive per material
+            foreach (var part in mb.Parts.OrderBy(p => p.Key, StringComparer.Ordinal))
+            {
+                var prims = new List<object>();
+                foreach (var g in part.Value.Values.Where(g => g.Idx.Count > 0).OrderBy(g => g.Material, StringComparer.Ordinal))
                 {
-                    ["attributes"] = new Dictionary<string, object> { ["POSITION"] = pa, ["NORMAL"] = na, ["TEXCOORD_0"] = ua },
-                    ["indices"] = ia, ["material"] = mats.Count - 1,
-                });
+                    int n = g.VertexCount;
+                    float[] mn = { float.MaxValue, float.MaxValue, float.MaxValue }, mx = { float.MinValue, float.MinValue, float.MinValue };
+                    Align(); int off = (int)bin.Length;
+                    for (int i = 0; i < n; i++)
+                    {
+                        float x = (float)(g.Pos[3 * i] * Scale), y = (float)(g.Pos[3 * i + 2] * Scale), z = (float)(-g.Pos[3 * i + 1] * Scale);
+                        bw.Write(x); bw.Write(y); bw.Write(z);
+                        mn[0] = Math.Min(mn[0], x); mn[1] = Math.Min(mn[1], y); mn[2] = Math.Min(mn[2], z);
+                        mx[0] = Math.Max(mx[0], x); mx[1] = Math.Max(mx[1], y); mx[2] = Math.Max(mx[2], z);
+                    }
+                    accessors.Add(new Dictionary<string, object> { ["bufferView"] = View(off, n * 12, 34962), ["componentType"] = 5126, ["count"] = n, ["type"] = "VEC3", ["min"] = mn, ["max"] = mx });
+                    int pa = accessors.Count - 1;
+                    off = (int)bin.Length;
+                    for (int i = 0; i < n; i++) { bw.Write(g.Nrm[3 * i]); bw.Write(g.Nrm[3 * i + 2]); bw.Write(-g.Nrm[3 * i + 1]); }
+                    accessors.Add(new Dictionary<string, object> { ["bufferView"] = View(off, n * 12, 34962), ["componentType"] = 5126, ["count"] = n, ["type"] = "VEC3" });
+                    int na = accessors.Count - 1;
+                    off = (int)bin.Length;
+                    for (int i = 0; i < n; i++) { bw.Write(g.Uv[2 * i]); bw.Write(-g.Uv[2 * i + 1]); }
+                    accessors.Add(new Dictionary<string, object> { ["bufferView"] = View(off, n * 8, 34962), ["componentType"] = 5126, ["count"] = n, ["type"] = "VEC2" });
+                    int ua = accessors.Count - 1;
+                    off = (int)bin.Length;
+                    foreach (var ix in g.Idx) bw.Write((uint)ix);
+                    accessors.Add(new Dictionary<string, object> { ["bufferView"] = View(off, g.Idx.Count * 4, 34963), ["componentType"] = 5125, ["count"] = g.Idx.Count, ["type"] = "SCALAR" });
+                    int ia = accessors.Count - 1;
+                    prims.Add(new Dictionary<string, object>
+                    {
+                        ["attributes"] = new Dictionary<string, object> { ["POSITION"] = pa, ["NORMAL"] = na, ["TEXCOORD_0"] = ua },
+                        ["indices"] = ia, ["material"] = Mat(g.Material),
+                    });
+                }
+                if (prims.Count == 0) continue;
+                meshes.Add(new Dictionary<string, object> { ["name"] = part.Key, ["primitives"] = prims });
+                partNodes.Add(new Dictionary<string, object> { ["name"] = part.Key, ["mesh"] = meshes.Count - 1, ["extras"] = new Dictionary<string, object> { ["part"] = part.Key } });
             }
             Align();
-            var nodes = new List<object> { new Dictionary<string, object> { ["name"] = "level_geometry", ["mesh"] = 0 } };
+            // the level: a root node "level_geometry" whose children are the parts
+            var nodes = new List<object> { new Dictionary<string, object> { ["name"] = "level_geometry", ["children"] = Enumerable.Range(1, partNodes.Count).ToArray() } };
+            nodes.AddRange(partNodes);
             if (entities)
             {
                 var counts = new Dictionary<string, int>();
@@ -89,9 +106,9 @@ namespace NoorLevel.Export
             {
                 ["asset"] = new Dictionary<string, object> { ["version"] = "2.0", ["generator"] = "NoorLevel" },
                 ["scene"] = 0,
-                ["scenes"] = new[] { new Dictionary<string, object> { ["name"] = $"noorlevel_{level.Seed}", ["nodes"] = Enumerable.Range(0, nodes.Count).ToArray() } },
+                ["scenes"] = new[] { new Dictionary<string, object> { ["name"] = $"noorlevel_{level.Seed}", ["nodes"] = new[] { 0 }.Concat(Enumerable.Range(1 + partNodes.Count, nodes.Count - 1 - partNodes.Count)).ToArray() } },
                 ["nodes"] = nodes,
-                ["meshes"] = new[] { new Dictionary<string, object> { ["name"] = "level_geometry", ["primitives"] = prims } },
+                ["meshes"] = meshes,
                 ["materials"] = mats,
                 ["accessors"] = accessors,
                 ["bufferViews"] = views,

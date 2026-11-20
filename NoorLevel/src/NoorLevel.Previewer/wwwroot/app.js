@@ -40,6 +40,7 @@ for (let i = 0; i < 6; i++) {
   scene.add(l);
   lamps.push(l);
 }
+let fogFar = 140;
 let levelRoot = null;                    // the loaded .glb scene
 const dyn = new THREE.Group();           // doors, lifts, ladders, keys, exit, lights
 scene.add(dyn);
@@ -68,6 +69,7 @@ const grid = gridTexture();
 const MAT_COLORS = {
   floor: 0x9a8b78, wall: 0xc4c2c9, ceiling: 0x6b6f7c, sky: 0x7fa6e8, door: 0xd24a3a, door_blue: 0x3a5fd2,
   secret: 0x9a74c8, trigger: 0x40e070, lift: 0xf2c033, ladder: 0x8c5a34, hazard_lava: 0xf05a14, hazard_slime: 0x5ad030,
+  hazard_spikes: 0x6e2a22, water: 0x3a78c8, glass: 0x9fd4f0,
 };
 const mats = {};
 function mat(name) {
@@ -75,6 +77,8 @@ function mat(name) {
     const m = new THREE.MeshLambertMaterial({ color: MAT_COLORS[name] ?? 0xaaaaaa, map: grid });
     if (name === 'trigger') { m.transparent = true; m.opacity = 0.35; m.depthWrite = false; m.emissive = new THREE.Color(0x1a6030); }
     if (name === 'sky') { m.map = null; m.emissive = new THREE.Color(0x30486a); }
+    if (name === 'water' || name === 'glass') { m.transparent = true; m.opacity = name === 'water' ? 0.55 : 0.3; m.depthWrite = false; m.side = THREE.DoubleSide; m.map = null; }
+    if (name === 'hazard_lava' || name === 'hazard_slime') m.emissive = new THREE.Color(name === 'hazard_lava' ? 0x802008 : 0x1c5010);
     mats[name] = m;
   }
   return mats[name];
@@ -233,9 +237,11 @@ async function showLevel(res, glb) {
   for (const c of res.columns) {
     const spans = [];
     for (let i = 3; i < c.length; i += 2) { spans.push([c[i], c[i + 1]]); zlo = Math.min(zlo, c[i]); zhi = Math.max(zhi, c[i + 1]); }
-    cols.set(ck(c[0], c[1]), { diag: c[2], spans });
+    cols.set(ck(c[0], c[1]), { diag: c[2], spans, slope: null, water: null });
     xlo = Math.min(xlo, c[0]); xhi = Math.max(xhi, c[0] + 1); ylo = Math.min(ylo, c[1]); yhi = Math.max(yhi, c[1] + 1);
   }
+  for (const f of res.floor_slopes || []) { const col = cols.get(ck(f[0], f[1])); if (col) col.slope = f.slice(2); }
+  for (const w of res.water || []) { const col = cols.get(ck(w[0], w[1])); if (col) col.water = w[2]; }
   const s = res.cell;
   bounds = { x0: xlo * s, x1: xhi * s, y0: ylo * s, y1: yhi * s, z0: zlo, z1: zhi };
   buildEntities(res);
@@ -315,7 +321,7 @@ function frameOrbit() {
     camera.position.set(cx + span * 0.3, cz + span * 0.55, cy + span * 0.55);
     camera.lookAt(orbit.target);
   }
-  scene.fog.far = Math.max(140, span * 2.5);
+  fogFar = scene.fog.far = Math.max(140, span * 2.5);
 }
 
 // ---------------------------------------------------------------- minimap
@@ -413,10 +419,15 @@ function probe(x, y, z, up) {
       const col = cols.get(ck(cx, cy));
       if (!col) return null;
       if (col.diag >= 0 && triHit(col.diag, (x - R) / s - cx, (y - R) / s - cy, (x + R) / s - cx, (y + R) / s - cy)) return null;
-      let best = null;
-      for (const sp of col.spans) if (sp[0] <= z + up && (!best || sp[0] > best[0])) best = sp;
-      if (!best || best[1] < Math.max(best[0], z) + H) return null;
-      if (best[0] > ground) ground = best[0];
+      let best = null, bestF = 0;
+      for (let i = 0; i < col.spans.length; i++) {
+        const sp = col.spans[i];
+        // a ramp: the floor under the box is the plane's highest point over the part of the cell it covers
+        const f = i === 0 && col.slope ? slopeMax(col.slope, Math.max(0, (x - R) / s - cx), Math.max(0, (y - R) / s - cy), Math.min(1, (x + R) / s - cx), Math.min(1, (y + R) / s - cy)) : sp[0];
+        if (f <= z + up && (!best || f > bestF)) { best = sp; bestF = f; }
+      }
+      if (!best || best[1] < Math.max(bestF, z) + H) return null;
+      if (bestF > ground) ground = bestF;
       if (best[1] < ceil) ceil = best[1];
     }
   }
@@ -428,6 +439,18 @@ function probe(x, y, z, up) {
   }
   if (ceil - Math.max(ground, z) < H - 0.01) return null;
   return { ground, ceil, plat };
+}
+
+// the highest point of a sloped floor (corner heights z00, z10, z11, z01) over a part [u0,u1] x [v0,v1] of its cell
+function slopeMax(sl, u0, v0, u1, v1) {
+  const at = (u, v) => sl[0] * (1 - u) * (1 - v) + sl[1] * u * (1 - v) + sl[2] * u * v + sl[3] * (1 - u) * v;
+  return Math.max(at(u0, v0), at(u1, v0), at(u1, v1), at(u0, v1));
+}
+
+// the water surface over the player's feet, or null
+function waterAt(x, y) {
+  const col = cols.get(ck(Math.floor(x / level.cell), Math.floor(y / level.cell)));
+  return col && col.water != null ? col.water : null;
 }
 
 function onLadder() {
@@ -442,7 +465,9 @@ function tick(dt) {
   if (!level) return;
   const fwd = (keysDown.has('KeyW') || keysDown.has('ArrowUp') ? 1 : 0) - (keysDown.has('KeyS') || keysDown.has('ArrowDown') ? 1 : 0);
   const side = (keysDown.has('KeyD') || keysDown.has('ArrowRight') ? 1 : 0) - (keysDown.has('KeyA') || keysDown.has('ArrowLeft') ? 1 : 0);
-  const speed = keysDown.has('ShiftLeft') || keysDown.has('ShiftRight') ? 420 : 260;
+  const surface = waterAt(P.x, P.y);
+  const swimming = surface != null && P.z + 30 < surface;           // more than half under: swim
+  const speed = (keysDown.has('ShiftLeft') || keysDown.has('ShiftRight') ? 420 : 260) * (swimming ? 0.55 : 1);
   const cy = Math.cos(P.yaw), sy = Math.sin(P.yaw);
   let wx = fwd * cy + side * sy, wy = fwd * sy - side * cy;
   const wl = Math.hypot(wx, wy);
@@ -455,7 +480,7 @@ function tick(dt) {
   if (P.plat && P.plat.dz) P.z += P.plat.dz;
 
   // horizontal, one axis at a time (slides along walls)
-  const up = P.ground ? STEP : 0.5;
+  const up = P.ground || swimming ? STEP : 0.5;
   for (const axis of ['x', 'y']) {
     const nx = axis === 'x' ? P.x + P.vx * dt : P.x;
     const ny = axis === 'y' ? P.y + P.vy * dt : P.y;
@@ -470,8 +495,11 @@ function tick(dt) {
   const ladder = onLadder();
   if (ladder && fwd !== 0) P.vz = fwd * 170;
   else if (ladder && P.vz <= 0) P.vz = Math.max(P.vz - GRAV * dt, -60);
-  else P.vz -= GRAV * dt;
-  if (P.ground && keysDown.has('Space') && !ladder) { P.vz = JUMP; P.ground = false; }
+  else if (swimming) {
+    // water: buoyant and slow; Space swims up (and out over the edge), otherwise sink gently
+    P.vz += ((keysDown.has('Space') ? 150 : -50) - P.vz) * Math.min(1, 4 * dt);
+  } else P.vz -= GRAV * dt;
+  if (P.ground && keysDown.has('Space') && !ladder && !swimming) { P.vz = JUMP; P.ground = false; }
   const here = probe(P.x, P.y, P.z, 0.5);
   if (here) {
     let nz = P.z + P.vz * dt;
@@ -630,9 +658,15 @@ function frame(now) {
   if (mode === 'walk') {
     P.eyeLag = Math.max(0, P.eyeLag - Math.max(P.eyeLag * 10, 60) * dt);
     camera.position.set(P.x * S, (P.z + EYE - P.eyeLag) * S, -P.y * S);
+    const wsurf = level ? waterAt(P.x, P.y) : null;
+    const under = wsurf != null && P.z + EYE < wsurf;
+    scene.fog.color.setHex(under ? 0x1c4a78 : 0x15131a);
+    scene.fog.near = under ? 1 : 30;
+    scene.fog.far = under ? 18 : fogFar;
     camera.rotation.set(P.pitch, P.yaw - Math.PI / 2, 0);
   } else {
     orbit.update();
+    scene.fog.color.setHex(0x15131a); scene.fog.near = 30; scene.fog.far = fogFar;
     playerMarker.position.set(P.x * S, (P.z + H + 24) * S, -P.y * S);
   }
   lampTimer -= dt;

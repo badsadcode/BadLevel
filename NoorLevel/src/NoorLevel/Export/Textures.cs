@@ -25,12 +25,17 @@ namespace NoorLevel.Export
             ("nl_lift", 64, 64, 12, 5, "door"),
             ("nl_ladder", 64, 64, 7, 13, "grid"),
             ("sky1", 256, 128, 12, 10, "sky"),
+            // liquids: a '*' name makes qbsp a liquid volume. Quake 1's palette: 48-63 greens, 240+ fullbright, 208-223 blues
+            ("*slime0", 64, 64, 54, 50, "grid"),
+            ("*lava1", 64, 64, 247, 244, "grid"),
+            ("*water0", 64, 64, 214, 210, "grid"),
         };
 
         public static readonly Dictionary<string, string> Q2Names = new Dictionary<string, string>
         {
             ["nl_floor"] = "floor", ["nl_wall"] = "wall", ["nl_ceiling"] = "ceiling", ["nl_door"] = "door", ["nl_glass"] = "glass",
             ["trigger"] = "trigger", ["nl_lift"] = "lift", ["nl_ladder"] = "ladder", ["sky1"] = "sky",
+            ["*slime0"] = "slime", ["*lava1"] = "lava", ["*water0"] = "water",
         };
 
         static byte[] Pixels(int w, int h, int b, int l, string pattern)
@@ -119,7 +124,9 @@ namespace NoorLevel.Export
             foreach (var t in All)
             {
                 if (t.Name != name) continue;
-                var px = Pixels(t.W, t.H, t.Base, t.Line, t.Pattern);
+                int b0 = t.Base, l0 = t.Line;
+                if (name.StartsWith("*")) (b0, l0) = name.Contains("slime") ? (4, 2) : name.Contains("water") ? (7, 5) : (14, 12);   // Quake 2's palette differs: stay grey
+                var px = Pixels(t.W, t.H, b0, l0, t.Pattern);
                 var ms = new MemoryStream(); var bw = new BinaryWriter(ms);
                 Name(bw, "noorlevel/" + Q2Names[name], 32); bw.Write(t.W); bw.Write(t.H);
                 int pos = 100; var mips = new List<byte[]>();

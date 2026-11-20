@@ -232,6 +232,8 @@ namespace NoorLevel
             int lo = int.MaxValue, hi = int.MinValue;
             foreach (var spans in Spans.Values)
                 foreach (var s in spans) { lo = Math.Min(lo, s.Floor); hi = Math.Max(hi, s.Ceil); }
+            foreach (var sl in CeilSlope.Values) hi = Math.Max(hi, Math.Max(Math.Max(sl.Item1, sl.Item2), Math.Max(sl.Item3, sl.Item4)));   // a vault rises above its span
+            foreach (var sl in FloorSlope.Values) lo = Math.Min(lo, Math.Min(Math.Min(sl.Item1, sl.Item2), Math.Min(sl.Item3, sl.Item4)));
             return lo == int.MaxValue ? (0, 256) : (lo - 32, hi + 32);
         }
 
