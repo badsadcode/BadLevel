@@ -135,7 +135,7 @@ catacombs and the deep, in castle stone.
   walks, so falling in is death, never a softlock. Piers stay standing in the abyss.
 - **Torches** on the walls instead of hanging lights, warm and dim (Quake 1's own wall torch).
 - **Grates**: openings to the sky with a shaft of light under them.
-- **Traps**: blade, dart and spike markers in corridors, for each game to build its own way.
+- **Traps**: blade, dart and spike markers in corridors. Darts are real in Quake: a tripwire across the corridor fires a dart shooter in the wall (Quake 1 `trap_spikeshooter`, Quake 2 `target_blaster`); blades and spikes stay markers for each game to build its own way.
 - **Rooms with a job**: crypts with sarcophagi, prison cells, libraries, armouries, shrines,
   guardrooms, storerooms, a vault for the key; a great hall with a balcony, a pit hall, a
   catacomb hall, a throne room on a dais. Every piece is a named part.

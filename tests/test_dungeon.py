@@ -68,3 +68,13 @@ def test_off_elsewhere():
     lv = generate(cfg)
     assert not any(e.kind in ("torch", "trap") for e in lv.entities)
     assert "spikes" not in lv.hazard.values()
+
+
+def test_dart_traps_are_real_in_quake(levels):
+    """A darts marker becomes a tripwire firing a shooter (Q1 trap_spikeshooter, Q2 target_blaster)."""
+    for lv in levels.values():
+        darts = [e for e in lv.entities if e.kind == "trap" and e.props["type"] == "darts"]
+        q1, q2 = to_map(lv, "quake"), to_map(lv, "quake2")
+        assert q1.count('"classname" "trap_spikeshooter"') == len(darts)
+        assert q2.count('"classname" "target_blaster"') == len(darts)
+        assert q1.count('"_badlevel_kind" "tripwire"') == len(darts)

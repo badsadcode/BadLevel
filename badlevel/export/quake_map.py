@@ -277,12 +277,33 @@ def to_map(level: Level, game: str = "quake") -> str:
     for lo, hi in hurts:                               # the spikes at the bottom of each chasm
         out.append(_entity({"classname": "trigger_hurt", "dmg": 1000, "_badlevel_kind": "spikes"},
                            [brush_text(lo, hi, *(["trigger"] * 3))]))
-    n_enemy = n_door = 0
+    n_enemy = n_door = n_trap = 0
     for e in level.entities:
         p = {}
         origin = " ".join(_fmt(v) for v in at(e.pos))
         if e.kind == "player_start":
             p = {"classname": "info_player_start", "origin": origin, "angle": e.props.get("angle", 0)}
+        elif e.kind == "trap" and e.props.get("type") == "darts":
+            # a tripwire across the corridor fires a dart shooter set by one wall, across the way:
+            # Quake 1's trap_spikeshooter, Quake 2's target_blaster
+            n_trap += 1
+            name = f"bl_trap{n_trap}"
+            x, y, z = at(e.pos)
+            f = z - 24
+            r = (int(e.props.get("width", 3)) - 1) // 2
+            half = (r + 0.5) * level.cell
+            if e.props.get("axis") == "x":                 # the corridor runs along x: shoot along y
+                tlo, thi = (x - 8, y - half, f), (x + 8, y + half, f + 72)
+                shooter, angle = (x, y + half - 12, f + 40), 270
+            else:
+                tlo, thi = (x - half, y - 8, f), (x + half, y + 8, f + 72)
+                shooter, angle = (x + half - 12, y, f + 40), 180
+            out.append(_entity({"classname": "trigger_multiple", "target": name, "wait": 1.5,
+                                "_badlevel_kind": "tripwire"}, [brush_text(tlo, thi, *(["trigger"] * 3))]))
+            p = {"classname": "target_blaster" if q2 else "trap_spikeshooter", "targetname": name,
+                 "origin": " ".join(_fmt(v) for v in shooter), "angle": angle}
+            if q2:
+                p.update({"dmg": 10, "speed": 800})
         elif e.kind == "torch":                        # dungeons: Quake 1's own wall torch; a warm light elsewhere
             p = {"classname": "light" if q2 else "light_torch_small_walltorch", "origin": origin,
                  "light": e.props.get("intensity", 170), "_color": "1 0.72 0.42",

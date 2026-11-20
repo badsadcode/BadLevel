@@ -1279,3 +1279,12 @@ out as a market (`market.py`, `cfg.market`, a chance per yard; its own random st
   artist's job": BadLevel names the stall and stays out of it.
 - Preset `market`: 3 yards (22-30 cells, compound style with roofscapes), torches indoors, one
   key. 23-44 stalls a yard; first attempt on 6 of 6 levels; other presets unchanged.
+
+## D51. Dart traps made real (Quake)
+
+The dungeon's trap markers (D47) never did anything in Quake. Darts now do: a `trigger_multiple`
+across the corridor at the trap (16 deep, the corridor's width, 72 high, `wait` 1.5) targets a
+shooter set in the corridor's last cell against one wall, aimed across: Quake 1's own
+`trap_spikeshooter`, Quake 2's `target_blaster` (10 damage). The marker stays too (an
+`info_null` with the trap's type), for other games. Blades and spike floors stay markers: neither
+Quake has an entity for them that wouldn't need new code. No geometry changes; routes unchanged.
