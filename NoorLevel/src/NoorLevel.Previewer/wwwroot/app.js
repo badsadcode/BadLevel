@@ -75,6 +75,12 @@ const MAT_COLORS = {
   hazard_spikes: 0x6e2a22, water: 0x3a78c8, glass: 0x9fd4f0,
 };
 const mats = {};
+// station dressing (see docs: the consumer contract): outline colours by prop class, diamonds for gameplay markers
+const PROP_COLORS = { console: 0x60c0ff, server_rack: 0x60c0ff, desk: 0xd8b070, chair: 0xd8b070, table: 0xd8b070, stool: 0xd8b070,
+  locker: 0xb0b8c8, cabinet: 0xb0b8c8, shelf: 0xc09060, crate: 0xc09060, barrel: 0xc09060, bunk: 0xe0a0c0, bed: 0xe0a0c0,
+  pump: 0xe08040, valve_wheel: 0xe08040, pipe_run: 0xe08040, cable_run: 0xa0a040, debris: 0x806050, bones: 0xe8e0c8, stain: 0x803030 };
+const MARKER_COLORS = { loot: 0xffd84c, log_terminal: 0x40e0ff, creature_spawn: 0xff3030, hiding_spot: 0x50e080,
+  power_junction: 0xffff40, hazard_zone: 0x4080ff, airlock: 0xffffff, viewport: 0x80b0ff };
 function mat(name) {
   if (!mats[name]) {
     const m = new THREE.MeshLambertMaterial({ color: MAT_COLORS[name] ?? 0xaaaaaa, map: grid });
@@ -468,6 +474,22 @@ function buildEntities(res) {
       dyn.add(m);
     } else if (e.kind === 'window' && e.lo && p.glazed) {
       dyn.add(box3(e.lo, e.hi, mat('glass')));
+    } else if (e.kind === 'prop' && e.lo && e.hi) {
+      // a dressing marker: its footprint as an outline (the game puts a real model there)
+      const blockout = (p.tags || []).includes('blockout');
+      const box = box3(e.lo, e.hi, mat('wall'));
+      const edges = new THREE.LineSegments(new THREE.EdgesGeometry(box.geometry),
+        new THREE.LineBasicMaterial({ color: blockout ? 0x9a9aa8 : PROP_COLORS[p.class] || 0x7fd0c0 }));
+      edges.position.copy(box.position);
+      edges.userData.marker = true;
+      dyn.add(edges);
+    } else if (MARKER_COLORS[e.kind]) {
+      // a gameplay marker (loot, spawns, hiding spots...): a small coloured diamond
+      const m = new THREE.Mesh(new THREE.OctahedronGeometry(e.kind === 'creature_spawn' ? 0.3 : 0.18),
+        new THREE.MeshBasicMaterial({ color: MARKER_COLORS[e.kind] }));
+      m.position.set(e.pos[0] * S, (e.pos[2] + 12) * S, -e.pos[1] * S);
+      m.userData.marker = true;
+      dyn.add(m);
     } else if (e.kind === 'light') {
       const m = new THREE.Mesh(glow, new THREE.MeshBasicMaterial({ color: 0xfff0c8 }));
       m.position.set(e.pos[0] * S, e.pos[2] * S, -e.pos[1] * S);
