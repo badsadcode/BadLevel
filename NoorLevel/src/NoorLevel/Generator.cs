@@ -89,6 +89,9 @@ namespace NoorLevel
                     if (cfg.Mirror)
                         level = Mirror.MakeTeamMap(level); // team map: this half, lanes, and its mirror image
                     level.Sky.RemoveWhere(c => !level.Spans.ContainsKey(c));   // (a neighbour's wall member filled a yard's edge cell)
+                    // station markers, last: they only append entities (own label streams, off by default)
+                    if (cfg.Dressing) Dressing.Run(level);                   // prop markers
+                    if (cfg.StationEntities || cfg.Viewports) StationEntities.Run(level);   // gameplay markers, viewports
                 }
                 catch (LayoutException e)
                 {

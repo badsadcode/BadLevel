@@ -9,7 +9,9 @@ namespace NoorLevel.Export
 {
     /// <summary>Binary glTF 2.0 (.glb), no dependencies. Y-up, metres: one cell (32 map units) = 1 m.
     /// One mesh "level_geometry" with a primitive per material; every entity is an empty node named
-    /// kind_n whose extras carry its properties, for engines to swap for their own prefabs.</summary>
+    /// kind_n whose extras carry its properties, for engines to swap for their own prefabs. The station
+    /// markers (<see cref="Markers.Kinds"/>: props, loot, spawns...) also carry a yaw rotation (their forward
+    /// is the node's +Z) and a Noor Interchange block, extras.noor; other nodes are as they always were.</summary>
     public static class Gltf
     {
         public const double Scale = 1.0 / 32.0;
@@ -99,12 +101,19 @@ namespace NoorLevel.Export
                     counts[e.Kind] = counts.TryGetValue(e.Kind, out var k) ? k + 1 : 1;
                     var extras = new Dictionary<string, object> { ["kind"] = e.Kind };
                     foreach (var kv in e.Props) extras[kv.Key] = kv.Value;
-                    nodes.Add(new Dictionary<string, object>
+                    string name = $"{e.Kind}_{counts[e.Kind]}";
+                    var node = new Dictionary<string, object>
                     {
-                        ["name"] = $"{e.Kind}_{counts[e.Kind]}",
+                        ["name"] = name,
                         ["translation"] = new[] { e.Pos.X * Scale, e.Pos.Z * Scale, -e.Pos.Y * Scale },
                         ["extras"] = extras,
-                    });
+                    };
+                    if (Markers.IsMarker(e.Kind))
+                    {
+                        if (e.Props.TryGetValue("angle", out var ang)) node["rotation"] = Markers.Rotation(Convert.ToInt32(ang));
+                        extras["noor"] = Markers.NoorBlock(e, name);
+                    }
+                    nodes.Add(node);
                 }
             }
             var root = new Dictionary<string, object>

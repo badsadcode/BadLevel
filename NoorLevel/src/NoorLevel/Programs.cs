@@ -42,6 +42,8 @@ namespace NoorLevel
             ["workshop"] = 8, ["pump"] = 9, ["control"] = 8, ["office"] = 7,
             ["scriptorium"] = 8, ["alchemy lab"] = 8, ["summoning chamber"] = 9, ["dormitory"] = 8, ["study"] = 6,
             ["library"] = 8, ["armory"] = 8, ["cells"] = 9, ["crypt"] = 8, ["storeroom"] = 7, ["guardroom"] = 7, ["shrine"] = 8,
+            ["quarters"] = 7, ["galley"] = 8, ["medbay"] = 8, ["hydroponics"] = 8, ["moon_pool"] = 10, ["dive_locker"] = 7,
+            ["sonar_room"] = 7, ["generator"] = 9,
         };
 
         public static readonly string[] RoomKinds = { "start", "combat", "arena", "hub", "supply", "key", "secret", "exit" };
@@ -59,6 +61,19 @@ namespace NoorLevel
             ("study", new[] { "library", "alchemy lab", "scriptorium", "study" }, "great library"),
             ("sanctum", new[] { "summoning chamber", "study", "alchemy lab" }, "summoning hall"));
 
+        // deep-sea stations (cfg.ProgramSet = "station", Solitude): the habitat by the dock, the work sectors,
+        // engineering at the bottom. Room programs: quarters, galley, medbay, hydroponics, moon_pool,
+        // dive_locker, sonar_room, generator (plus the facility's lab, control, server, storage, workshop...)
+        public static readonly Dictionary<string, (string[] Everyday, string Hall)> StationPrograms = T(
+            ("habitat", new[] { "quarters", "quarters", "galley", "medbay", "hydroponics" }, "galley"),
+            ("research", new[] { "lab", "hydroponics", "sonar_room", "medbay" }, "moon_pool"),
+            ("dive", new[] { "dive_locker", "storage", "moon_pool", "workshop" }, "moon_pool"),
+            ("operations", new[] { "sonar_room", "control", "server", "office" }, "control"),
+            ("engineering", new[] { "generator", "pump", "workshop", "storage" }, "generator"));
+
+        public static readonly Dictionary<string, string> StationFixed = new Dictionary<string, string>
+            { ["start"] = "dive_locker", ["exit"] = "reactor", ["key"] = "security", ["secret"] = "closet" };
+
         public static readonly Dictionary<string, string> WizardFixed = new Dictionary<string, string>
             { ["start"] = "entrance hall", ["exit"] = "observatory", ["key"] = "reliquary", ["secret"] = "hidden study" };
         public static readonly Dictionary<string, string> DungeonFixed = new Dictionary<string, string>
@@ -74,6 +89,16 @@ namespace NoorLevel
             if (zones <= 1) return new List<string> { "research" };
             if (zones == 2) return new List<string> { "admin", rng.Choice(new[] { "research", "reactor" }) };
             return new[] { "admin" }.Concat(middle).Take(zones - 1).Concat(new[] { "reactor" }).ToList();
+        }
+
+        public static List<string> StationSectors(int zones, int seed)
+        {
+            var rng = Rng.FromLabel($"{seed}/sectors");
+            var middle = new List<string> { "research", "dive", "operations" };
+            rng.Shuffle(middle);
+            if (zones <= 1) return new List<string> { "habitat" };
+            if (zones == 2) return new List<string> { "habitat", rng.Choice(new[] { "research", "engineering" }) };
+            return new[] { "habitat" }.Concat(middle).Take(zones - 1).Concat(new[] { "engineering" }).ToList();
         }
 
         public static List<string> DungeonSectors(int zones, int seed)
@@ -98,9 +123,11 @@ namespace NoorLevel
             string pset = cfg.ProgramSet;
             bool dungeon = pset == "dungeon" || pset == "wizard";      // (their own fallbacks, not the facility's)
             var (table, fixedKinds) = pset == "dungeon" ? (DungeonPrograms, DungeonFixed)
-                : pset == "wizard" ? (WizardPrograms, WizardFixed) : (SectorPrograms, Fixed);
+                : pset == "wizard" ? (WizardPrograms, WizardFixed)
+                : pset == "station" ? (StationPrograms, StationFixed) : (SectorPrograms, Fixed);
             var names = pset == "dungeon" ? DungeonSectors(zones, cfg.Seed)
-                : pset == "wizard" ? WizardSectors(zones, cfg.Seed) : SectorsFor(zones, cfg.Seed);
+                : pset == "wizard" ? WizardSectors(zones, cfg.Seed)
+                : pset == "station" ? StationSectors(zones, cfg.Seed) : SectorsFor(zones, cfg.Seed);
             var rng = Rng.FromLabel($"{cfg.Seed}/{cfg.Variant}/programs");
             var halls = new HashSet<string>();                     // one big hall per sector, the biggest room first
             foreach (var room in level.Rooms.OrderBy(r => r.Kind != "arena").ThenBy(r => -r.W * r.H))
@@ -130,7 +157,7 @@ namespace NoorLevel
                 {
                     var every = table[sector].Everyday;
                     var opts = every.Where(p => side >= (MinSide.TryGetValue(p, out var ms) ? ms : 6)).ToList();
-                    if (opts.Count == 0) opts.Add(dungeon ? every[every.Length - 1] : "office");
+                    if (opts.Count == 0) opts.Add(dungeon ? every[every.Length - 1] : pset == "station" ? "quarters" : "office");
                     prog = rng.Choice(opts);
                 }
                 room.Meta["program"] = prog;
@@ -202,10 +229,21 @@ namespace NoorLevel
         {
             if (cells.Count == 0 || !RingOk(ctx, cells)) return 0;
             int n = Place(ctx, cells, name, height);
+            if (ctx.Level.Config.Dressing)                         // Dressing marks each block with a prop marker
+                FurnishBlocks(ctx.Room).Add((name, new List<Cell>(cells), height));
             foreach (var c in cells)
                 for (int dx = -1; dx <= 1; dx++)
                     for (int dy = -1; dy <= 1; dy++) ctx.Used.Add(c.Offset(dx, dy));
             return n;
+        }
+
+        /// <summary>The furniture blocks placed in a room (name, cells, height or null for solid), recorded
+        /// only when cfg.Dressing is on: Dressing gives each one a prop marker tagged "blockout".</summary>
+        public static List<(string Name, List<Cell> Cells, int? Height)> FurnishBlocks(Room room)
+        {
+            if (!(room.Meta.TryGetValue("furnish_blocks", out var v) && v is List<(string, List<Cell>, int?)> l))
+                room.Meta["furnish_blocks"] = l = new List<(string, List<Cell>, int?)>();
+            return l;
         }
 
         /// <summary>Rows along the room's long axis: thick cells deep, gap between rows, cut into pieces seg
@@ -283,6 +321,8 @@ namespace NoorLevel
             ["crypt"] = ("sarcophagi", 40), ["library"] = ("bookshelves", null), ["armory"] = ("weapon racks", 64),
             ["storeroom"] = ("barrels", 48), ["cells"] = ("cell walls", null),
             ["alchemy lab"] = ("workbenches", 40), ["scriptorium"] = ("writing desks", 32), ["study"] = ("bookshelves", null),
+            ["quarters"] = ("bunks", 48), ["galley"] = ("tables", 32), ["medbay"] = ("beds", 24), ["hydroponics"] = ("planters", 40),
+            ["sonar_room"] = ("consoles", 40),
         };
 
         public static bool Chasm(RoomCtx ctx, Rng rng) => Decorate.FChasm(ctx, rng);
@@ -357,6 +397,34 @@ namespace NoorLevel
                 case "transit":
                     Decorate.FPillars(ctx, rng);
                     break;
+                // --- deep-sea stations (program_set "station") ---------------------------------------
+                case "quarters":
+                    Rows(ctx, rng, "bunks", 1, 2, 2, 2, height: 48);
+                    break;
+                case "galley":
+                    Rows(ctx, rng, "tables", 2, 2, 2, 2, height: 32);
+                    break;
+                case "medbay":
+                    Rows(ctx, rng, "beds", 1, 3, 2, 2, height: 24);
+                    break;
+                case "hydroponics":
+                    Rows(ctx, rng, "planters", 1, 2, Math.Max(2, Math.Min(6, long_ - 6)), 2, height: 40);
+                    break;
+                case "moon_pool":
+                    if (!MoonPool(ctx, rng))
+                    {
+                        prog = "dive_locker";                      // no room for the pool: the suits and lockers then
+                        r.Meta["program"] = prog;
+                    }
+                    break;
+                case "dive_locker":                                // the dock: kept open (suits and lockers are props)
+                    break;
+                case "sonar_room":
+                    Rows(ctx, rng, "consoles", 1, 3, Math.Max(2, Math.Min(4, long_ - 6)), 2, height: 40);
+                    break;
+                case "generator":
+                    Block(ctx, "generator", wide ? 4 : 3, wide ? 3 : 4);
+                    break;
                 default:
                     FurnishDungeonOrWizard(ctx, prog, rng);
                     break;
@@ -369,6 +437,53 @@ namespace NoorLevel
                     Rows(ctx, rng, small.Name, 1, 2, 2, 2, height: small.Height);   // nothing fitted: smaller pieces, closer together
             }
             r.Features.Add(prog);
+        }
+
+        /// <summary>The moon pool: a pit in the floor, three steps deep with a stair down one side (like
+        /// Decorate.FPit, but from 3x3 cells up, so smaller rooms get one too), flooded to just under the deck.
+        /// The game treats its bottom as open to the sea; here it stays shallow enough to walk out of (the
+        /// validator's player can't swim up a shaft). The cells are part "room:N/moon pool".</summary>
+        public static bool MoonPool(RoomCtx ctx, Rng rng)
+        {
+            var r = ctx.Room;
+            var level = ctx.Level;
+            int step = level.Config.StepHeight;
+            if (Math.Min(r.W, r.H) < 7) return false;
+            List<Cell> pit = null;
+            for (int t = 0; t < 60 && pit == null; t++)
+            {
+                int pw = rng.Int(3, Math.Max(3, Math.Min(8, r.W - 4))), ph = rng.Int(3, Math.Max(3, Math.Min(8, r.H - 4)));
+                if (r.X + 2 > r.X + r.W - 2 - pw || r.Y + 2 > r.Y + r.H - 2 - ph) continue;
+                int px = rng.Int(r.X + 2, r.X + r.W - 2 - pw), py = rng.Int(r.Y + 2, r.Y + r.H - 2 - ph);
+                var border = new List<Cell>();
+                for (int y = py - 1; y < py + ph + 1; y++) for (int x = px - 1; x < px + pw + 1; x++) border.Add(new Cell(x, y));
+                if (!border.All(c => Ok(ctx, c) && level.RoomSpans(c, r).Count == 1 && level.RoomSpans(c, r)[0].Floor == r.Floor)) continue;
+                char side = rng.Choice(new[] { 'n', 's', 'e', 'w' });
+                pit = new List<Cell>();
+                for (int y = py; y < py + ph; y++)
+                    for (int x = px; x < px + pw; x++)
+                    {
+                        int d = side == 'w' ? x - px : side == 'e' ? px + pw - 1 - x : side == 's' ? y - py : py + ph - 1 - y;
+                        int along = side == 'w' || side == 'e' ? y - py : x - px;
+                        int centre = (side == 'w' || side == 'e' ? ph : pw) / 2;
+                        int lvl = d >= 2 || Math.Abs(along - centre) > 1 ? 3 : d + 1;
+                        var c = new Cell(x, y);
+                        ctx.SetFloor(c, r.Floor - lvl * step);
+                        pit.Add(c);
+                    }
+                foreach (var c in border) ctx.Used.Add(c);
+            }
+            if (pit == null) return false;
+            int surface = r.Floor - 8;
+            int n = 0;
+            foreach (var c in pit)
+            {
+                level.Water[c] = surface;
+                level.PartCells[c] = $"room:{r.Id}/moon pool";
+                n++;
+            }
+            if (n > 0) r.Meta["moon_pool"] = new Dictionary<string, object> { ["surface"] = surface, ["cells"] = n };
+            return n > 0;
         }
 
         static void FurnishDungeonOrWizard(RoomCtx ctx, string prog, Rng rng)

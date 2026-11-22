@@ -297,6 +297,8 @@ namespace NoorLevel
 
             var unreached = RoomsUnreached(level, reach);
             if (unreached.Count > 0) errors.Add($"rooms unreachable: [{string.Join(", ", unreached)}]");
+            if (cfg.StationEntities)                                 // station markers: creatures and loot can be got to
+                errors.AddRange(StationEntities.ReachReport(level, reach));
             if (level.Water.Count > 0) errors.AddRange(Floods.BreathReport(level));   // every swim on one breath
             if (errors.Count == 0 && cfg.CheckClearance) errors.AddRange(Clearance.Report(level));   // the player is a box, not a point
             rep.SoftlockSpots = softlocks;

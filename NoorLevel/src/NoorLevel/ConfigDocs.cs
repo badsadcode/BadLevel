@@ -38,7 +38,7 @@ namespace NoorLevel
             new ConfigParam { Group = "mission", Name = "floods", Kind = "float", Min = 0, Max = 1, Step = 0.05, Doc = "chance a crypt floods: wading water that spreads to a natural shore" },
             new ConfigParam { Group = "mission", Name = "sumps", Kind = "float", Min = 0, Max = 1, Step = 0.05, Doc = "chance a level corridor inside a flood dips under the water (a swim)" },
             new ConfigParam { Group = "mission", Name = "traps", Kind = "float", Min = 0, Max = 1, Step = 0.05, Doc = "chance a corridor gets a trap marker (blade, darts, spikes)" },
-            new ConfigParam { Group = "mission", Name = "program_set", Kind = "choice", Options = new[] { "facility", "dungeon", "wizard" }, Min = 0, Max = 4, Step = 0.05, Doc = "the rooms' jobs when programs is on: facility | dungeon" },
+            new ConfigParam { Group = "mission", Name = "program_set", Kind = "choice", Options = new[] { "facility", "dungeon", "wizard", "station" }, Min = 0, Max = 4, Step = 0.05, Doc = "the rooms' jobs when programs is on: facility | dungeon" },
             new ConfigParam { Group = "mission", Name = "programs", Kind = "bool", Doc = "facility: sectors per lock zone, rooms with a job and its furniture (programs.py)" },
             new ConfigParam { Group = "mission", Name = "vents", Kind = "float", Min = 0, Max = 1, Step = 0.05, Doc = "chance a loop becomes a vent: a duct 3 wide and vent_height high" },
             new ConfigParam { Group = "mission", Name = "vent_height", Kind = "int", Min = 56, Max = 128, Step = 8, Doc = "(Quake's player is 56 tall; crouching engines go lower by hand)" },
@@ -101,6 +101,10 @@ namespace NoorLevel
             new ConfigParam { Group = "storeys", Name = "stacking", Kind = "float", Min = 0, Max = 1, Step = 0.05, Doc = "Rooms over rooms: 0 = now and then a room on another storey sits over or under a neighbour (as BadLevel), up to 1 = every such room tries that first. Needs more than one storey." },
             new ConfigParam { Group = "noorlevel", Name = "pillars", Kind = "bool", Doc = "Free-standing columns anywhere: room pillars, yard colonnades, piers under vaults, corridor colonnades, the landmark's column. Off: none of them." },
             new ConfigParam { Group = "noorlevel", Name = "check_clearance", Kind = "bool", Doc = "Check that a player-sized box (not just a point) fits everywhere it has to go, and widen squeezes." },
+            new ConfigParam { Group = "station", Name = "dressing", Kind = "bool", Doc = "Prop markers (Dressing): empty nodes saying 'a console, this big, facing this way, belongs here' for the game to fill with real assets, by room program; corridors get cable and pipe runs. Each furniture block also gets one (tag blockout). Adds no geometry." },
+            new ConfigParam { Group = "station", Name = "dressing_density", Kind = "float", Min = 0, Max = 1, Step = 0.05, Doc = "How many props dressing places, 0..1 (scaled per program: storage is dense, an atrium sparse)." },
+            new ConfigParam { Group = "station", Name = "station_entities", Kind = "bool", Doc = "Gameplay markers (StationEntities): loot, log terminals, creature spawns (nest, ambush, patrol), hiding spots, power junctions, hazard zones, the airlock. Loot and spawns are always reachable." },
+            new ConfigParam { Group = "station", Name = "viewports", Kind = "bool", Doc = "Viewport markers: a small porthole on an outer wall of some rooms (nothing open behind it), for the game to cut and show the sea through." },
         };
     }
 }
