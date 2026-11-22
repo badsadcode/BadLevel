@@ -799,6 +799,8 @@ namespace NoorLevel
                     .Where(p => p.W > 0).ToList();
                 var fr = new Frame(room, rng.Random() < 0.5);
                 Section sec = null;
+                var forced = room.Get<string>("arch_profile");          // a room that asks for one (a station's domed lab)
+                if (forced != null && Profiles.TryGetValue(forced, out var fp)) sec = fp(fr, rng);
                 while (pal.Count > 0 && sec == null)
                 {
                     string name = rng.Choices(pal.Select(p => p.Name).ToList(), pal.Select(p => p.W).ToList());

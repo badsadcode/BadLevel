@@ -10,7 +10,8 @@ public class RecipeTests
     {
         var names = new[] { "compact", "classic", "bunker", "fortress", "industrial", "compound", "techbase", "runekeep", "outpost",
                             "grand", "facility", "complex", "dungeon", "wizard", "market", "arena", "ctf", "duel", "explore" };
-        Assert.Equal(names.OrderBy(n => n), Recipes.Presets.Keys.OrderBy(n => n));
+        var own = new[] { "station" };                         // NoorLevel's own presets (not in BadLevel)
+        Assert.Equal(names.Concat(own).OrderBy(n => n), Recipes.Presets.Keys.OrderBy(n => n));
     }
 
     [Fact]

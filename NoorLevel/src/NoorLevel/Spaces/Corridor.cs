@@ -21,6 +21,7 @@ namespace NoorLevel
 
         public static int CorridorHeight(GenConfig cfg, Room a, Room b, int r)
         {
+            if (cfg.LayoutStyle == "station") return cfg.TubeHeight;   // a pressure tube
             double f = cfg.CorridorHeight / 128.0;          // spaciousness raises it (128 by default: unchanged)
             if (Compressed(cfg, a, b)) return (int)Math.Round(112 * f / 16) * 16;
             int baseH = Layout.CorridorHeight.TryGetValue(r, out var bh) ? bh : 128 + 32 * (r - 1);
@@ -29,6 +30,7 @@ namespace NoorLevel
 
         public static (int R, bool Diag) CorridorStyle(MissionGraph g, Edge e, Room a, Room b, GenConfig cfg, Rng rng)
         {
+            if (cfg.LayoutStyle == "station") return (1, false);   // a pressure tube: 3 wide, straight runs
             var (r, diag) = CorridorStyle0(g, e, a, b, cfg, rng);
             if (cfg.Packing >= 0.5) return (1, false);        // packed: a doorway through the wall, 3 wide, straight
             if (!(a.IsConnector || b.IsConnector) &&

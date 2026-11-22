@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NoorLevel stations</title>
+<style>
+  :root { --bg: #f4f2ee; --fg: #1d1b22; --muted: #6a6670; --card: #ffffff; --line: #d9d5cf; --accent: #2b6f8a; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #141318; --fg: #ece9f1; --muted: #a29eab; --card: #1f1d25; --line: #34313c; --accent: #79bcd6; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 system-ui, sans-serif; }
+  header, main { max-width: 1200px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 1.6rem; margin: 8px 0 4px; }
+  header p { color: var(--muted); margin: 4px 0; max-width: 70ch; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 16px; }
+  .card { margin: 0; background: var(--card); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .card img { display: block; width: 100%; height: 300px; object-fit: contain; background: #1d1b22; }
+  figcaption { padding: 10px 14px 14px; }
+  h2 { font-size: 1.05rem; margin: 0 0 6px; }
+  dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; margin: 0 0 8px; font-size: 0.9rem; }
+  dt { color: var(--muted); } dd { margin: 0; }
+  .files { margin: 6px 0; font-size: 0.9rem; }
+  a { color: var(--accent); }
+  button { font: inherit; font-size: 0.85rem; color: var(--accent); background: none; border: 1px solid var(--line); border-radius: 6px; padding: 1px 8px; cursor: pointer; }
+  code { display: block; font-size: 0.75rem; color: var(--muted); overflow-wrap: anywhere; }
+  #viewer { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: none; align-items: center; justify-content: center; padding: 16px; }
+  #viewer.open { display: flex; }
+  #viewer model-viewer { width: min(1000px, 100%); height: min(700px, 80vh); background: #222; border-radius: 10px; }
+  #viewer button { position: absolute; top: 16px; right: 16px; background: var(--card); }
+</style>
+</head>
+<body>
+<header>
+  <h1>NoorLevel: deep-sea stations</h1>
+  <p>Eight levels made with the <code style="display:inline">station</code> preset (<code style="display:inline">layout_style = "station"</code>):
+  round and octagonal pods on a spine of round pressure tubes (a line, a ring round a hub, or a branching tree), the docking
+  airlock on the top deck, the core alone on the deepest, decks joined by stair tubes only. Plans are coloured by floor height
+  (deeper is darker): green is the airlock (start), yellow the core (exit), red and blue the keys and their doors, purple the secret door.</p>
+  <p>The GLBs are Y-up metres; serve this folder over HTTP (e.g. <code style="display:inline">python3 -m http.server</code>) to use the 3D view.</p>
+</header>
+<main class="grid">
+  <figure class="card">
+    <a href="station_1_line_research.svg"><img src="station_1_line_research.svg" alt="floor plan of station seed 1" loading="lazy"></a>
+    <figcaption>
+      <h2>Seed 1: line spine, research</h2>
+      <dl>
+        <dt>map_size</dt><dd>56 m (footprint 54 m)</dd>
+        <dt>pods / tubes</dt><dd>8 / 8</dd>
+        <dt>decks</dt><dd>2</dd>
+        <dt>character rooms</dt><dd>dome lab, hydroponics</dd>
+        <dt>keys</dt><dd>1</dd>
+        <dt>architecture</dt><dd>scifi</dd>
+      </dl>
+      <p class="files"><a href="station_1_line_research.glb" download>station_1_line_research.glb</a> · <a href="station_1_line_research.svg">plan (SVG)</a>
+         · <button data-glb="station_1_line_research.glb">view in 3D</button></p>
+      <code>noorlevel-cli generate --preset station --seed 1 --set spine=line --set station_style=research --set map_size=56 --format glb,svg</code>
+    </figcaption>
+  </figure>
+  <figure class="card">
+    <a href="station_2_ring_research.svg"><img src="station_2_ring_research.svg" alt="floor plan of station seed 2" loading="lazy"></a>
+    <figcaption>
+      <h2>Seed 2: ring spine, research</h2>
+      <dl>
+        <dt>map_size</dt><dd>64 m (footprint 63 m)</dd>
+        <dt>pods / tubes</dt><dd>8 / 11</dd>
+        <dt>decks</dt><dd>3</dd>
+        <dt>character rooms</dt><dd>moon pool, hydroponics</dd>
+        <dt>keys</dt><dd>1</dd>
+        <dt>architecture</dt><dd>scifi</dd>
+      </dl>
+      <p class="files"><a href="station_2_ring_research.glb" download>station_2_ring_research.glb</a> · <a href="station_2_ring_research.svg">plan (SVG)</a>
+         · <button data-glb="station_2_ring_research.glb">view in 3D</button></p>
+      <code>noorlevel-cli generate --preset station --seed 2 --set spine=ring --set station_style=research --set map_size=64 --format glb,svg</code>
+    </figcaption>
+  </figure>
+  <figure class="card">
+    <a href="station_3_tree_research.svg"><img src="station_3_tree_research.svg" alt="floor plan of station seed 3" loading="lazy"></a>
+    <figcaption>
+      <h2>Seed 3: tree spine, research</h2>
+      <dl>
+        <dt>map_size</dt><dd>56 m (footprint 61 m)</dd>
+        <dt>pods / tubes</dt><dd>10 / 10</dd>
+        <dt>decks</dt><dd>3</dd>
+        <dt>character rooms</dt><dd>hydroponics, dome lab</dd>
+        <dt>keys</dt><dd>1</dd>
+        <dt>architecture</dt><dd>scifi</dd>
+      </dl>
+      <p class="files"><a href="station_3_tree_research.glb" download>station_3_tree_research.glb</a> · <a href="station_3_tree_research.svg">plan (SVG)</a>
+         · <button data-glb="station_3_tree_research.glb">view in 3D</button></p>
+      <code>noorlevel-cli generate --preset station --seed 3 --set spine=tree --set station_style=research --set map_size=56 --format glb,svg</code>
+    </figcaption>
+  </figure>
+  <figure class="card">
+    <a href="station_4_line_mining.svg"><img src="station_4_line_mining.svg" alt="floor plan of station seed 4" loading="lazy"></a>
+    <figcaption>
+      <h2>Seed 4: line spine, mining</h2>
+      <dl>
+        <dt>map_size</dt><dd>64 m (footprint 58 m)</dd>
+        <dt>pods / tubes</dt><dd>8 / 9</dd>
+        <dt>decks</dt><dd>3</dd>
+        <dt>character rooms</dt><dd>moon pool, collapsed</dd>
+        <dt>keys</dt><dd>1</dd>
+        <dt>architecture</dt><dd>industrial</dd>
+      </dl>
+      <p class="files"><a href="station_4_line_mining.glb" download>station_4_line_mining.glb</a> · <a href="station_4_line_mining.svg">plan (SVG)</a>
+         · <button data-glb="station_4_line_mining.glb">view in 3D</button></p>
+      <code>noorlevel-cli generate --preset station --seed 4 --set spine=line --set station_style=mining --set map_size=64 --format glb,svg</code>
+    </figcaption>
+  </figure>
+  <figure class="card">
+    <a href="station_5_ring_military.svg"><img src="station_5_ring_military.svg" alt="floor plan of station seed 5" loading="lazy"></a>
+    <figcaption>
+      <h2>Seed 5: ring spine, military</h2>
+      <dl>
+        <dt>map_size</dt><dd>72 m (footprint 76 m)</dd>
+        <dt>pods / tubes</dt><dd>12 / 16</dd>
+        <dt>decks</dt><dd>3</dd>
+        <dt>character rooms</dt><dd>moon pool, collapsed</dd>
+        <dt>keys</dt><dd>1</dd>
+        <dt>architecture</dt><dd>bunker</dd>
+      </dl>
+      <p class="files"><a href="station_5_ring_military.glb" download>station_5_ring_military.glb</a> · <a href="station_5_ring_military.svg">plan (SVG)</a>
+         · <button data-glb="station_5_ring_military.glb">view in 3D</button></p>
+      <code>noorlevel-cli generate --preset station --seed 5 --set spine=ring --set station_style=military --set map_size=72 --format glb,svg</code>
+    </figcaption>
+  </figure>
+  <figure class="card">
+    <a href="station_6_tree_derelict.svg"><img src="station_6_tree_derelict.svg" alt="floor plan of station seed 6" loading="lazy"></a>
+    <figcaption>
+      <h2>Seed 6: tree spine, derelict</h2>
+      <dl>
+        <dt>map_size</dt><dd>64 m (footprint 73 m)</dd>
+        <dt>pods / tubes</dt><dd>11 / 12</dd>
+        <dt>decks</dt><dd>3</dd>
+        <dt>character rooms</dt><dd>hydroponics, collapsed</dd>
+        <dt>keys</dt><dd>1</dd>
+        <dt>architecture</dt><dd>industrial</dd>
+      </dl>
+      <p class="files"><a href="station_6_tree_derelict.glb" download>station_6_tree_derelict.glb</a> · <a href="station_6_tree_derelict.svg">plan (SVG)</a>
+         · <button data-glb="station_6_tree_derelict.glb">view in 3D</button></p>
+      <code>noorlevel-cli generate --preset station --seed 6 --set spine=tree --set station_style=derelict --set map_size=64 --format glb,svg</code>
+    </figcaption>
+  </figure>
+  <figure class="card">
+    <a href="station_7_ring_derelict.svg"><img src="station_7_ring_derelict.svg" alt="floor plan of station seed 7" loading="lazy"></a>
+    <figcaption>
+      <h2>Seed 7: ring spine, derelict</h2>
+      <dl>
+        <dt>map_size</dt><dd>56 m (footprint 68 m)</dd>
+        <dt>pods / tubes</dt><dd>8 / 11</dd>
+        <dt>decks</dt><dd>3</dd>
+        <dt>character rooms</dt><dd>dome lab</dd>
+        <dt>keys</dt><dd>1</dd>
+        <dt>architecture</dt><dd>industrial</dd>
+      </dl>
+      <p class="files"><a href="station_7_ring_derelict.glb" download>station_7_ring_derelict.glb</a> · <a href="station_7_ring_derelict.svg">plan (SVG)</a>
+         · <button data-glb="station_7_ring_derelict.glb">view in 3D</button></p>
+      <code>noorlevel-cli generate --preset station --seed 7 --set spine=ring --set station_style=derelict --set map_size=56 --format glb,svg</code>
+    </figcaption>
+  </figure>
+  <figure class="card">
+    <a href="station_8_tree_mining.svg"><img src="station_8_tree_mining.svg" alt="floor plan of station seed 8" loading="lazy"></a>
+    <figcaption>
+      <h2>Seed 8: tree spine, mining</h2>
+      <dl>
+        <dt>map_size</dt><dd>72 m (footprint 73 m)</dd>
+        <dt>pods / tubes</dt><dd>12 / 13</dd>
+        <dt>decks</dt><dd>3</dd>
+        <dt>character rooms</dt><dd>moon pool, collapsed</dd>
+        <dt>keys</dt><dd>1</dd>
+        <dt>architecture</dt><dd>industrial</dd>
+      </dl>
+      <p class="files"><a href="station_8_tree_mining.glb" download>station_8_tree_mining.glb</a> · <a href="station_8_tree_mining.svg">plan (SVG)</a>
+         · <button data-glb="station_8_tree_mining.glb">view in 3D</button></p>
+      <code>noorlevel-cli generate --preset station --seed 8 --set spine=tree --set station_style=mining --set map_size=72 --format glb,svg</code>
+    </figcaption>
+  </figure>
+</main>
+<div id="viewer"><button id="close">close</button></div>
+<script>
+  const viewer = document.getElementById('viewer');
+  document.getElementById('close').onclick = () => { viewer.classList.remove('open'); viewer.querySelector('model-viewer')?.remove(); };
+  document.querySelectorAll('button[data-glb]').forEach(b => b.onclick = async () => {
+    if (!customElements.get('model-viewer')) {
+      const s = document.createElement('script'); s.type = 'module';
+      s.src = 'https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js';
+      document.head.appendChild(s);
+      await new Promise(r => s.onload = r);
+    }
+    const mv = document.createElement('model-viewer');
+    mv.setAttribute('src', b.dataset.glb); mv.setAttribute('camera-controls', ''); mv.setAttribute('shadow-intensity', '0.5');
+    viewer.appendChild(mv); viewer.classList.add('open');
+  });
+</script>
+</body>
+</html>

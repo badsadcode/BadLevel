@@ -122,6 +122,7 @@ on the command line (`--set map_size=120`, weights as `--set feature_weights.pil
 | `packing` | `Packing` | 0 – 1 | >= 0.5: a divided floor plan (packed.py): rooms share walls, doorway corridors |
 | `diagonal_pull` | `DiagonalPull` | 0 – 1 | 0..1: how much those corridors prefer a diagonal (a 45-degree step's cost) |
 | `room_gap` | `RoomGap` | 2 – 10 | minimum empty cells between room rectangles |
+| `corridor_profile` | `CorridorProfile` | `box` / `chamfer` / `round` | The corridors' cross-section: box (flat, square corners), chamfer (the ceiling's edges cut at 45 degrees) or round (the ceiling curves down to the walls, the floor's edges rise: a tube). Sloped ceiling corners, so every exporter has it; it never changes what's reachable. Vents stay boxes. |
 
 ## The player (validation)
 
@@ -150,3 +151,14 @@ on the command line (`--set map_size=120`, weights as `--set feature_weights.pil
 | `map_size` | `MapSize` | 0 – 400 | The level's footprint: the longer side in metres (cells); 0 = whatever the recipe gives. The generator fits the level to it by changing room counts and sizes. |
 | `pillars` | `Pillars` | true / false | Free-standing columns anywhere: room pillars, yard colonnades, piers under vaults, corridor colonnades, the landmark's column. Off: none of them. |
 | `check_clearance` | `CheckClearance` | true / false | Check that a player-sized box (not just a point) fits everywhere it has to go, and widen squeezes. |
+
+## Stations (NoorLevel's own)
+
+| Name | C# field | Values | What it does |
+|---|---|---|---|
+| `layout_style` | `LayoutStyle` | `""` / `station` | The layout: "" (rooms and corridors as BadLevel) or station (a deep-sea station: round and octagonal pods on a spine of tubes, the airlock on the top deck, the core at the bottom, stairs only). |
+| `spine` | `Spine` | `auto` / `line` / `ring` / `tree` | Station: the spine the pods hang on: one long line, a ring round a central hub, or a branching tree; auto picks one from the seed. |
+| `station_style` | `StationStyle` | `research` / `mining` / `military` / `derelict` | Station: its character. Picks the architecture when arch_style is empty (research: scifi, mining: industrial, military: bunker, derelict: industrial with dark rooms) and which character rooms it gets. |
+| `tube_height` | `TubeHeight` | 80 – 128 | Station: the tubes' headroom at the crown, in units (32 = 1 m; 96 = 3 m). |
+| `character_rooms` | `CharacterRooms` | 0 – 3 | Station: how many character rooms (a moon pool, a domed lab, a flooded wing, a collapsed tube, a hydroponics bay). |
+| `character_weights` | `CharacterWeights` | weights for `moon_pool`, `dome_lab`, `flooded_wing`, `collapsed`, `hydroponics` | Station: weights for the character rooms (empty: by station_style). |

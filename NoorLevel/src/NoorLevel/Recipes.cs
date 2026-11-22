@@ -548,7 +548,29 @@ namespace NoorLevel
                   ["mega_rooms"] = 1, ["mega_styles"] = D(("terraces", 2.0), ("works", 1.0), ("hangar", 0.5)),
                   ["composition"] = "hub",
               }),
+            // NoorLevel's own (not in BadLevel): for Solitude's deep-sea stations
+            R("station", "A deep-sea station: round and octagonal pods on a spine of pressure tubes (one long line, " +
+                         "a ring round a hub, or a branching tree), the docking airlock on the top deck and the " +
+                         "core at the bottom, decks joined by stair tubes, a moon pool, a domed lab or a flooded wing.",
+              scale: 0.55, openness: 0.2, verticality: 0.7, claustrophobia: 0.7, combat: 0.5, exploration: 0.6,
+              loopiness: 0.3, regularity: 0.8, spaciousness: 0.3,
+              overrides: new Dictionary<string, object>
+              {
+                  ["layout_style"] = "station", ["spine"] = "auto", ["station_style"] = "research", ["corridor_profile"] = "round",
+                  ["tube_height"] = 96, ["character_rooms"] = 2, ["map_size"] = 56, ["storeys"] = 3, ["keys"] = 1, ["secret"] = true,
+                  ["main_rooms"] = 7, ["side_rooms"] = 4, ["loops"] = 1, ["long_loop_chance"] = 0.0,
+                  ["programs"] = true, ["program_set"] = "facility", ["monster_set"] = "base",
+                  ["windows"] = 0, ["glazed_chance"] = 0.0, ["vistas"] = 0, ["open_areas"] = 0, ["mega_rooms"] = 0, ["merge_chance"] = 0.0,
+                  ["galleries"] = false, ["corridor_beats"] = false, ["vents"] = 0.0, ["drop_chance"] = 0.0, ["ramps"] = 0.0,
+                  ["diagonal_chance"] = 0.0, ["arch_landmark"] = false, ["pillars"] = false, ["light_variety"] = 0.4,
+                  ["underground"] = false, ["tall_room_chance"] = 0.0, ["skylights"] = 0.0,
+                  ["connector_weights"] = D(("stairs", 1.0), ("stairwell", 0.0), ("lift", 0.0), ("ladder", 0.0), ("spiral", 0.0)),
+              }),
         }.ToDictionary(r => r.Name);
+
+        /// <summary>Presets that came after <see cref="Surprise"/> was fixed: it never draws them, so a surprise
+        /// seed keeps giving the level it always gave.</summary>
+        public static readonly string[] NotInSurprise = { "station" };
 
         /// <summary><c>--recipe surprise</c>: a preset drawn by the seed, and a roll for extras on top
         /// (another architecture style, water, torches, vistas, a deathmatch). The extras are config fields
@@ -556,7 +578,7 @@ namespace NoorLevel
         public static (Recipe Recipe, Dictionary<string, object> Extras, string Label) Surprise(int seed)
         {
             var rng = Rng.FromLabel($"surprise/{seed}");
-            var names = Presets.Keys.OrderBy(n => n, StringComparer.Ordinal).ToList();
+            var names = Presets.Keys.Where(n => !NotInSurprise.Contains(n)).OrderBy(n => n, StringComparer.Ordinal).ToList();
             string name = rng.Choice(names);
             var extras = new Dictionary<string, object>();
             var bits = new List<string> { name };

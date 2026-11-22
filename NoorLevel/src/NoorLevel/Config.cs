@@ -119,6 +119,15 @@ namespace NoorLevel
 
         public int MaxAttempts = 60;
 
+        // stations (NoorLevel: Station.cs) and corridor cross-sections (CorridorProfiles.cs)
+        public string LayoutStyle = "";      // "" | station (a deep-sea station: round pods on a spine of tubes)
+        public string Spine = "auto";        // station: line | ring | tree | auto (from the seed)
+        public string StationStyle = "research";   // station: research | mining | military | derelict
+        public int TubeHeight = 96;          // station: the tubes' headroom at the crown (units, 32 = 1 m)
+        public int CharacterRooms = 2;       // station: how many character rooms (0..3)
+        public Dictionary<string, double> CharacterWeights = new Dictionary<string, double>();   // empty: by station_style
+        public string CorridorProfile = "box";   // box | chamfer | round: the corridors' cross-section
+
         // style levers
         public Dictionary<string, double> SizeBias = new Dictionary<string, double>();
         public Dictionary<string, double> ShapeWeights = new Dictionary<string, double>();
@@ -153,6 +162,7 @@ namespace NoorLevel
             c.RoomSizes = new Dictionary<string, (int, int, int, int)>(RoomSizes);
             c.MegaStyles = new Dictionary<string, double>(MegaStyles);
             c.ArchWeights = new Dictionary<string, double>(ArchWeights);
+            c.CharacterWeights = new Dictionary<string, double>(CharacterWeights);
             return c;
         }
     }

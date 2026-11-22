@@ -16,6 +16,7 @@ namespace NoorLevel
         public static Level Generate(GenConfig cfg = null)
         {
             cfg = cfg ?? new GenConfig();
+            if (cfg.LayoutStyle == "station") cfg = Station.Prepare(cfg);   // (a copy: its style, its spine)
             return cfg.MapSize > 0 ? GenerateSized(cfg) : GenerateOnce(cfg);
         }
 
@@ -86,6 +87,9 @@ namespace NoorLevel
                     Clearance.Widen(level);                // the player is a box: no 32-unit squeezes
                     Ramps.MakeRamps(level);                // stair corridors as smooth ramps (cfg.Ramps)
                     Floods.AddFloods(level);               // flooded crypts and sumps (cfg.Floods, cfg.Sumps)
+                    if (cfg.LayoutStyle == "station")
+                        Station.Finish(level);             // the flooded wing, the collapsed tube, bulkheads
+                    CorridorProfiles.Apply(level);         // round / chamfered tubes (only corridors with a profile)
                     if (cfg.Mirror)
                         level = Mirror.MakeTeamMap(level); // team map: this half, lanes, and its mirror image
                     level.Sky.RemoveWhere(c => !level.Spans.ContainsKey(c));   // (a neighbour's wall member filled a yard's edge cell)
