@@ -32,7 +32,7 @@ RANGES = {
 CHOICES = {
     "mode": ["campaign", "arena"], "composition": ["tree", "hub", "central", "linear"],
     "arch_style": ["", "gothic", "industrial", "bunker", "compound", "castle", "egyptian", "scifi"],
-    "hazard_kind": ["slime", "lava"], "program_set": ["facility", "dungeon", "wizard"],
+    "hazard_kind": ["slime", "lava"], "program_set": ["facility", "dungeon", "wizard", "station"],
     "monster_set": None, "recipe": None,
 }
 WEIGHTS = {  # dictionaries shown as one slider per key
@@ -47,6 +47,10 @@ NOORLEVEL = [  # NoorLevel's own parameters (not in BadLevel)
     ("storeys", "stacking", "float", (0, 1, .05), "Rooms over rooms: 0 = now and then a room on another storey sits over or under a neighbour (as BadLevel), up to 1 = every such room tries that first. Needs more than one storey."),
     ("noorlevel", "pillars", "bool", None, "Free-standing columns anywhere: room pillars, yard colonnades, piers under vaults, corridor colonnades, the landmark's column. Off: none of them."),
     ("noorlevel", "check_clearance", "bool", None, "Check that a player-sized box (not just a point) fits everywhere it has to go, and widen squeezes."),
+    ("station", "dressing", "bool", None, "Prop markers (Dressing): empty nodes saying 'a console, this big, facing this way, belongs here' for the game to fill with real assets, by room program; corridors get cable and pipe runs. Each furniture block also gets one (tag blockout). Adds no geometry."),
+    ("station", "dressing_density", "float", (0, 1, .05), "How many props dressing places, 0..1 (scaled per program: storage is dense, an atrium sparse)."),
+    ("station", "station_entities", "bool", None, "Gameplay markers (StationEntities): loot, log terminals, creature spawns (nest, ambush, patrol), hiding spots, power junctions, hazard zones, the airlock. Loot and spawns are always reachable."),
+    ("station", "viewports", "bool", None, "Viewport markers: a small porthole on an outer wall of some rooms (nothing open behind it), for the game to cut and show the sea through."),
 ]
 GROUP_NAMES = {"mission graph": "mission", "storeys": "storeys", "composition": "composition", "open areas": "open areas",
                "architecture": "architecture", "merged halls": "halls", "openings": "openings", "geometry": "geometry",

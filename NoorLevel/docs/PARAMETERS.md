@@ -37,7 +37,7 @@ on the command line (`--set map_size=120`, weights as `--set feature_weights.pil
 | `floods` | `Floods` | 0 – 1 | chance a crypt floods: wading water that spreads to a natural shore |
 | `sumps` | `Sumps` | 0 – 1 | chance a level corridor inside a flood dips under the water (a swim) |
 | `traps` | `Traps` | 0 – 1 | chance a corridor gets a trap marker (blade, darts, spikes) |
-| `program_set` | `ProgramSet` | `facility` / `dungeon` / `wizard` | the rooms' jobs when programs is on: facility / dungeon |
+| `program_set` | `ProgramSet` | `facility` / `dungeon` / `wizard` / `station` | the rooms' jobs when programs is on: facility / dungeon |
 | `programs` | `Programs` | true / false | facility: sectors per lock zone, rooms with a job and its furniture (programs.py) |
 | `vents` | `Vents` | 0 – 1 | chance a loop becomes a vent: a duct 3 wide and vent_height high |
 | `vent_height` | `VentHeight` | 56 – 128 | (Quake's player is 56 tall; crouching engines go lower by hand) |
@@ -150,3 +150,12 @@ on the command line (`--set map_size=120`, weights as `--set feature_weights.pil
 | `map_size` | `MapSize` | 0 – 400 | The level's footprint: the longer side in metres (cells); 0 = whatever the recipe gives. The generator fits the level to it by changing room counts and sizes. |
 | `pillars` | `Pillars` | true / false | Free-standing columns anywhere: room pillars, yard colonnades, piers under vaults, corridor colonnades, the landmark's column. Off: none of them. |
 | `check_clearance` | `CheckClearance` | true / false | Check that a player-sized box (not just a point) fits everywhere it has to go, and widen squeezes. |
+
+## station
+
+| Name | C# field | Values | What it does |
+|---|---|---|---|
+| `dressing` | `Dressing` | true / false | Prop markers (Dressing): empty nodes saying 'a console, this big, facing this way, belongs here' for the game to fill with real assets, by room program; corridors get cable and pipe runs. Each furniture block also gets one (tag blockout). Adds no geometry. |
+| `dressing_density` | `DressingDensity` | 0 – 1 | How many props dressing places, 0..1 (scaled per program: storage is dense, an atrium sparse). |
+| `station_entities` | `StationEntities` | true / false | Gameplay markers (StationEntities): loot, log terminals, creature spawns (nest, ambush, patrol), hiding spots, power junctions, hazard zones, the airlock. Loot and spawns are always reachable. |
+| `viewports` | `Viewports` | true / false | Viewport markers: a small porthole on an outer wall of some rooms (nothing open behind it), for the game to cut and show the sea through. |

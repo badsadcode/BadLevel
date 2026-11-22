@@ -33,12 +33,23 @@ namespace NoorLevel
         public double Floods = 0.0;          // chance a crypt floods
         public double Sumps = 0.0;           // chance a level corridor in a flood dips under the water
         public double Traps = 0.0;           // chance a corridor gets a trap marker
-        public string ProgramSet = "facility";   // facility | dungeon | wizard
+        public string ProgramSet = "facility";   // facility | dungeon | wizard | station
         public bool Programs = false;        // rooms with a job and its furniture (programs)
         public double Vents = 0.0;           // chance a loop becomes a low duct
         public int VentHeight = 64;
         public double EnemyDensity = 1.0;    // (kept for recipes; NoorLevel places no enemies)
         public double PickupDensity = 1.0;   // (kept for recipes; NoorLevel places no pickups)
+
+        // station markers (Dressing, StationEntities): empty marker nodes a game dresses and acts on
+        /// <summary>Prop markers: "a console, this big, facing this way, belongs here" (Dressing). Off: nothing changes.</summary>
+        public bool Dressing = false;
+        /// <summary>How many props Dressing places, 0..1 (scaled per program: storage dense, an atrium sparse).</summary>
+        public double DressingDensity = 0.6;
+        /// <summary>Gameplay markers: loot, log terminals, creature spawns, hiding spots, power junctions,
+        /// hazard zones, the airlock (StationEntities). Off: nothing changes.</summary>
+        public bool StationEntities = false;
+        /// <summary>Viewport markers: small portholes on outer walls (StationEntities). Off: nothing changes.</summary>
+        public bool Viewports = false;
 
         // composition
         public string Composition = "tree";  // tree | hub | central | linear
