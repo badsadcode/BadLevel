@@ -17,6 +17,7 @@ static class Program
   noorlevel generate [--preset classic|surprise] [--seed 1] [--dial name=0.7 ...] [--set main_rooms=8 ...]
                      [--off pillars,crates,wall_structure,portal_frames,landmark,windows,secret]
                      [--coth path/to/NoorEngine/samples/Hillside/Assets/Sprites]
+                     [--out folder | --out exact/file.glb] [--json-result] [--max-ms 5000]
                      [--format glb|noorengine|quake|quake2|valve|map|obj|stl|json|svg ...] [--out folder]
   noorlevel serve [--port 5173] [--www path/to/wwwroot]     the previewer in your browser
   noorlevel presets                                          list presets and dials
@@ -114,21 +115,64 @@ Dials: " + string.Join(", ", Recipe.Dials);
         foreach (var t in (o.TryGetValue("off", out var ol) ? ol : new List<string>()).SelectMany(x => x.Split(','))) offs[t.Trim()] = false;
         req["toggles"] = offs;
         if (One(o, "coth", null) is string cothDir) Exporters.CothDir = cothDir;   // Coth's sprite files, for --format noorengine
-        var cfg = PreviewApi.ConfigFrom(req);
-        var sw = Stopwatch.StartNew();
-        var level = Generator.Generate(cfg);
-        Console.WriteLine($"{cfg.Recipe} seed {cfg.Seed}: {level.Rooms.Count} rooms, {level.Corridors.Count} corridors, {level.Spans.Count} cells in {sw.ElapsedMilliseconds} ms");
-        var outDir = One(o, "out", ".");
-        Directory.CreateDirectory(outDir);
+        bool jsonResult = o.ContainsKey("json-result");
+        int maxMs = int.Parse(One(o, "max-ms", "0"), CultureInfo.InvariantCulture);
         var formats = o.TryGetValue("format", out var fl) && fl.Count > 0 ? fl.SelectMany(f => f.Split(',')).ToList() : new List<string> { "glb" };
-        foreach (var f in formats)
+        string outArg = One(o, "out", ".");
+        // --out is a folder (names like noorlevel_7.glb), or, with one format, an exact file name ending in its extension
+        var fmt0 = Exporters.Formats.FirstOrDefault(f => f.Id == formats[0]);
+        bool outIsFile = formats.Count == 1 && fmt0 != null && outArg.EndsWith(fmt0.Extension, StringComparison.OrdinalIgnoreCase);
+        var sw = Stopwatch.StartNew();
+        GenConfig cfg = null;
+
+        int Result(bool ok, string file, Level lvl, List<string> errors, int code)
         {
-            var data = Exporters.Export(level, f, out var name);
-            var path = Path.Combine(outDir, name);
-            File.WriteAllBytes(path, data);
-            Console.WriteLine($"  {f,-7} -> {path} ({data.Length / 1024.0:0.#} KB)");
+            if (jsonResult)
+                Console.WriteLine(Json.Write(new Dictionary<string, object>
+                {
+                    ["ok"] = ok, ["file"] = file, ["ms"] = sw.ElapsedMilliseconds, ["seed"] = cfg?.Seed ?? 0,
+                    ["recipe"] = cfg?.Recipe, ["rooms"] = lvl?.Rooms.Count ?? 0,
+                    ["errors"] = errors.Select(e => e.Length > 400 ? e.Substring(0, 400) + "..." : e).ToList(),
+                }));
+            else foreach (var e in errors) Console.Error.WriteLine("error: " + e);
+            return code;
         }
-        return 0;
+
+        Level level;
+        try
+        {
+            cfg = PreviewApi.ConfigFrom(req);
+            var job = System.Threading.Tasks.Task.Run(() => Generator.Generate(cfg));
+            if (maxMs > 0 && !job.Wait(maxMs))
+            {
+                // a guaranteed upper bound: give up cleanly (the process ends, the worker with it)
+                Environment.Exit(Result(false, null, null, new List<string> { $"no level within --max-ms {maxMs}" }, 3));
+            }
+            level = job.GetAwaiter().GetResult();
+        }
+        catch (GenerationException e) { return Result(false, null, null, new List<string> { e.Message.Split('\n')[0] }, 1); }
+        catch (ArgumentException e) { return Result(false, null, null, new List<string> { e.Message }, 2); }
+        if (!jsonResult)
+            Console.WriteLine($"{cfg.Recipe} seed {cfg.Seed}: {level.Rooms.Count} rooms, {level.Corridors.Count} corridors, {level.Spans.Count} cells in {sw.ElapsedMilliseconds} ms");
+        string written = null;
+        try
+        {
+            foreach (var f in formats)
+            {
+                var data = Exporters.Export(level, f, out var name);
+                string path = outIsFile ? outArg : Path.Combine(outArg, name);
+                var dir = Path.GetDirectoryName(Path.GetFullPath(path));
+                if (!string.IsNullOrEmpty(dir)) Directory.CreateDirectory(dir);
+                File.WriteAllBytes(path, data);
+                written ??= path;
+                if (!jsonResult) Console.WriteLine($"  {f,-7} -> {path} ({data.Length / 1024.0:0.#} KB)");
+            }
+        }
+        catch (Exception e) when (e is IOException || e is UnauthorizedAccessException || e is ArgumentException)
+        {
+            return Result(false, null, level, new List<string> { e.Message }, 4);
+        }
+        return jsonResult ? Result(true, written, level, new List<string>(), 0) : 0;
     }
 
     static int Sweep(int seeds)
