@@ -43,6 +43,7 @@ WEIGHTS = {  # dictionaries shown as one slider per key
     "mega_styles": ["hangar", "works", "terraces"],
 }
 NOORLEVEL = [  # NoorLevel's own parameters (not in BadLevel)
+    ("station", "part_meta", "bool", None, "Room facts on the .glb's part nodes (extras: room, kind, program, sector, style, profile), so a game can pick materials per room. Adds keys only; no names change."),
     ("noorlevel", "map_size", "int", (0, 400, 8), "The level's footprint: the longer side in metres (cells); 0 = whatever the recipe gives. The generator fits the level to it by changing room counts and sizes."),
     ("storeys", "stacking", "float", (0, 1, .05), "Rooms over rooms: 0 = now and then a room on another storey sits over or under a neighbour (as BadLevel), up to 1 = every such room tries that first. Needs more than one storey."),
     ("noorlevel", "pillars", "bool", None, "Free-standing columns anywhere: room pillars, yard colonnades, piers under vaults, corridor colonnades, the landmark's column. Off: none of them."),

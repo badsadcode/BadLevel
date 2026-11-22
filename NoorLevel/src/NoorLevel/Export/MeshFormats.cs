@@ -18,6 +18,28 @@ namespace NoorLevel.Export
 
         public static byte[] ToGlb(Level level, bool entities = true) => ToGlb(level, entities, out _);
 
+        /// <summary>A part node's extras: {part}, and with cfg.PartMeta the room's program, sector and style
+        /// (for "room:N" and "room:N/element"; corridors get their style).</summary>
+        static Dictionary<string, object> PartExtras(Level level, string part)
+        {
+            var ex = new Dictionary<string, object> { ["part"] = part };
+            if (level.Config == null || !level.Config.PartMeta) return ex;
+            string style = string.IsNullOrEmpty(level.Config.ArchStyle) ? null : level.Config.ArchStyle;
+            string area = part.Split('/')[0];
+            if (area.StartsWith("room:") && int.TryParse(area.Substring(5), out var id) && id >= 0 && id < level.Rooms.Count)
+            {
+                var room = level.Rooms[id];
+                ex["room"] = id;
+                ex["kind"] = room.Kind;
+                if (room.Meta.TryGetValue("program", out var prog) && prog != null) ex["program"] = prog.ToString();
+                if (room.Meta.TryGetValue("sector", out var sec) && sec != null) ex["sector"] = sec.ToString();
+                if (room.Meta.TryGetValue("arch", out var arch) && arch is Dictionary<string, object> ad && ad.TryGetValue("profile", out var prof)) ex["profile"] = prof?.ToString();
+            }
+            else if (area.StartsWith("corridor:")) ex["kind"] = "corridor";
+            if (style != null) ex["style"] = style;
+            return ex;
+        }
+
         /// <summary>The .glb, and the name of each mesh in it (mesh i is part names[i]: a room, a corridor, an element).</summary>
         public static byte[] ToGlb(Level level, bool entities, out List<string> meshNames)
         {
@@ -87,7 +109,7 @@ namespace NoorLevel.Export
                 if (prims.Count == 0) continue;
                 meshes.Add(new Dictionary<string, object> { ["name"] = part.Key, ["primitives"] = prims });
                 meshNames.Add(part.Key);
-                partNodes.Add(new Dictionary<string, object> { ["name"] = part.Key, ["mesh"] = meshes.Count - 1, ["extras"] = new Dictionary<string, object> { ["part"] = part.Key } });
+                partNodes.Add(new Dictionary<string, object> { ["name"] = part.Key, ["mesh"] = meshes.Count - 1, ["extras"] = PartExtras(level, part.Key) });
             }
             Align();
             // the level: a root node "level_geometry" whose children are the parts

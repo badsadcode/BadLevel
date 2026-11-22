@@ -130,10 +130,33 @@ namespace NoorLevel.Export
                 : Box(new P(b.X0, b.Y0, b.Z0), new P(b.X1, b.Y1, b.Z1), Tex[b.Top], Tex[b.Bottom], Tex[b.Side]);
         }
 
+        /// <summary>An entity key's value as .map text: numbers as numbers, lists and vectors space-separated
+        /// (the way Quake writes origins), dictionaries as key=value pairs.</summary>
+        static string Val(object v)
+        {
+            switch (v)
+            {
+                case null: return "";
+                case string s: return s;
+                case double d: return F(d);
+                case float f: return F(f);
+                case Vec3 p: return $"{F(p.X)} {F(p.Y)} {F(p.Z)}";
+                case System.Collections.IDictionary dict:
+                    var parts = new List<string>();
+                    foreach (System.Collections.DictionaryEntry e in dict) parts.Add($"{e.Key}={Val(e.Value)}");
+                    return string.Join(" ", parts);
+                case System.Collections.IEnumerable list:
+                    var items = new List<string>();
+                    foreach (var x in list) items.Add(Val(x));
+                    return string.Join(" ", items);
+                default: return Convert.ToString(v, CultureInfo.InvariantCulture);
+            }
+        }
+
         static string Ent(IEnumerable<(string K, object V)> props, IEnumerable<string> brushes = null)
         {
             var sb = new StringBuilder("{\n");
-            foreach (var (k, v) in props) sb.Append('"').Append(k).Append("\" \"").Append(v is double d ? F(d) : Convert.ToString(v, CultureInfo.InvariantCulture)).Append("\"\n");
+            foreach (var (k, v) in props) sb.Append('"').Append(k).Append("\" \"").Append(Val(v).Replace("\"", "'")).Append("\"\n");
             if (brushes != null) foreach (var b in brushes) sb.Append(b).Append('\n');
             return sb.Append('}').ToString();
         }
@@ -342,6 +365,9 @@ namespace NoorLevel.Export
                         break;
                     }
                     default:
+                        // a point inside solid (a prop marker on its own furniture block, a wall mount on the wall)
+                        // reads as a leak to qbsp: write such markers only where their point is in open space
+                        if (Validator.NodeAt(level, e.Pos) == null) break;
                         var props = new List<(string, object)> { ("classname", "info_null"), ("origin", Origin(e.Pos)), ("_noorlevel_kind", e.Kind) };
                         foreach (var kv in e.Props) props.Add(("_noorlevel_" + kv.Key, kv.Value));
                         outp.Add(Ent(props));

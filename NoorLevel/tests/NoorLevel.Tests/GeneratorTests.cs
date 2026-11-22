@@ -295,3 +295,26 @@ public class ParameterTests
         }
     }
 }
+
+public class PartMetaTests
+{
+    [Fact]
+    public void PartNodesCarryRoomFactsOnlyWhenAsked()
+    {
+        var cfg = Recipes.Compile(Recipes.Presets["facility"], 2);
+        cfg.ProgramSet = "station";
+        List<Dictionary<string, object>> Nodes(bool on)
+        {
+            var c = cfg.Clone(); c.PartMeta = on;
+            var glb = Gltf.ToGlb(Generator.Generate(c));
+            int jlen = BitConverter.ToInt32(glb, 12);
+            var j = (Dictionary<string, object>)Json.Parse(Encoding.UTF8.GetString(glb, 20, jlen));
+            return ((List<object>)j["nodes"]).Cast<Dictionary<string, object>>().Where(n => ((string)n["name"]).StartsWith("room:")).ToList();
+        }
+        var off = Nodes(false); var on = Nodes(true);
+        Assert.All(off, n => Assert.Single((Dictionary<string, object>)n["extras"]));          // just {part}
+        Assert.Equal(off.Select(n => n["name"]), on.Select(n => n["name"]));                    // no names change
+        Assert.Contains(on, n => ((Dictionary<string, object>)n["extras"]).ContainsKey("program"));
+        Assert.All(on, n => Assert.Equal("industrial", ((Dictionary<string, object>)n["extras"])["style"]));
+    }
+}

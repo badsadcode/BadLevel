@@ -143,6 +143,16 @@ on the command line (`--set map_size=120`, weights as `--set feature_weights.pil
 | `size_variety` | `SizeVariety` | 0 – 1 | spread of room sizes (0 = the size table as is; 1 = 0.66x - 2x per room) |
 | `room_scale` | `RoomScale` | 0.5 – 2.5 | room footprints (cells): small and tight vs vast halls |
 
+## station
+
+| Name | C# field | Values | What it does |
+|---|---|---|---|
+| `part_meta` | `PartMeta` | true / false | Room facts on the .glb's part nodes (extras: room, kind, program, sector, style, profile), so a game can pick materials per room. Adds keys only; no names change. |
+| `dressing` | `Dressing` | true / false | Prop markers (Dressing): empty nodes saying 'a console, this big, facing this way, belongs here' for the game to fill with real assets, by room program; corridors get cable and pipe runs. Each furniture block also gets one (tag blockout). Adds no geometry. |
+| `dressing_density` | `DressingDensity` | 0 – 1 | How many props dressing places, 0..1 (scaled per program: storage is dense, an atrium sparse). |
+| `station_entities` | `StationEntities` | true / false | Gameplay markers (StationEntities): loot, log terminals, creature spawns (nest, ambush, patrol), hiding spots, power junctions, hazard zones, the airlock. Loot and spawns are always reachable. |
+| `viewports` | `Viewports` | true / false | Viewport markers: a small porthole on an outer wall of some rooms (nothing open behind it), for the game to cut and show the sea through. |
+
 ## NoorLevel's own
 
 | Name | C# field | Values | What it does |
@@ -150,12 +160,3 @@ on the command line (`--set map_size=120`, weights as `--set feature_weights.pil
 | `map_size` | `MapSize` | 0 – 400 | The level's footprint: the longer side in metres (cells); 0 = whatever the recipe gives. The generator fits the level to it by changing room counts and sizes. |
 | `pillars` | `Pillars` | true / false | Free-standing columns anywhere: room pillars, yard colonnades, piers under vaults, corridor colonnades, the landmark's column. Off: none of them. |
 | `check_clearance` | `CheckClearance` | true / false | Check that a player-sized box (not just a point) fits everywhere it has to go, and widen squeezes. |
-
-## station
-
-| Name | C# field | Values | What it does |
-|---|---|---|---|
-| `dressing` | `Dressing` | true / false | Prop markers (Dressing): empty nodes saying 'a console, this big, facing this way, belongs here' for the game to fill with real assets, by room program; corridors get cable and pipe runs. Each furniture block also gets one (tag blockout). Adds no geometry. |
-| `dressing_density` | `DressingDensity` | 0 – 1 | How many props dressing places, 0..1 (scaled per program: storage is dense, an atrium sparse). |
-| `station_entities` | `StationEntities` | true / false | Gameplay markers (StationEntities): loot, log terminals, creature spawns (nest, ambush, patrol), hiding spots, power junctions, hazard zones, the airlock. Loot and spawns are always reachable. |
-| `viewports` | `Viewports` | true / false | Viewport markers: a small porthole on an outer wall of some rooms (nothing open behind it), for the game to cut and show the sea through. |

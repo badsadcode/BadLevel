@@ -50,6 +50,9 @@ namespace NoorLevel
         public bool StationEntities = false;
         /// <summary>Viewport markers: small portholes on outer walls (StationEntities). Off: nothing changes.</summary>
         public bool Viewports = false;
+        /// <summary>Room facts on the .glb's part nodes (extras: program, sector, style), so a game can pick
+        /// materials per room (a lab white, a pump room rusty). Adds keys only; no names change.</summary>
+        public bool PartMeta = false;
 
         // composition
         public string Composition = "tree";  // tree | hub | central | linear
