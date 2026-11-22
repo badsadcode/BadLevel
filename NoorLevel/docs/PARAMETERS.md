@@ -122,6 +122,7 @@ on the command line (`--set map_size=120`, weights as `--set feature_weights.pil
 | `packing` | `Packing` | 0 – 1 | >= 0.5: a divided floor plan (packed.py): rooms share walls, doorway corridors |
 | `diagonal_pull` | `DiagonalPull` | 0 – 1 | 0..1: how much those corridors prefer a diagonal (a 45-degree step's cost) |
 | `room_gap` | `RoomGap` | 2 – 10 | minimum empty cells between room rectangles |
+| `corridor_profile` | `CorridorProfile` | `box` / `chamfer` / `round` | The corridors' cross-section: box (flat, square corners), chamfer (the ceiling's edges cut at 45 degrees) or round (the ceiling curves down to the walls, the floor's edges rise: a tube). Sloped ceiling corners, so every exporter has it; it never changes what's reachable. Vents stay boxes. |
 
 ## The player (validation)
 
@@ -143,7 +144,7 @@ on the command line (`--set map_size=120`, weights as `--set feature_weights.pil
 | `size_variety` | `SizeVariety` | 0 – 1 | spread of room sizes (0 = the size table as is; 1 = 0.66x - 2x per room) |
 | `room_scale` | `RoomScale` | 0.5 – 2.5 | room footprints (cells): small and tight vs vast halls |
 
-## station
+## Stations (NoorLevel's own)
 
 | Name | C# field | Values | What it does |
 |---|---|---|---|
@@ -152,6 +153,12 @@ on the command line (`--set map_size=120`, weights as `--set feature_weights.pil
 | `dressing_density` | `DressingDensity` | 0 – 1 | How many props dressing places, 0..1 (scaled per program: storage is dense, an atrium sparse). |
 | `station_entities` | `StationEntities` | true / false | Gameplay markers (StationEntities): loot, log terminals, creature spawns (nest, ambush, patrol), hiding spots, power junctions, hazard zones, the airlock. Loot and spawns are always reachable. |
 | `viewports` | `Viewports` | true / false | Viewport markers: a small porthole on an outer wall of some rooms (nothing open behind it), for the game to cut and show the sea through. |
+| `layout_style` | `LayoutStyle` | `""` / `station` | The layout: "" (rooms and corridors as BadLevel) or station (a deep-sea station: round and octagonal pods on a spine of tubes, the airlock on the top deck, the core at the bottom, stairs only). |
+| `spine` | `Spine` | `auto` / `line` / `ring` / `tree` | Station: the spine the pods hang on: one long line, a ring round a central hub, or a branching tree; auto picks one from the seed. |
+| `station_style` | `StationStyle` | `research` / `mining` / `military` / `derelict` | Station: its character. Picks the architecture when arch_style is empty (research: scifi, mining: industrial, military: bunker, derelict: industrial with dark rooms) and which character rooms it gets. |
+| `tube_height` | `TubeHeight` | 80 – 128 | Station: the tubes' headroom at the crown, in units (32 = 1 m; 96 = 3 m). |
+| `character_rooms` | `CharacterRooms` | 0 – 3 | Station: how many character rooms (a moon pool, a domed lab, a flooded wing, a collapsed tube, a hydroponics bay). |
+| `character_weights` | `CharacterWeights` | weights for `moon_pool`, `dome_lab`, `flooded_wing`, `collapsed`, `hydroponics` | Station: weights for the character rooms (empty: by station_style). |
 
 ## NoorLevel's own
 

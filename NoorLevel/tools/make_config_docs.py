@@ -52,6 +52,13 @@ NOORLEVEL = [  # NoorLevel's own parameters (not in BadLevel)
     ("station", "dressing_density", "float", (0, 1, .05), "How many props dressing places, 0..1 (scaled per program: storage is dense, an atrium sparse)."),
     ("station", "station_entities", "bool", None, "Gameplay markers (StationEntities): loot, log terminals, creature spawns (nest, ambush, patrol), hiding spots, power junctions, hazard zones, the airlock. Loot and spawns are always reachable."),
     ("station", "viewports", "bool", None, "Viewport markers: a small porthole on an outer wall of some rooms (nothing open behind it), for the game to cut and show the sea through."),
+    ("geometry", "corridor_profile", "choice", ["box", "chamfer", "round"], "The corridors' cross-section: box (flat, square corners), chamfer (the ceiling's edges cut at 45 degrees) or round (the ceiling curves down to the walls, the floor's edges rise: a tube). Sloped ceiling corners, so every exporter has it; it never changes what's reachable. Vents stay boxes."),
+    ("station", "layout_style", "choice", ["", "station"], "The layout: \"\" (rooms and corridors as BadLevel) or station (a deep-sea station: round and octagonal pods on a spine of tubes, the airlock on the top deck, the core at the bottom, stairs only)."),
+    ("station", "spine", "choice", ["auto", "line", "ring", "tree"], "Station: the spine the pods hang on: one long line, a ring round a central hub, or a branching tree; auto picks one from the seed."),
+    ("station", "station_style", "choice", ["research", "mining", "military", "derelict"], "Station: its character. Picks the architecture when arch_style is empty (research: scifi, mining: industrial, military: bunker, derelict: industrial with dark rooms) and which character rooms it gets."),
+    ("station", "tube_height", "int", (80, 128, 8), "Station: the tubes' headroom at the crown, in units (32 = 1 m; 96 = 3 m)."),
+    ("station", "character_rooms", "int", (0, 3, 1), "Station: how many character rooms (a moon pool, a domed lab, a flooded wing, a collapsed tube, a hydroponics bay)."),
+    ("station", "character_weights", "weights", ["moon_pool", "dome_lab", "flooded_wing", "collapsed", "hydroponics"], "Station: weights for the character rooms (empty: by station_style)."),
 ]
 GROUP_NAMES = {"mission graph": "mission", "storeys": "storeys", "composition": "composition", "open areas": "open areas",
                "architecture": "architecture", "merged halls": "halls", "openings": "openings", "geometry": "geometry",
@@ -130,7 +137,7 @@ md = ["# NoorLevel parameters", "",
 GROUP_TITLES = {"general": "General", "mission": "Mission (rooms, keys, loops, modes, extras)", "storeys": "Storeys",
                 "composition": "Composition", "open areas": "Open areas and mega-rooms", "architecture": "Architecture",
                 "halls": "Merged halls", "openings": "Openings", "geometry": "Geometry", "player": "The player (validation)",
-                "style": "Style levers", "noorlevel": "NoorLevel's own"}
+                "style": "Style levers", "noorlevel": "NoorLevel's own", "station": "Stations (NoorLevel's own)"}
 order = []
 for g, *_ in rows:
     if g not in order:

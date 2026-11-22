@@ -137,6 +137,8 @@ namespace NoorLevel
 
         public static List<Room> PlaceRooms(MissionGraph g, GenConfig cfg, Rng rng)
         {
+            if (cfg.LayoutStyle == "station")
+                return Station.Place(g, cfg, rng);                       // round pods on a spine (Station.cs)
             bool multi = cfg.Storeys > 1;
             var preset = multi ? StoreyFloors(g, cfg, rng) : new Dictionary<int, int>();
 
@@ -662,7 +664,7 @@ namespace NoorLevel
                 }
                 if (path == null)
                 {
-                    if (e.Tree) throw new LayoutException($"no usable corridor {a.Id}->{b.Id}");
+                    if (e.Tree || e.Required) throw new LayoutException($"no usable corridor {a.Id}->{b.Id}");
                     level.Notes.Add($"loop {e.A}-{e.B} dropped");
                     continue;
                 }
@@ -672,6 +674,7 @@ namespace NoorLevel
                 int h = vent ? cfg.VentHeight : CorridorSpace.CorridorHeight(cfg, a, b, r);
                 var corr = CarveCorridor(level, router, e.Id, a, b, path, floors, ceils, r, k, h, diag,
                                          e.Kind, e.Key, drop ? "drop" : null, env);
+                corr.Profile = CorridorProfiles.For(cfg, vent);   // its cross-section (box unless corridor_profile)
                 if (vent)
                 {
                     corr.Vent = true;
@@ -687,6 +690,8 @@ namespace NoorLevel
                 Openings.AddGalleries(level, router, rng);
             if (cfg.Underground && cfg.Storeys > 1)
                 Openings.AddOverlook(level, router, rng);
+            if (cfg.LayoutStyle == "station")
+                Station.Carve(level);                            // the moon pool's bowl
             return level;
         }
 
@@ -697,7 +702,8 @@ namespace NoorLevel
         {
             int cid = level.Corridors.Count;
             var corr = new Corridor { Id = cid, Edge = edgeId, A = a.Id, B = b.Id, Path = path, Floors = floors, Kind = kind, Key = key,
-                                      Radius = r, Height = h, Diagonal = diag, Connector = connector };
+                                      Radius = r, Height = h, Diagonal = diag, Connector = connector,
+                                      Profile = CorridorProfiles.For(level.Config, false) };   // (vents: set back to box by the caller)
             // each carved cell takes the floor of its nearest centre-line cell
             var claim = new Dictionary<Cell, (int Dist, int I, int F, int Top)>();
             var claimOrder = new List<Cell>();                  // (Python dict order)

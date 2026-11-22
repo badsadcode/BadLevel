@@ -113,7 +113,10 @@ namespace NoorLevel.Export
             }
             Align();
             // the level: a root node "level_geometry" whose children are the parts
-            var nodes = new List<object> { new Dictionary<string, object> { ["name"] = "level_geometry", ["children"] = Enumerable.Range(1, partNodes.Count).ToArray() } };
+            var rootNode = new Dictionary<string, object> { ["name"] = "level_geometry", ["children"] = Enumerable.Range(1, partNodes.Count).ToArray() };
+            var station = Station.RootExtras(level);                 // a station says what it is: { style, spine, seed }
+            if (station != null) rootNode["extras"] = new Dictionary<string, object> { ["noor"] = new Dictionary<string, object> { ["station"] = station } };
+            var nodes = new List<object> { rootNode };
             nodes.AddRange(partNodes);
             if (entities)
             {

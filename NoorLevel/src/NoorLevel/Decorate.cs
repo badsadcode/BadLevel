@@ -29,6 +29,7 @@ namespace NoorLevel
             Used = new HashSet<Cell>(room.WorldDiag().Keys);
             Used.UnionWith(Decorate.MetaCells(room, "terrace"));
             Used.UnionWith(Decorate.MetaCells(room, "overlook"));      // the view from the booth
+            Used.UnionWith(Decorate.MetaCells(room, "reserved"));      // kept clear (a station's moon pool)
             var gallery = Decorate.MetaCells(room, "gallery").ToList();
             if (gallery.Count > 0)    // the upper-storey gallery deck: keep features off it
             {

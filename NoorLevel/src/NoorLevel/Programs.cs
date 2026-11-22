@@ -160,6 +160,13 @@ namespace NoorLevel
                     if (opts.Count == 0) opts.Add(dungeon ? every[every.Length - 1] : pset == "station" ? "quarters" : "office");
                     prog = rng.Choice(opts);
                 }
+                // a station's character rooms (Station.cs) do the job they were built for
+                switch (room.Get<string>("station_room"))
+                {
+                    case "moon_pool": if (pset == "station") prog = "moon_pool"; break;
+                    case "hydroponics": if (pset == "station") prog = "hydroponics"; break;
+                    case "dome_lab": prog = "lab"; break;
+                }
                 room.Meta["program"] = prog;
             }
         }
@@ -411,6 +418,7 @@ namespace NoorLevel
                     Rows(ctx, rng, "planters", 1, 2, Math.Max(2, Math.Min(6, long_ - 6)), 2, height: 40);
                     break;
                 case "moon_pool":
+                    if (r.Get<string>("station_room") == "moon_pool") break;   // the station layout carved its pool already
                     if (!MoonPool(ctx, rng))
                     {
                         prog = "dive_locker";                      // no room for the pool: the suits and lockers then

@@ -26,6 +26,8 @@ namespace NoorLevel
         public bool Tree = true;       // false for loop edges
         public string Connector;       // stairs / drop for edges that change storey
         public bool Merged;            // rooms placed touching: one hall, no corridor
+        public bool Required;          // a loop edge that must be routed (a station's ring), like a tree edge
+        public string Role;            // stations: spine | branch | ring | spoke | collapse (null elsewhere)
     }
 
     /// <summary>Mission graph (graph.py): the abstract structure of a level, built so that pacing and
@@ -84,6 +86,8 @@ namespace NoorLevel
         /// <summary>build_graph.</summary>
         public static MissionGraph Build(GenConfig cfg, Rng rng)
         {
+            if (cfg.LayoutStyle == "station")
+                return Station.BuildGraph(cfg, rng);            // a deep-sea station: pods on a spine of tubes
             if (cfg.Tower)
             {
                 var tg = Tower.BuildTowerGraph(cfg, rng);       // the wizard's tower: a helix as the level's spine
