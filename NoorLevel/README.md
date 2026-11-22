@@ -41,8 +41,8 @@ reachability, keys before their doors, no softlocks, enough air under water, eve
 player-sized box fits everywhere it has to.
 
 All 19 BadLevel presets are here (compact, classic, bunker, fortress, industrial, compound, techbase,
-runekeep, outpost, grand, facility, complex, dungeon, wizard, market, arena, ctf, duel, explore) plus
-**surprise** (a preset drawn by the seed with extras rolled on top). Monsters, weapons and items are
+runekeep, outpost, grand, facility, complex, dungeon, wizard, market, arena, ctf, duel, explore), NoorLevel's own
+**station** (deep-sea stations, below), and **surprise** (a preset drawn by the seed with extras rolled on top). Monsters, weapons and items are
 left out on purpose: NoorLevel makes the space, the game fills it (arena maps record where the weapons
 and power-ups would go in `Level.Arena`).
 
@@ -100,6 +100,86 @@ then open http://localhost:5173.
 | `svg` | a top-down plan, coloured by height | docs, sharing |
 
 All three .map flavours compile with ericw-tools without leaks (checked on every preset).
+
+## Deep-sea stations (`--preset station`)
+
+A station is a built object under pressure: round and octagonal **pods** (8–14 m) on a **spine** of
+pressure **tubes** (one long line, a ring round a hub, or a branching tree), the docking **airlock on the
+top deck**, the **core at the bottom**, decks joined by stair tubes only (no lifts, ladders or spirals).
+Tubes are round in cross-section (`corridor_profile=round`; `chamfer` and `round` work on any preset too).
+One to three **character rooms** per station (a moon pool, a domed lab, a flooded wing, a collapsed tube,
+a hydroponics bay) and a **style** (`station_style`: research, mining, military, derelict).
+
+Every room has a job (`program_set=station`: dive locker, quarters, galley, medbay, hydroponics, lab,
+sonar room, moon pool, generator, reactor...) and is **dressed with markers** for the game to fill:
+props (consoles, bunks, lockers, pipe runs, debris...) and gameplay spots (loot, log terminals, creature
+spawns, hiding spots, power junctions, hazard zones, the airlock, viewports, pressure doors).
+Eight examples with plans: [`examples/station/`](examples/station/index.html). The design brief:
+[`docs/STATIONS_BRIEF.md`](docs/STATIONS_BRIEF.md); the decisions: [`docs/DECISIONS.md`](docs/DECISIONS.md).
+
+```bash
+noorlevel-cli generate --preset station --seed 7 --set spine=ring --set station_style=derelict --set map_size=64 --format glb --out station_7.glb --json-result
+```
+
+The markers work on any preset too (all off by default): `dressing`, `dressing_density`,
+`station_entities`, `viewports`, `part_meta`, `program_set=station`.
+
+## Consumer contract: markers in the .glb
+
+What a game reads from a NoorLevel .glb (Solitude's importer is written against this; the station
+markers' place in Noor Interchange is proposed in [`docs/INTERCHANGE_PROPOSAL.md`](docs/INTERCHANGE_PROPOSAL.md)).
+
+- **Axes and units.** glTF: right-handed, **+Y up, metres**. A map point (x, y, z) (Z up, 32 units = 1 m)
+  is glTF (x/32, z/32, −y/32).
+- **The level.** The root node `level_geometry`; its children are the **parts**, one mesh each, named
+  `room:5`, `room:5/vault`, `corridor:3`, `room:7/consoles`... Materials `nl_floor`, `nl_wall`, `nl_ceiling`,
+  `nl_sky`, `nl_water`... Part extras: `{part}`; with `part_meta`: also `room`, `kind`, `program`, `sector`,
+  `style`, `profile`. A station's root node has `extras.noor.station = { style, spine, seed }`.
+- **Markers** are empty nodes named `<kind>_<n>` (numbered per kind, in order; the station kinds come after
+  every older kind, so older names never change). Each has:
+  - `translation`: its **origin**. `floor` mount: the centre of the footprint on the floor. `wall`: on the
+    wall surface, at the bottom centre of the back face (the piece reaches `d` into the room, `h` up).
+    `ceiling`: on the ceiling, top centre (it hangs `h` down).
+  - `rotation`: yaw only, a quaternion; the marker's **forward is its local +Z** (what a console faces, where
+    a locker opens, into the pod for a door). Always a multiple of 90°.
+  - `extras`: the flat form (`kind` and every field) and `extras.noor = { v: 1, marker, id (= the node
+    name), ...fields }`. Only fields that apply are present.
+
+| Node kind | `noor.marker` | Fields |
+|---|---|---|
+| `prop` | `prop` | `class` (console, desk, chair, locker, bunk, bed, crate, shelf, pump, valve_wheel, pipe_run, cable_run, vent_grate, debris, bones, stain, sign...), `mount` (floor / wall / ceiling), `footprint` [w, d, h] m (across, along forward, up), `variant` 0–7, `tags` (broken, blockout, flat, vent), `room` / `corridor`, `program`, `sector`, `props.text` (signs), `props.block` (the furniture part it stands for) |
+| `loot` | `pickup` | `class` "loot", `size` small / medium / large, `on` (the prop it sits on) |
+| `log_terminal` | `interact` | `class` "log_terminal", `on` |
+| `creature_spawn` | `spawn.enemy` | `class` "creature", `role` nest / ambush / patrol |
+| `hiding_spot` | `hide` | `class` (locker, desk), `on` |
+| `power_junction` | `interact` | `class` "power_junction", `mount` wall, `footprint` |
+| `hazard_zone` | `trigger` | `event` "hazard", `type` flooded / electrified, `size` [x, y up, z] m; the node is the box's bottom centre |
+| `airlock` | `entrance` | `kind` "airlock", `mount` wall, `footprint` [1, 0.2, 2.2] |
+| `viewport` | `viewport` | `mount` wall, `footprint` [0.6, 0.1, 0.6] (nothing is cut: the game opens it) |
+| `bulkhead` | `door` | `opens` "slide", `width`, `height` m, `room`, `corridor`; faces into the pod |
+
+The older kinds (`player_start`, `exit`, `key`, `door`, `secret_door`, `light`, `torch`, `lift`, `ladder`,
+`window`, `spawn`, `flag`, `jumppad`, `trap`...) are nodes named the same way with their fields in flat
+`extras`. The IR JSON (`--format json`) carries every marker too, in map units (Z up): `pos` is the origin,
+`lo` / `hi` its box.
+
+## Runtime generation (a game calling the CLI)
+
+`noorlevel-cli` as one self-contained file (no .NET needed), precompiled so a single run is quick:
+`dotnet publish src/NoorLevel.Cli -p:PublishProfile=win-x64` (or `linux-x64`) writes `dist/cli-<rid>/`
+(about 16 / 20 MB). One run (start, generate a station, write the .glb) takes **0.4–0.65 s** on a
+desktop CPU (station, map_size 48–72; medians of 5 seeds: 48 m 638 ms, 56 m 419 ms, 64 m 421 ms,
+72 m 468 ms). Output is byte-identical to every other build.
+
+```bash
+noorlevel-cli generate --preset station --seed 1234 --out user/stations/st_1234.glb --json-result --max-ms 5000
+# {"ok":true,"file":"user/stations/st_1234.glb","ms":412,"seed":1234,"recipe":"station","rooms":8,"errors":[]}
+```
+
+- `--out` a file name ending in the format's extension writes exactly that file (a folder works as before).
+- `--json-result`: one JSON line; exit codes 0 ok, 1 no valid level (try another seed), 2 bad parameter,
+  3 `--max-ms` passed, 4 couldn't write.
+- `--max-ms`: a hard upper bound; past it the run gives up cleanly.
 
 ## Into the Noor Engine (Coth gets lost)
 

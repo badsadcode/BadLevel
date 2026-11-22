@@ -66,6 +66,14 @@ Add to the table in 3.4:
   tables, logs and dressing. Today NoorLevel writes them at the top level of the `noor` block; if the
   review prefers, they move into `props` (tool data) unchanged.
 
+## Also from the station layout
+
+- **Pressure doors** use the existing `door` marker: `opens: "slide"`, `width`, `height` (metres), plus the
+  proposed common fields `room` and `corridor`. Node forward (+Z) points into the pod. No new marker needed.
+- **The level root** of a station carries `extras.noor.station = { "style", "spine", "seed" }` (style
+  research / mining / military / derelict, spine line / ring / tree, the seed as an unsigned integer).
+  Proposed as an optional, tool-specific block on the root node of assets of kind `level`.
+
 ## Manifest
 
 No change: `prop` is already an asset `kind`; the manifest's `markers` counts take the new types as keys.

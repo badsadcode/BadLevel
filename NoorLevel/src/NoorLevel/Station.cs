@@ -723,7 +723,8 @@ namespace NoorLevel
                     var lo = new Vec3(cells.Min(x => x.X) * s, cells.Min(x => x.Y) * s, f);
                     var hi = new Vec3((cells.Max(x => x.X) + 1) * s, (cells.Max(x => x.Y) + 1) * s, f + corr.Height);
                     level.Entities.Add(new Entity("bulkhead", new Vec3((lo.X + hi.X) / 2, (lo.Y + hi.Y) / 2, f)) { Bounds = (lo, hi) }
-                        .With("room", room).With("corridor", corr.Id).With("facing", end == 0 ? new[] { -dx, -dy } : new[] { dx, dy }));
+                        .With("room", room).With("corridor", corr.Id).With("facing", end == 0 ? new[] { -dx, -dy } : new[] { dx, dy })
+                        .With("angle", end == 0 ? Markers.Angle(-dx, -dy) : Markers.Angle(dx, dy)));   // facing into the pod
                 }
             }
             var rooms = level.Rooms.Where(r => r.Meta.ContainsKey("station_room")).Select(r => $"{r.Get<string>("station_room")}:{r.Id}");

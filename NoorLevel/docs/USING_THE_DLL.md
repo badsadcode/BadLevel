@@ -78,6 +78,20 @@ A few to know:
 | A different look | `ArchStyle` (gothic, industrial, bunker, compound, castle, egyptian, scifi), `ArchWalls`, `ArchPortals`, `ArchLandmark` |
 | Deathmatch | `Mode = "arena"` (spawns instead of start and exit), `Mirror = true` for CTF |
 
+### Stations and markers
+
+```csharp
+var cfg = Recipes.Compile(Recipes.Presets["station"], seed: 7);   // a deep-sea station
+cfg.Spine = "ring"; cfg.StationStyle = "derelict"; cfg.MapSize = 64;
+Level st = Generator.Generate(cfg);
+var props = st.Entities.Where(e => e.Kind == "prop");               // dressing markers: class, mount, footprint...
+var loot  = st.Entities.Where(e => e.Kind == "loot");               // gameplay markers
+```
+
+Any preset can be dressed: `cfg.Programs = true; cfg.ProgramSet = "station"; cfg.Dressing = true;
+cfg.StationEntities = true;`. What the markers mean, their fields, units and axes: the **consumer contract**
+in the [README](../README.md#consumer-contract-markers-in-the-glb).
+
 ### When it can't
 
 `Generator.Generate` builds, checks and rebuilds until the level passes the validator (up to

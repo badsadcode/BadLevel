@@ -117,7 +117,47 @@ The game treats its bottom as open to the sea. A room too cramped for the pool b
 behind the wall), in about 4 rooms in 10. NoorLevel doesn't cut them: the level has no outside volume to
 show through glass, and the post-pass never edits `Spans`. The game cuts the porthole and draws the sea.
 
+## D8. The station layout is its own branch (2026-11-22)
+
+**Context.** Brief Task C: a station is pods on a spine of tubes, the airlock on top, the core deepest.
+**Decision.** `layout_style = "station"` branches `MissionGraph.Build` and `Layout.PlaceRooms` the way the
+wizard's tower and packed plans do (`Station.cs`); with the default `""` no code path or rng draw changes
+(the golden test proves it). Decks are 96 units (3 m) apart: a stair tube is 6 steps. Pods are never stacked.
+**Deviations.** Tubes are 3 cells wide, not 2: corridors here have odd widths, and a 2x2 player box has to
+fit; the round profile makes them read narrower. Small maps run large (a deck change costs a 12-cell stair
+tube): at map_size 48 a station comes out 1.0-1.7x, at 64-72 within 15%. `station_style` is its own field
+(it sets `arch_style` only when empty). Pressure doors are `bulkhead` markers, not keyless `door` entities,
+because the validator indexes doors by key; in the .glb they are Interchange `door` markers (opens slide).
+
+## D9. Corridor cross-sections (2026-11-22)
+
+**Context.** Tom: corridors needn't be rectangular. The station's tubes are the first user.
+**Decision.** `corridor_profile` = box (default, no change) | chamfer | round, applied after all carving by
+writing only `CeilSlope` / `FloorSlope` per cell corner (the span keeps the lowest ceiling and highest floor
+point), so every exporter, the .map compiler and the previewer already handle it. Each corridor is cut only
+as deep as keeps every move the player point and the 2x2 player box could make; vents stay boxes.
+
+## D10. The CLI for runtime generation (2026-11-22)
+
+**Context.** Brief section 6 (B): Solitude may run the CLI next to the game while the sub docks.
+**Decision.** `--out` with the format's extension is an exact file (a folder works as before);
+`--json-result` prints one line, exit codes 1 no level / 2 bad parameter / 3 `--max-ms` / 4 can't write;
+`--max-ms` gives up cleanly (the process ends with the worker). Publish profiles win-x64 / linux-x64: one
+self-contained file, trimmed (NoorLevel kept whole: parameters are set by name through reflection) and
+ReadyToRun (a fresh process otherwise JIT-compiles the generator: 1.0-1.3 s per station; precompiled
+0.4-0.65 s). 15.8 / 19.9 MB. Output byte-identical to the normal build.
+
+## D11. Room facts on part nodes (2026-11-22)
+
+**Decision.** `part_meta` (off by default) adds `room`, `kind`, `program`, `sector`, `style`, `profile` to the
+part nodes' extras; names and materials stay `nl_*` (Solitude picks material sets per program from extras).
+
+## D12. Markers in Quake .map exports (2026-11-22)
+
+**Decision.** Entity values that are lists or vectors are written space-separated (dictionaries as
+key=value). Markers whose point is inside solid (a blockout prop standing on its own furniture block) are
+left out of .map files: qbsp reads a point entity in solid as a leak. Dressed stations compile leak-free.
+
 ## Known gaps
 
-- The Quake/Valve `.map` exports write every entity's properties as `_noorlevel_*` keys; array values
-  (`footprint`, `tags`, `size`) come out as `System.Double[]`. MapExport needs an array formatter.
+- (Fixed, D12: `.map` array values and markers in solid.)

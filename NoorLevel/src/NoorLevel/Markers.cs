@@ -26,6 +26,7 @@ namespace NoorLevel
         public static readonly string[] Kinds =
         {
             "prop", "loot", "log_terminal", "creature_spawn", "hiding_spot", "power_junction", "hazard_zone", "airlock", "viewport",
+            "bulkhead",   // the station layout's pressure doors (Station.Finish)
         };
 
         static readonly HashSet<string> KindSet = new HashSet<string>(Kinds);
@@ -45,6 +46,7 @@ namespace NoorLevel
             ["hazard_zone"] = "trigger",         // spec: trigger (size, event "hazard", type)
             ["airlock"] = "entrance",            // spec: entrance (kind "airlock": a proposed kind)
             ["viewport"] = "viewport",           // proposed
+            ["bulkhead"] = "door",               // spec: door (opens "slide", width, height): a pressure door at a tube end
         };
 
         // the noor block's fields per kind, copied from Props when present (the order they're written in)
@@ -117,6 +119,13 @@ namespace NoorLevel
             var b = new Dictionary<string, object> { ["v"] = 1, ["marker"] = NoorMarker[e.Kind], ["id"] = id };
             if (e.Kind == "airlock") b["kind"] = "airlock";       // an entrance of kind airlock
             if (e.Kind == "hazard_zone") b["event"] = "hazard";   // a trigger that hurts
+            if (e.Kind == "bulkhead" && e.Bounds != null)         // a door the game opens and closes: the doorway's size
+            {
+                var (lo, hi) = e.Bounds.Value;
+                b["opens"] = "slide";
+                b["width"] = Math.Round(Math.Max(hi.X - lo.X, hi.Y - lo.Y) / M, 3);
+                b["height"] = Math.Round((hi.Z - lo.Z) / M, 3);
+            }
             foreach (var f in NoorFields)
                 if (e.Props.TryGetValue(f, out var v)) b[f] = v;
             if (e.Props.TryGetValue("tags", out var tags)) b["tags"] = tags;
