@@ -1,211 +1,211 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="348" height="324" viewBox="0 0 348 324">
 <rect width="348" height="324" fill="#1d1b22"/>
-<polygon points="192,60 186,60 192,66" fill="rgb(182,172,110)"/>
-<rect x="192" y="60" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="198" y="60" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="210" y="60" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="216,60 216,66 222,60" fill="rgb(182,172,110)"/>
-<polygon points="186,54 180,54 186,60" fill="rgb(182,172,110)"/>
-<rect x="186" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="192" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="198" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="204" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="210" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="216" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="222,54 222,60 228,54" fill="rgb(182,172,110)"/>
-<rect x="180" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="186" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="192" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="198" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="204" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="210" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="216" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="222" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="180" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="186" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="192" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="198" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="204" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="210" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="216" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="222" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="186" y="36" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="192" y="36" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="198" y="36" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="204" y="36" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="210" y="36" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="216" y="36" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="180" y="30" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="186" y="30" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="192" y="30" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="198" y="30" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="204" y="30" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="210" y="30" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="216" y="30" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="222" y="30" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="186,30 186,24 180,30" fill="rgb(182,172,110)"/>
-<rect x="186" y="24" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="192" y="24" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="198" y="24" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="204" y="24" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="210" y="24" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="216" y="24" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="222,30 228,30 222,24" fill="rgb(182,172,110)"/>
-<polygon points="192,24 192,18 186,24" fill="rgb(182,172,110)"/>
-<rect x="192" y="18" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="198" y="18" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="204" y="18" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="210" y="18" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="216,24 222,24 216,18" fill="rgb(182,172,110)"/>
-<polygon points="192,162 186,162 192,168" fill="rgb(182,172,110)"/>
-<rect x="192" y="162" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="198" y="162" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="210" y="162" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="216" y="162" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="222,162 222,168 228,162" fill="rgb(182,172,110)"/>
-<polygon points="180,156 174,156 180,162" fill="rgb(182,172,110)"/>
-<rect x="180" y="156" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="186" y="156" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="192" y="156" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="198" y="156" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="204" y="156" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="210" y="156" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="216" y="156" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="222" y="156" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="228" y="156" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="234,156 234,162 240,156" fill="rgb(182,172,110)"/>
-<rect x="174" y="150" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="180" y="150" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="186" y="150" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="192" y="150" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="198" y="150" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="204" y="150" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="210" y="150" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="216" y="150" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="222" y="150" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="228" y="150" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="234" y="150" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="174,144 168,144 174,150" fill="rgb(182,172,110)"/>
-<rect x="174" y="144" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="180" y="144" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="186" y="144" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="192" y="144" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="198" y="144" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="204" y="144" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="210" y="144" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="216" y="144" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="222" y="144" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="228" y="144" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="234" y="144" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="240,144 240,150 246,144" fill="rgb(182,172,110)"/>
-<rect x="168" y="138" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="174" y="138" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="180" y="138" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="186" y="138" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="192" y="138" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="198" y="138" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="204" y="138" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="210" y="138" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="216" y="138" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="222" y="138" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="228" y="138" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="234" y="138" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="240" y="138" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="168" y="132" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="174" y="132" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="180" y="132" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="186" y="132" width="6" height="6" fill="rgb(220,200,100)"/>
-<rect x="192" y="132" width="6" height="6" fill="rgb(220,200,100)"/>
-<rect x="198" y="132" width="6" height="6" fill="rgb(220,200,100)"/>
-<rect x="204" y="132" width="6" height="6" fill="rgb(220,200,100)"/>
-<rect x="210" y="132" width="6" height="6" fill="rgb(220,200,100)"/>
-<rect x="216" y="132" width="6" height="6" fill="rgb(220,200,100)"/>
-<rect x="222" y="132" width="6" height="6" fill="rgb(220,200,100)"/>
-<rect x="228" y="132" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="234" y="132" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="240" y="132" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="174" y="126" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="180" y="126" width="6" height="6" fill="rgb(182,172,110)"/>
+<polygon points="192,60 186,60 192,66" fill="rgb(175,167,111)"/>
+<rect x="192" y="60" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="198" y="60" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="210" y="60" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="216,60 216,66 222,60" fill="rgb(175,167,111)"/>
+<polygon points="186,54 180,54 186,60" fill="rgb(175,167,111)"/>
+<rect x="186" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="192" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="198" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="204" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="210" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="216" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="222,54 222,60 228,54" fill="rgb(175,167,111)"/>
+<rect x="180" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="186" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="192" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="198" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="204" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="210" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="216" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="222" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="180" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="186" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="192" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="198" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="204" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="210" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="216" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="222" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="186" y="36" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="192" y="36" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="198" y="36" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="204" y="36" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="210" y="36" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="216" y="36" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="180" y="30" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="186" y="30" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="192" y="30" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="198" y="30" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="204" y="30" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="210" y="30" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="216" y="30" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="222" y="30" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="186,30 186,24 180,30" fill="rgb(175,167,111)"/>
+<rect x="186" y="24" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="192" y="24" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="198" y="24" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="204" y="24" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="210" y="24" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="216" y="24" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="222,30 228,30 222,24" fill="rgb(175,167,111)"/>
+<polygon points="192,24 192,18 186,24" fill="rgb(175,167,111)"/>
+<rect x="192" y="18" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="198" y="18" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="204" y="18" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="210" y="18" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="216,24 222,24 216,18" fill="rgb(175,167,111)"/>
+<polygon points="192,162 186,162 192,168" fill="rgb(175,167,111)"/>
+<rect x="192" y="162" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="198" y="162" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="210" y="162" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="216" y="162" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="222,162 222,168 228,162" fill="rgb(175,167,111)"/>
+<polygon points="180,156 174,156 180,162" fill="rgb(175,167,111)"/>
+<rect x="180" y="156" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="186" y="156" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="192" y="156" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="198" y="156" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="204" y="156" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="210" y="156" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="216" y="156" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="222" y="156" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="228" y="156" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="234,156 234,162 240,156" fill="rgb(175,167,111)"/>
+<rect x="174" y="150" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="180" y="150" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="186" y="150" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="192" y="150" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="198" y="150" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="204" y="150" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="210" y="150" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="216" y="150" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="222" y="150" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="228" y="150" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="234" y="150" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="174,144 168,144 174,150" fill="rgb(175,167,111)"/>
+<rect x="174" y="144" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="180" y="144" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="186" y="144" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="192" y="144" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="198" y="144" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="204" y="144" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="210" y="144" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="216" y="144" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="222" y="144" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="228" y="144" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="234" y="144" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="240,144 240,150 246,144" fill="rgb(175,167,111)"/>
+<rect x="168" y="138" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="174" y="138" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="180" y="138" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="186" y="138" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="192" y="138" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="198" y="138" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="204" y="138" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="210" y="138" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="216" y="138" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="222" y="138" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="228" y="138" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="234" y="138" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="240" y="138" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="168" y="132" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="174" y="132" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="180" y="132" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="186" y="132" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="192" y="132" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="198" y="132" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="204" y="132" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="210" y="132" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="216" y="132" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="222" y="132" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="228" y="132" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="234" y="132" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="240" y="132" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="174" y="126" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="180" y="126" width="6" height="6" fill="rgb(175,167,111)"/>
 <rect x="186" y="126" width="6" height="6" fill="rgb(220,200,100)"/>
 <rect x="192" y="126" width="6" height="6" fill="rgb(220,200,100)"/>
 <rect x="198" y="126" width="6" height="6" fill="rgb(220,200,100)"/>
 <rect x="204" y="126" width="6" height="6" fill="rgb(220,200,100)"/>
-<rect x="210" y="126" width="6" height="6" fill="rgb(220,200,100)"/>
-<rect x="216" y="126" width="6" height="6" fill="rgb(220,200,100)"/>
-<rect x="222" y="126" width="6" height="6" fill="rgb(220,200,100)"/>
-<rect x="228" y="126" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="234" y="126" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="168" y="120" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="174" y="120" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="180" y="120" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="186" y="120" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="192" y="120" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="198" y="120" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="204" y="120" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="210" y="120" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="216" y="120" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="222" y="120" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="228" y="120" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="234" y="120" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="240" y="120" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="168" y="114" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="174" y="114" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="180" y="114" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="186" y="114" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="192" y="114" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="198" y="114" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="204" y="114" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="210" y="114" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="216" y="114" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="222" y="114" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="228" y="114" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="234" y="114" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="240" y="114" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="174,114 174,108 168,114" fill="rgb(182,172,110)"/>
-<rect x="174" y="108" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="180" y="108" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="186" y="108" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="192" y="108" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="198" y="108" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="204" y="108" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="210" y="108" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="216" y="108" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="222" y="108" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="228" y="108" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="234" y="108" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="240,114 246,114 240,108" fill="rgb(182,172,110)"/>
-<rect x="174" y="102" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="180" y="102" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="186" y="102" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="192" y="102" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="198" y="102" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="204" y="102" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="210" y="102" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="216" y="102" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="222" y="102" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="228" y="102" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="234" y="102" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="180,102 180,96 174,102" fill="rgb(182,172,110)"/>
-<rect x="180" y="96" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="186" y="96" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="192" y="96" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="198" y="96" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="204" y="96" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="210" y="96" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="216" y="96" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="222" y="96" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="228" y="96" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="234,102 240,102 234,96" fill="rgb(182,172,110)"/>
-<polygon points="192,96 192,90 186,96" fill="rgb(182,172,110)"/>
-<rect x="192" y="90" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="198" y="90" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="210" y="90" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="216" y="90" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="222,96 228,96 222,90" fill="rgb(182,172,110)"/>
+<rect x="210" y="126" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="216" y="126" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="222" y="126" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="228" y="126" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="234" y="126" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="168" y="120" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="174" y="120" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="180" y="120" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="186" y="120" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="192" y="120" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="198" y="120" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="204" y="120" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="210" y="120" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="216" y="120" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="222" y="120" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="228" y="120" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="234" y="120" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="240" y="120" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="168" y="114" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="174" y="114" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="180" y="114" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="186" y="114" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="192" y="114" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="198" y="114" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="204" y="114" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="210" y="114" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="216" y="114" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="222" y="114" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="228" y="114" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="234" y="114" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="240" y="114" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="174,114 174,108 168,114" fill="rgb(175,167,111)"/>
+<rect x="174" y="108" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="180" y="108" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="186" y="108" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="192" y="108" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="198" y="108" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="204" y="108" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="210" y="108" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="216" y="108" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="222" y="108" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="228" y="108" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="234" y="108" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="240,114 246,114 240,108" fill="rgb(175,167,111)"/>
+<rect x="174" y="102" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="180" y="102" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="186" y="102" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="192" y="102" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="198" y="102" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="204" y="102" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="210" y="102" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="216" y="102" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="222" y="102" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="228" y="102" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="234" y="102" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="180,102 180,96 174,102" fill="rgb(175,167,111)"/>
+<rect x="180" y="96" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="186" y="96" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="192" y="96" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="198" y="96" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="204" y="96" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="210" y="96" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="216" y="96" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="222" y="96" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="228" y="96" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="234,102 240,102 234,96" fill="rgb(175,167,111)"/>
+<polygon points="192,96 192,90 186,96" fill="rgb(175,167,111)"/>
+<rect x="192" y="90" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="198" y="90" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="210" y="90" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="216" y="90" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="222,96 228,96 222,90" fill="rgb(175,167,111)"/>
 <polygon points="192,300 186,300 192,306" fill="rgb(70,90,140)"/>
 <rect x="192" y="300" width="6" height="6" fill="rgb(70,90,140)"/>
 <rect x="198" y="300" width="6" height="6" fill="rgb(70,90,140)"/>
-<rect x="192" y="306" width="6" height="6" fill="rgb(88,103,135)"/>
+<rect x="192" y="306" width="6" height="6" fill="rgb(87,102,135)"/>
 <rect x="210" y="300" width="6" height="6" fill="rgb(70,90,140)"/>
 <rect x="216" y="300" width="6" height="6" fill="rgb(70,90,140)"/>
 <polygon points="222,300 222,306 228,300" fill="rgb(70,90,140)"/>
@@ -213,7 +213,7 @@
 <rect x="186" y="294" width="6" height="6" fill="rgb(70,90,140)"/>
 <rect x="192" y="294" width="6" height="6" fill="rgb(70,90,140)"/>
 <rect x="198" y="294" width="6" height="6" fill="rgb(70,90,140)"/>
-<rect x="204" y="294" width="6" height="6" fill="rgb(88,103,135)"/>
+<rect x="204" y="294" width="6" height="6" fill="rgb(87,102,135)"/>
 <rect x="210" y="294" width="6" height="6" fill="rgb(70,90,140)"/>
 <rect x="216" y="294" width="6" height="6" fill="rgb(70,90,140)"/>
 <rect x="222" y="294" width="6" height="6" fill="rgb(70,90,140)"/>
@@ -232,10 +232,9 @@
 <rect x="174" y="282" width="6" height="6" fill="rgb(70,90,140)"/>
 <rect x="180" y="282" width="6" height="6" fill="rgb(70,90,140)"/>
 <rect x="186" y="282" width="6" height="6" fill="rgb(70,90,140)"/>
-<rect x="192" y="282" width="6" height="6" fill="rgb(70,90,140)"/>
-<rect x="198" y="282" width="6" height="6" fill="rgb(70,90,140)"/>
-<rect x="204" y="282" width="6" height="6" fill="rgb(70,90,140)"/>
-<rect x="210" y="282" width="6" height="6" fill="rgb(70,90,140)"/>
+<rect x="36" y="66" width="6" height="6" fill="rgb(193,180,107)"/>
+<rect x="294" y="102" width="6" height="6" fill="rgb(193,180,107)"/>
+<rect x="114" y="12" width="6" height="6" fill="rgb(193,180,107)"/>
 <rect x="216" y="282" width="6" height="6" fill="rgb(70,90,140)"/>
 <rect x="222" y="282" width="6" height="6" fill="rgb(70,90,140)"/>
 <rect x="228" y="282" width="6" height="6" fill="rgb(70,90,140)"/>
@@ -243,21 +242,20 @@
 <rect x="174" y="276" width="6" height="6" fill="rgb(70,90,140)"/>
 <rect x="180" y="276" width="6" height="6" fill="rgb(70,90,140)"/>
 <rect x="186" y="276" width="6" height="6" fill="rgb(70,90,140)"/>
-<rect x="192" y="276" width="6" height="6" fill="rgb(70,90,140)"/>
-<rect x="198" y="276" width="6" height="6" fill="rgb(70,90,140)"/>
-<rect x="204" y="276" width="6" height="6" fill="rgb(70,90,140)"/>
-<rect x="210" y="276" width="6" height="6" fill="rgb(70,90,140)"/>
+<rect x="42" y="12" width="6" height="6" fill="rgb(193,180,107)"/>
+<rect x="12" y="36" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="288" y="102" width="6" height="6" fill="rgb(193,180,107)"/>
+<rect x="108" y="12" width="6" height="6" fill="rgb(193,180,107)"/>
 <rect x="216" y="276" width="6" height="6" fill="rgb(70,90,140)"/>
 <rect x="222" y="276" width="6" height="6" fill="rgb(70,90,140)"/>
 <rect x="228" y="276" width="6" height="6" fill="rgb(70,90,140)"/>
 <rect x="234" y="276" width="6" height="6" fill="rgb(70,90,140)"/>
-<rect x="108" y="156" width="6" height="6" fill="rgb(201,186,105)"/>
-<rect x="180" y="270" width="6" height="6" fill="rgb(88,103,135)"/>
+<rect x="180" y="270" width="6" height="6" fill="rgb(87,102,135)"/>
 <rect x="186" y="270" width="6" height="6" fill="rgb(70,90,140)"/>
-<rect x="192" y="270" width="6" height="6" fill="rgb(70,90,140)"/>
-<rect x="198" y="270" width="6" height="6" fill="rgb(70,90,140)"/>
-<rect x="204" y="270" width="6" height="6" fill="rgb(70,90,140)"/>
-<rect x="210" y="270" width="6" height="6" fill="rgb(70,90,140)"/>
+<rect x="36" y="12" width="6" height="6" fill="rgb(193,180,107)"/>
+<rect x="12" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="294" y="156" width="6" height="6" fill="rgb(193,180,107)"/>
+<rect x="114" y="156" width="6" height="6" fill="rgb(193,180,107)"/>
 <rect x="216" y="270" width="6" height="6" fill="rgb(70,90,140)"/>
 <rect x="222" y="270" width="6" height="6" fill="rgb(70,90,140)"/>
 <rect x="228" y="270" width="6" height="6" fill="rgb(70,90,140)"/>
@@ -265,10 +263,10 @@
 <rect x="174" y="264" width="6" height="6" fill="rgb(70,90,140)"/>
 <rect x="180" y="264" width="6" height="6" fill="rgb(70,90,140)"/>
 <rect x="186" y="264" width="6" height="6" fill="rgb(70,90,140)"/>
-<rect x="192" y="264" width="6" height="6" fill="rgb(70,90,140)"/>
-<rect x="198" y="264" width="6" height="6" fill="rgb(70,90,140)"/>
-<rect x="204" y="264" width="6" height="6" fill="rgb(70,90,140)"/>
-<rect x="210" y="264" width="6" height="6" fill="rgb(70,90,140)"/>
+<rect x="42" y="66" width="6" height="6" fill="rgb(193,180,107)"/>
+<rect x="12" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="288" y="156" width="6" height="6" fill="rgb(193,180,107)"/>
+<rect x="108" y="156" width="6" height="6" fill="rgb(193,180,107)"/>
 <rect x="216" y="264" width="6" height="6" fill="rgb(70,90,140)"/>
 <rect x="222" y="264" width="6" height="6" fill="rgb(70,90,140)"/>
 <rect x="228" y="264" width="6" height="6" fill="rgb(70,90,140)"/>
@@ -310,480 +308,466 @@
 <rect x="210" y="240" width="6" height="6" fill="rgb(70,90,140)"/>
 <rect x="216" y="240" width="6" height="6" fill="rgb(70,90,140)"/>
 <polygon points="222,246 228,246 222,240" fill="rgb(70,90,140)"/>
-<polygon points="102,150 96,150 102,156" fill="rgb(182,172,110)"/>
-<rect x="102" y="150" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="108" y="150" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="114" y="150" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="120" y="150" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="126,150 126,156 132,150" fill="rgb(182,172,110)"/>
-<polygon points="96,144 90,144 96,150" fill="rgb(182,172,110)"/>
-<rect x="96" y="144" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="102" y="144" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="108" y="144" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="114" y="144" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="120" y="144" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="126" y="144" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="132,144 132,150 138,144" fill="rgb(182,172,110)"/>
-<rect x="90" y="138" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="96" y="138" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="102" y="138" width="6" height="6" fill="rgb(201,186,105)"/>
-<rect x="108" y="138" width="6" height="6" fill="rgb(201,186,105)"/>
-<rect x="114" y="138" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="120" y="138" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="126" y="138" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="132" y="138" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="90" y="132" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="96" y="132" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="102" y="132" width="6" height="6" fill="rgb(201,186,105)"/>
-<rect x="108" y="132" width="6" height="6" fill="rgb(201,186,105)"/>
-<rect x="114" y="132" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="120" y="132" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="126" y="132" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="132" y="132" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="90" y="126" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="96" y="126" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="102" y="126" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="108" y="126" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="114" y="126" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="120" y="126" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="126" y="126" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="90" y="120" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="96" y="120" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="102" y="120" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="108" y="120" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="114" y="120" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="120" y="120" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="126" y="120" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="132" y="120" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="96,120 96,114 90,120" fill="rgb(182,172,110)"/>
-<rect x="96" y="114" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="102" y="114" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="108" y="114" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="114" y="114" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="120" y="114" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="126" y="114" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="132,120 138,120 132,114" fill="rgb(182,172,110)"/>
-<polygon points="102,114 102,108 96,114" fill="rgb(182,172,110)"/>
-<rect x="102" y="108" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="108" y="108" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="120" y="108" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="126,114 132,114 126,108" fill="rgb(182,172,110)"/>
-<polygon points="102,60 96,60 102,66" fill="rgb(182,172,110)"/>
-<rect x="102" y="60" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="108" y="60" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="120" y="60" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="126,60 126,66 132,60" fill="rgb(182,172,110)"/>
-<polygon points="96,54 90,54 96,60" fill="rgb(182,172,110)"/>
-<rect x="96" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="102" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="108" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="114" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="120" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="126" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="132,54 132,60 138,54" fill="rgb(182,172,110)"/>
-<rect x="90" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="96" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="102" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="108" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="114" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="120" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="126" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="132" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="90" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="96" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="102" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="108" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="114" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="120" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="126" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="132" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="96" y="36" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="102" y="36" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="108" y="36" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="114" y="36" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="120" y="36" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="126" y="36" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="90" y="30" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="96" y="30" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="102" y="30" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="108" y="30" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="114" y="30" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="120" y="30" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="126" y="30" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="132" y="30" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="96,30 96,24 90,30" fill="rgb(182,172,110)"/>
-<rect x="96" y="24" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="102" y="24" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="108" y="24" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="114" y="24" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="120" y="24" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="126" y="24" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="132,30 138,30 132,24" fill="rgb(182,172,110)"/>
-<polygon points="102,24 102,18 96,24" fill="rgb(182,172,110)"/>
-<rect x="102" y="18" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="108" y="18" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="114" y="18" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="120" y="18" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="126,24 132,24 126,18" fill="rgb(182,172,110)"/>
-<polygon points="282,150 276,150 282,156" fill="rgb(182,172,110)"/>
-<rect x="282" y="150" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="288" y="150" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="294" y="150" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="300" y="150" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="306,150 306,156 312,150" fill="rgb(182,172,110)"/>
-<polygon points="276,144 270,144 276,150" fill="rgb(182,172,110)"/>
-<rect x="276" y="144" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="282" y="144" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="288" y="144" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="294" y="144" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="300" y="144" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="306" y="144" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="312,144 312,150 318,144" fill="rgb(182,172,110)"/>
-<rect x="270" y="138" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="276" y="138" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="282" y="138" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="288" y="138" width="6" height="6" fill="rgb(220,200,100)"/>
-<rect x="294" y="138" width="6" height="6" fill="rgb(220,200,100)"/>
-<rect x="300" y="138" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="306" y="138" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="312" y="138" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="270" y="132" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="276" y="132" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="282" y="132" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="288" y="132" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="294" y="132" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="300" y="132" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="306" y="132" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="312" y="132" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="276" y="126" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="282" y="126" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="288" y="126" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="294" y="126" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="300" y="126" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="306" y="126" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="312" y="126" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="270" y="120" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="276" y="120" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="282" y="120" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="288" y="120" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="294" y="120" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="300" y="120" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="306" y="120" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="312" y="120" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="276,120 276,114 270,120" fill="rgb(182,172,110)"/>
-<rect x="276" y="114" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="282" y="114" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="288" y="114" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="294" y="114" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="300" y="114" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="306" y="114" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="312,120 318,120 312,114" fill="rgb(182,172,110)"/>
-<polygon points="282,114 282,108 276,114" fill="rgb(182,172,110)"/>
-<rect x="282" y="108" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="288" y="108" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="294" y="108" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="300" y="108" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="306,114 312,114 306,108" fill="rgb(182,172,110)"/>
-<polygon points="30,60 24,60 30,66" fill="rgb(182,172,110)"/>
-<rect x="30" y="60" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="36" y="60" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="42" y="60" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="48" y="60" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="54,60 54,66 60,60" fill="rgb(182,172,110)"/>
-<polygon points="24,54 18,54 24,60" fill="rgb(182,172,110)"/>
-<rect x="24" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="30" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="36" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="42" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="48" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="54" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="60,54 60,60 66,54" fill="rgb(182,172,110)"/>
-<rect x="18" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="24" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
+<polygon points="102,150 96,150 102,156" fill="rgb(175,167,111)"/>
+<rect x="102" y="150" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="108" y="150" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="114" y="150" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="120" y="150" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="126,150 126,156 132,150" fill="rgb(175,167,111)"/>
+<polygon points="96,144 90,144 96,150" fill="rgb(175,167,111)"/>
+<rect x="96" y="144" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="102" y="144" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="108" y="144" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="114" y="144" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="120" y="144" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="126" y="144" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="132,144 132,150 138,144" fill="rgb(175,167,111)"/>
+<rect x="90" y="138" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="96" y="138" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="102" y="138" width="6" height="6" fill="rgb(193,180,107)"/>
+<rect x="108" y="138" width="6" height="6" fill="rgb(193,180,107)"/>
+<rect x="114" y="138" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="120" y="138" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="126" y="138" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="132" y="138" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="90" y="132" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="96" y="132" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="102" y="132" width="6" height="6" fill="rgb(193,180,107)"/>
+<rect x="108" y="132" width="6" height="6" fill="rgb(193,180,107)"/>
+<rect x="114" y="132" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="120" y="132" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="126" y="132" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="132" y="132" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="90" y="126" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="96" y="126" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="102" y="126" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="108" y="126" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="114" y="126" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="120" y="126" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="126" y="126" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="90" y="120" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="96" y="120" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="102" y="120" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="108" y="120" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="114" y="120" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="120" y="120" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="126" y="120" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="132" y="120" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="96,120 96,114 90,120" fill="rgb(175,167,111)"/>
+<rect x="96" y="114" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="102" y="114" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="108" y="114" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="114" y="114" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="120" y="114" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="126" y="114" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="132,120 138,120 132,114" fill="rgb(175,167,111)"/>
+<polygon points="102,114 102,108 96,114" fill="rgb(175,167,111)"/>
+<rect x="102" y="108" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="108" y="108" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="120" y="108" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="126,114 132,114 126,108" fill="rgb(175,167,111)"/>
+<polygon points="102,60 96,60 102,66" fill="rgb(175,167,111)"/>
+<rect x="102" y="60" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="108" y="60" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="120" y="60" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="126,60 126,66 132,60" fill="rgb(175,167,111)"/>
+<polygon points="96,54 90,54 96,60" fill="rgb(175,167,111)"/>
+<rect x="96" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="102" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="108" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="114" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="120" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="126" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="132,54 132,60 138,54" fill="rgb(175,167,111)"/>
+<rect x="90" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="96" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="102" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="108" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="114" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="120" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="126" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="132" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="90" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="96" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="102" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="108" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="114" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="120" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="126" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="132" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="96" y="36" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="102" y="36" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="108" y="36" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="114" y="36" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="120" y="36" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="126" y="36" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="90" y="30" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="96" y="30" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="102" y="30" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="108" y="30" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="114" y="30" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="120" y="30" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="126" y="30" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="132" y="30" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="96,30 96,24 90,30" fill="rgb(175,167,111)"/>
+<rect x="96" y="24" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="102" y="24" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="108" y="24" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="114" y="24" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="120" y="24" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="126" y="24" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="132,30 138,30 132,24" fill="rgb(175,167,111)"/>
+<polygon points="102,24 102,18 96,24" fill="rgb(175,167,111)"/>
+<rect x="102" y="18" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="108" y="18" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="114" y="18" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="120" y="18" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="126,24 132,24 126,18" fill="rgb(175,167,111)"/>
+<polygon points="282,150 276,150 282,156" fill="rgb(175,167,111)"/>
+<rect x="282" y="150" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="288" y="150" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="294" y="150" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="300" y="150" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="306,150 306,156 312,150" fill="rgb(175,167,111)"/>
+<polygon points="276,144 270,144 276,150" fill="rgb(175,167,111)"/>
+<rect x="276" y="144" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="282" y="144" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="288" y="144" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="294" y="144" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="300" y="144" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="306" y="144" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="312,144 312,150 318,144" fill="rgb(175,167,111)"/>
+<rect x="270" y="138" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="276" y="138" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="282" y="138" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="288" y="138" width="6" height="6" fill="rgb(202,187,104)"/>
+<rect x="294" y="138" width="6" height="6" fill="rgb(202,187,104)"/>
+<rect x="300" y="138" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="306" y="138" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="312" y="138" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="270" y="132" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="276" y="132" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="282" y="132" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="288" y="132" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="294" y="132" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="300" y="132" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="306" y="132" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="312" y="132" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="276" y="126" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="282" y="126" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="288" y="126" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="294" y="126" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="300" y="126" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="306" y="126" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="312" y="126" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="270" y="120" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="276" y="120" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="282" y="120" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="288" y="120" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="294" y="120" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="300" y="120" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="306" y="120" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="312" y="120" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="276,120 276,114 270,120" fill="rgb(175,167,111)"/>
+<rect x="276" y="114" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="282" y="114" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="288" y="114" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="294" y="114" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="300" y="114" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="306" y="114" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="312,120 318,120 312,114" fill="rgb(175,167,111)"/>
+<polygon points="282,114 282,108 276,114" fill="rgb(175,167,111)"/>
+<rect x="282" y="108" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="288" y="108" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="294" y="108" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="300" y="108" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="306,114 312,114 306,108" fill="rgb(175,167,111)"/>
+<polygon points="30,60 24,60 30,66" fill="rgb(175,167,111)"/>
+<rect x="30" y="60" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="36" y="60" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="42" y="60" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="48" y="60" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="54,60 54,66 60,60" fill="rgb(175,167,111)"/>
+<polygon points="24,54 18,54 24,60" fill="rgb(175,167,111)"/>
+<rect x="24" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="30" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="36" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="42" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="48" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="54" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="60,54 60,60 66,54" fill="rgb(175,167,111)"/>
+<rect x="18" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="24" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
 <rect x="30" y="48" width="6" height="6" fill="rgb(220,200,100)"/>
 <rect x="36" y="48" width="6" height="6" fill="rgb(220,200,100)"/>
-<rect x="42" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="48" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="54" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="60" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="18" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="24" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="30" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="36" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="42" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="48" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="54" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="60" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="18" y="36" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="24" y="36" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="30" y="36" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="36" y="36" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="42" y="36" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="48" y="36" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="54" y="36" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="18" y="30" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="24" y="30" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="30" y="30" width="6" height="6" fill="rgb(182,172,110)"/>
+<rect x="42" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="48" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="54" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="60" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="18" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="24" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="30" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="36" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="42" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="48" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="54" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="60" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="18" y="36" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="24" y="36" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="30" y="36" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="36" y="36" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="42" y="36" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="48" y="36" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="54" y="36" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="18" y="30" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="24" y="30" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="30" y="30" width="6" height="6" fill="rgb(220,200,100)"/>
 <rect x="36" y="30" width="6" height="6" fill="rgb(220,200,100)"/>
-<rect x="42" y="30" width="6" height="6" fill="rgb(220,200,100)"/>
-<rect x="48" y="30" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="54" y="30" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="60" y="30" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="24,30 24,24 18,30" fill="rgb(182,172,110)"/>
-<rect x="24" y="24" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="30" y="24" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="36" y="24" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="42" y="24" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="48" y="24" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="54" y="24" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="60,30 66,30 60,24" fill="rgb(182,172,110)"/>
-<polygon points="30,24 30,18 24,24" fill="rgb(182,172,110)"/>
-<rect x="30" y="18" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="36" y="18" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="42" y="18" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="48" y="18" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="54,24 60,24 54,18" fill="rgb(182,172,110)"/>
-<polygon points="300,60 294,60 300,66" fill="rgb(182,172,110)"/>
-<rect x="300" y="60" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="306" y="60" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="312" y="60" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="318" y="60" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="324,60 324,66 330,60" fill="rgb(182,172,110)"/>
-<polygon points="294,54 288,54 294,60" fill="rgb(182,172,110)"/>
-<rect x="294" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="300" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="306" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="312" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="318" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="324" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="330,54 330,60 336,54" fill="rgb(182,172,110)"/>
-<rect x="288" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="294" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="300" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="306" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="312" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="318" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="324" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="330" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="288" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="294" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="300" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="306" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="312" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="318" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="324" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="330" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="288" y="36" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="294" y="36" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="300" y="36" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="306" y="36" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="312" y="36" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="318" y="36" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="324" y="36" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="330" y="36" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="288" y="30" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="294" y="30" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="300" y="30" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="306" y="30" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="312" y="30" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="318" y="30" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="324" y="30" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="330" y="30" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="294,30 294,24 288,30" fill="rgb(182,172,110)"/>
-<rect x="294" y="24" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="300" y="24" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="306" y="24" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="312" y="24" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="318" y="24" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="324" y="24" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="330,30 336,30 330,24" fill="rgb(182,172,110)"/>
-<polygon points="300,24 300,18 294,24" fill="rgb(182,172,110)"/>
-<rect x="300" y="18" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="306" y="18" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="312" y="18" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="318" y="18" width="6" height="6" fill="rgb(182,172,110)"/>
-<polygon points="324,24 330,24 324,18" fill="rgb(182,172,110)"/>
-<rect x="186" y="72" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="192" y="72" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="198" y="72" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="186" y="66" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="192" y="66" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="198" y="66" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="186" y="78" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="192" y="78" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="198" y="78" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="186" y="84" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="192" y="84" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="198" y="84" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="186" y="174" width="6" height="6" fill="rgb(191,179,107)"/>
-<rect x="192" y="174" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="198" y="174" width="6" height="6" fill="rgb(191,179,107)"/>
-<rect x="186" y="168" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="192" y="168" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="198" y="168" width="6" height="6" fill="rgb(191,179,107)"/>
-<rect x="186" y="180" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="192" y="180" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="198" y="180" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="186" y="186" width="6" height="6" fill="rgb(163,158,115)"/>
-<rect x="192" y="186" width="6" height="6" fill="rgb(163,158,115)"/>
-<rect x="198" y="186" width="6" height="6" fill="rgb(163,158,115)"/>
-<rect x="186" y="192" width="6" height="6" fill="rgb(145,145,120)"/>
-<rect x="192" y="192" width="6" height="6" fill="rgb(145,145,120)"/>
-<rect x="198" y="192" width="6" height="6" fill="rgb(145,145,120)"/>
-<rect x="186" y="198" width="6" height="6" fill="rgb(126,131,125)"/>
-<rect x="192" y="198" width="6" height="6" fill="rgb(126,131,125)"/>
-<rect x="198" y="198" width="6" height="6" fill="rgb(126,131,125)"/>
-<rect x="186" y="204" width="6" height="6" fill="rgb(107,117,130)"/>
-<rect x="192" y="204" width="6" height="6" fill="rgb(107,117,130)"/>
-<rect x="198" y="204" width="6" height="6" fill="rgb(107,117,130)"/>
-<rect x="186" y="210" width="6" height="6" fill="rgb(88,103,135)"/>
-<rect x="192" y="210" width="6" height="6" fill="rgb(88,103,135)"/>
-<rect x="198" y="210" width="6" height="6" fill="rgb(88,103,135)"/>
+<rect x="42" y="30" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="48" y="30" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="54" y="30" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="60" y="30" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="24,30 24,24 18,30" fill="rgb(175,167,111)"/>
+<rect x="24" y="24" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="30" y="24" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="36" y="24" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="42" y="24" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="48" y="24" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="54" y="24" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="60,30 66,30 60,24" fill="rgb(175,167,111)"/>
+<polygon points="30,24 30,18 24,24" fill="rgb(175,167,111)"/>
+<rect x="30" y="18" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="36" y="18" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="42" y="18" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="48" y="18" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="54,24 60,24 54,18" fill="rgb(175,167,111)"/>
+<polygon points="300,60 294,60 300,66" fill="rgb(175,167,111)"/>
+<rect x="300" y="60" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="306" y="60" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="312" y="60" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="318" y="60" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="324,60 324,66 330,60" fill="rgb(175,167,111)"/>
+<polygon points="294,54 288,54 294,60" fill="rgb(175,167,111)"/>
+<rect x="294" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="300" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="306" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="312" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="318" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="324" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="330,54 330,60 336,54" fill="rgb(175,167,111)"/>
+<rect x="288" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="294" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="300" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="306" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="312" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="318" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="324" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="330" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="288" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="294" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="300" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="306" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="312" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="318" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="324" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="330" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="288" y="36" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="294" y="36" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="300" y="36" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="306" y="36" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="312" y="36" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="318" y="36" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="324" y="36" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="330" y="36" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="288" y="30" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="294" y="30" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="300" y="30" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="306" y="30" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="312" y="30" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="318" y="30" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="324" y="30" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="330" y="30" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="294,30 294,24 288,30" fill="rgb(175,167,111)"/>
+<rect x="294" y="24" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="300" y="24" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="306" y="24" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="312" y="24" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="318" y="24" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="324" y="24" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="330,30 336,30 330,24" fill="rgb(175,167,111)"/>
+<polygon points="300,24 300,18 294,24" fill="rgb(175,167,111)"/>
+<rect x="300" y="18" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="306" y="18" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="312" y="18" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="318" y="18" width="6" height="6" fill="rgb(175,167,111)"/>
+<polygon points="324,24 330,24 324,18" fill="rgb(175,167,111)"/>
+<rect x="186" y="72" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="192" y="72" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="198" y="72" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="186" y="66" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="192" y="66" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="198" y="66" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="186" y="78" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="192" y="78" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="198" y="78" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="186" y="84" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="192" y="84" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="198" y="84" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="186" y="174" width="6" height="6" fill="rgb(184,174,109)"/>
+<rect x="192" y="174" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="198" y="174" width="6" height="6" fill="rgb(184,174,109)"/>
+<rect x="186" y="168" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="192" y="168" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="198" y="168" width="6" height="6" fill="rgb(184,174,109)"/>
+<rect x="186" y="180" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="192" y="180" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="198" y="180" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="186" y="186" width="6" height="6" fill="rgb(158,154,116)"/>
+<rect x="192" y="186" width="6" height="6" fill="rgb(158,154,116)"/>
+<rect x="198" y="186" width="6" height="6" fill="rgb(158,154,116)"/>
+<rect x="186" y="192" width="6" height="6" fill="rgb(140,141,121)"/>
+<rect x="192" y="192" width="6" height="6" fill="rgb(140,141,121)"/>
+<rect x="198" y="192" width="6" height="6" fill="rgb(140,141,121)"/>
+<rect x="186" y="198" width="6" height="6" fill="rgb(122,128,125)"/>
+<rect x="192" y="198" width="6" height="6" fill="rgb(122,128,125)"/>
+<rect x="198" y="198" width="6" height="6" fill="rgb(122,128,125)"/>
+<rect x="186" y="204" width="6" height="6" fill="rgb(105,115,130)"/>
+<rect x="192" y="204" width="6" height="6" fill="rgb(105,115,130)"/>
+<rect x="198" y="204" width="6" height="6" fill="rgb(105,115,130)"/>
+<rect x="186" y="210" width="6" height="6" fill="rgb(87,102,135)"/>
+<rect x="192" y="210" width="6" height="6" fill="rgb(87,102,135)"/>
+<rect x="198" y="210" width="6" height="6" fill="rgb(87,102,135)"/>
 <rect x="186" y="216" width="6" height="6" fill="rgb(70,90,140)"/>
 <rect x="192" y="216" width="6" height="6" fill="rgb(70,90,140)"/>
 <rect x="198" y="216" width="6" height="6" fill="rgb(70,90,140)"/>
-<rect x="186" y="222" width="6" height="6" fill="rgb(79,96,137)"/>
+<rect x="186" y="222" width="6" height="6" fill="rgb(78,96,137)"/>
 <rect x="192" y="222" width="6" height="6" fill="rgb(70,90,140)"/>
-<rect x="198" y="222" width="6" height="6" fill="rgb(79,96,137)"/>
-<rect x="186" y="228" width="6" height="6" fill="rgb(79,96,137)"/>
+<rect x="198" y="222" width="6" height="6" fill="rgb(78,96,137)"/>
+<rect x="186" y="228" width="6" height="6" fill="rgb(78,96,137)"/>
 <rect x="192" y="228" width="6" height="6" fill="rgb(70,90,140)"/>
-<rect x="198" y="228" width="6" height="6" fill="rgb(79,96,137)"/>
+<rect x="198" y="228" width="6" height="6" fill="rgb(78,96,137)"/>
 <rect x="186" y="234" width="6" height="6" fill="rgb(70,90,140)"/>
 <rect x="192" y="234" width="6" height="6" fill="rgb(70,90,140)"/>
-<rect x="198" y="234" width="6" height="6" fill="rgb(79,96,137)"/>
-<rect x="156" y="144" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="162" y="144" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="156" y="138" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="162" y="138" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="156" y="132" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="162" y="132" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="150" y="144" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="150" y="138" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="150" y="132" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="144" y="144" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="144" y="138" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="144" y="132" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="138" y="144" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="138" y="138" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="138" y="132" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="168" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="174" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="168" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="174" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="168" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="174" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="162" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="162" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="162" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="156" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="156" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="156" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="150" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="150" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="150" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="144" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="144" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="144" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="138" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="138" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="138" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="246" y="144" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="252" y="144" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="246" y="138" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="252" y="138" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="246" y="132" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="252" y="132" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="258" y="144" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="258" y="138" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="258" y="132" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="264" y="144" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="264" y="138" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="264" y="132" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="78" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="84" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="78" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="84" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="78" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="84" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="72" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="72" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="72" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="66" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="66" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="66" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="228" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="234" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="228" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="234" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="228" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="234" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="240" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="240" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="240" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="246" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="246" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="246" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="252" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="252" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="252" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="258" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="258" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="258" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="264" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="264" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="264" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="270" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="270" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="270" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="276" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="276" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="276" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="282" y="54" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="282" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="282" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="96" y="102" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="102" y="102" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="108" y="102" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="96" y="96" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="102" y="96" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="108" y="96" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="96" y="90" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="102" y="90" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="108" y="90" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="96" y="84" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="102" y="84" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="108" y="84" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="96" y="78" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="102" y="78" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="108" y="78" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="96" y="72" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="102" y="72" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="108" y="72" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="96" y="66" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="102" y="66" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="108" y="66" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="198" y="12" width="6" height="6" fill="rgb(201,186,105)"/>
-<rect x="204" y="12" width="6" height="6" fill="rgb(201,186,105)"/>
+<rect x="198" y="234" width="6" height="6" fill="rgb(78,96,137)"/>
+<rect x="156" y="144" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="162" y="144" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="156" y="138" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="162" y="138" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="156" y="132" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="162" y="132" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="150" y="144" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="150" y="138" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="150" y="132" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="144" y="144" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="144" y="138" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="144" y="132" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="138" y="144" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="138" y="138" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="138" y="132" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="168" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="174" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="168" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="174" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="168" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="174" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="162" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="162" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="162" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="156" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="156" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="156" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="150" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="150" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="150" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="144" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="144" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="144" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="138" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="138" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="138" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="246" y="144" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="252" y="144" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="246" y="138" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="252" y="138" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="246" y="132" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="252" y="132" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="258" y="144" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="258" y="138" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="258" y="132" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="264" y="144" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="264" y="138" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="264" y="132" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="78" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="84" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="78" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="84" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="78" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="84" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="72" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="72" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="72" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="66" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="66" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="66" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="228" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="234" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="228" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="234" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="228" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="234" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="240" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="240" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="240" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="246" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="246" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="246" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="252" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="252" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="252" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="258" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="258" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="258" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="264" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="264" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="264" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="270" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="270" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="270" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="276" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="276" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="276" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="282" y="54" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="282" y="48" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="282" y="42" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="96" y="102" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="102" y="102" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="108" y="102" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="96" y="96" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="102" y="96" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="108" y="96" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="96" y="90" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="102" y="90" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="108" y="90" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="96" y="84" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="102" y="84" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="108" y="84" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="96" y="78" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="102" y="78" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="108" y="78" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="96" y="72" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="102" y="72" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="108" y="72" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="96" y="66" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="102" y="66" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="108" y="66" width="6" height="6" fill="rgb(175,167,111)"/>
+<rect x="198" y="12" width="6" height="6" fill="rgb(193,180,107)"/>
+<rect x="204" y="12" width="6" height="6" fill="rgb(193,180,107)"/>
 <rect x="240" y="276" width="6" height="6" fill="rgb(70,90,140)"/>
 <rect x="240" y="270" width="6" height="6" fill="rgb(70,90,140)"/>
 <rect x="240" y="264" width="6" height="6" fill="rgb(70,90,140)"/>
-<rect x="198" y="306" width="6" height="6" fill="rgb(88,103,135)"/>
-<rect x="210" y="306" width="6" height="6" fill="rgb(88,103,135)"/>
-<rect x="216" y="306" width="6" height="6" fill="rgb(88,103,135)"/>
-<rect x="114" y="156" width="6" height="6" fill="rgb(201,186,105)"/>
-<rect x="108" y="12" width="6" height="6" fill="rgb(201,186,105)"/>
-<rect x="114" y="12" width="6" height="6" fill="rgb(201,186,105)"/>
-<rect x="288" y="156" width="6" height="6" fill="rgb(201,186,105)"/>
-<rect x="294" y="156" width="6" height="6" fill="rgb(201,186,105)"/>
-<rect x="288" y="102" width="6" height="6" fill="rgb(201,186,105)"/>
-<rect x="294" y="102" width="6" height="6" fill="rgb(201,186,105)"/>
-<rect x="12" y="48" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="12" y="42" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="12" y="36" width="6" height="6" fill="rgb(182,172,110)"/>
-<rect x="36" y="66" width="6" height="6" fill="rgb(201,186,105)"/>
-<rect x="42" y="66" width="6" height="6" fill="rgb(201,186,105)"/>
-<rect x="36" y="12" width="6" height="6" fill="rgb(201,186,105)"/>
-<rect x="42" y="12" width="6" height="6" fill="rgb(201,186,105)"/>
+<rect x="198" y="306" width="6" height="6" fill="rgb(87,102,135)"/>
+<rect x="210" y="306" width="6" height="6" fill="rgb(87,102,135)"/>
+<rect x="216" y="306" width="6" height="6" fill="rgb(87,102,135)"/>
 <rect x="180" y="18" width="48" height="48" fill="none" stroke="#ffffff55" stroke-width="1"/>
 <rect x="168" y="90" width="78" height="78" fill="none" stroke="#ffffff55" stroke-width="1"/>
 <rect x="174" y="240" width="66" height="66" fill="none" stroke="#ffffff55" stroke-width="1"/>
@@ -793,7 +777,7 @@
 <rect x="18" y="18" width="48" height="48" fill="none" stroke="#ffffff55" stroke-width="1"/>
 <rect x="288" y="18" width="48" height="48" fill="none" stroke="#ffffff55" stroke-width="1"/>
 <circle cx="201" cy="45" r="5.4" fill="#4cff7a" stroke="#000" stroke-width="1"/>
-<circle cx="204" cy="276" r="5.4" fill="#ffd84c" stroke="#000" stroke-width="1"/>
+<circle cx="222" cy="276" r="5.4" fill="#ffd84c" stroke="#000" stroke-width="1"/>
 <circle cx="105" cy="141" r="5.4" fill="#ff5a5a" stroke="#000" stroke-width="1"/>
 <circle cx="195" cy="225" r="5.4" fill="#ff8a3c" stroke="#000" stroke-width="1"/>
 <circle cx="249" cy="51" r="5.4" fill="#b48cff" stroke="#000" stroke-width="1"/>
